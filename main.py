@@ -35,6 +35,10 @@ SERVERS = {
 countries_cache = {}
 CACHE_TTL = 900
 
+# ==================== CACHE DES RANKS ====================
+user_rank_cache = {}
+USER_RANK_TTL = 60  # 1 minute
+
 # ==================== SERVEUR WEB POUR KEEP-ALIVE ====================
 
 async def handle_health(request):
@@ -155,6 +159,40 @@ async def get_online_players(server: str):
         except Exception:
             return []
 
+# ==================== CACHE DES RANKS ====================
+
+async def get_user_rank(username: str, server: str):
+    """Récupère le rank d'un joueur sur un serveur (avec cache)"""
+    now = time.time()
+    cache_key = f"{username}:{server}"
+
+    if cache_key in user_rank_cache:
+        rank, ts = user_rank_cache[cache_key]
+        if now - ts < USER_RANK_TTL:
+            return rank
+
+    url = f"https://publicapi.nationsglory.fr/user/{username}"
+    headers = {
+        "Authorization": f"Bearer {NG_API_KEY}",
+        "accept": "application/json"
+    }
+
+    timeout = aiohttp.ClientTimeout(total=5)
+
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        try:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    server_data = data.get("servers", {}).get(server, {})
+                    rank = server_data.get("country_rank")
+                    user_rank_cache[cache_key] = (rank, now)
+                    return rank
+        except Exception as e:
+            print(f"[RANK] Erreur {username}: {e}")
+
+    return None
+
 # ==================== AUTOCOMPLETIONS ====================
 
 async def server_autocomplete(interaction: discord.Interaction, current: str):
@@ -243,7 +281,75 @@ async def check_command(interaction: discord.Interaction, server: str, country: 
     
     await interaction.followup.send(embed=embed)
 
-# ... (toutes vos autres commandes: online, debug, ping, servers, clearcache) ...
+# ==================== COMMANDE ASSAUT ====================
+
+@tree.command(
+    name="assaut",
+    description="Surveille un pays et notifie quand un assaut est possible"
+)
+@app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
+async def assaut_command(interaction: discord.Interaction, server: str, country: str):
+    await interaction.response.defer()
+
+    if server not in SERVERS:
+        await interaction.followup.send("❌ Serveur invalide")
+        return
+
+    members, country_name = await get_country_members(server, country)
+    if not members:
+        await interaction.followup.send("❌ Pays introuvable")
+        return
+
+    channel = client.get_channel(1465336287471861771)
+    if not channel:
+        await interaction.followup.send("❌ Canal introuvable")
+        return
+
+    await interaction.followup.send(
+        f"🔍 Surveillance activée pour **{country_name}** sur **{server.upper()}**"
+    )
+
+    assaut_possible = False
+
+    while True:
+        online_players = await get_online_players(server)
+        connected = [m for m in members if m in online_players]
+
+        if len(connected) >= 2:
+            ranks = {}
+            for player in connected:
+                rank = await get_user_rank(player, server)
+                ranks[player] = rank
+
+            recruits = [p for p, r in ranks.items() if r == "recruit"]
+            valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
+
+            possible = False
+            if not recruits:
+                possible = True
+            elif valids:
+                possible = True
+
+            if possible and not assaut_possible:
+                await channel.send(
+                    f"⚔️ @everyone **ASSAUT POSSIBLE** sur **{country_name}** ({server.upper()})\n"
+                    f"👥 Connectés : {', '.join(connected)}"
+                )
+                assaut_possible = True
+
+            if not possible and assaut_possible:
+                await channel.send(
+                    f"ℹ️ Assaut **plus possible** sur **{country_name}** ({server.upper()})"
+                )
+                assaut_possible = False
+        else:
+            if assaut_possible:
+                await channel.send(
+                    f"ℹ️ Assaut **plus possible** sur **{country_name}** ({server.upper()})"
+                )
+                assaut_possible = False
+
+        await asyncio.sleep(2)
 
 # ==================== LANCEMENT ====================
 
