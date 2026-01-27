@@ -127,6 +127,10 @@ async def country_autocomplete(interaction: discord.Interaction, current: str):
     countries = await get_countries_list(server)
     return [app_commands.Choice(name=c, value=c) for c in countries if current.lower() in c.lower()][:25]
 
+async def action_autocomplete(interaction: discord.Interaction, current: str):
+    actions = ["start", "stop"]
+    return [app_commands.Choice(name=a.capitalize(), value=a) for a in actions if current.lower() in a.lower()]
+
 # ==================== COMMANDES ====================
 
 @tree.command(name="check", description="Espionne les membres d'un pays sur d'autres serveurs")
@@ -190,7 +194,11 @@ async def assaut_loop(server: str, country: str):
         await asyncio.sleep(2)
 
 @tree.command(name="assaut", description="Gérer la surveillance des assauts")
-@app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
+@app_commands.autocomplete(
+    server=server_autocomplete, 
+    country=country_autocomplete,
+    action=action_autocomplete
+)
 async def assaut_command(interaction: discord.Interaction, server: str, country: str, action: str):
     await interaction.response.defer()
     if action.lower() not in ("start", "stop"):
@@ -205,6 +213,36 @@ async def assaut_command(interaction: discord.Interaction, server: str, country:
             await interaction.followup.send(f"🛑 Surveillance arrêtée pour {country} sur {server.upper()}")
         else:
             await interaction.followup.send("❌ Cette surveillance n'existe pas")
+
+@tree.command(name="assaut_list", description="Affiche toutes les surveillances actives")
+async def assaut_list_command(interaction: discord.Interaction):
+    await interaction.response.defer()
+    
+    if not surveillance or all(not countries for countries in surveillance.values()):
+        return await interaction.followup.send("ℹ️ Aucune surveillance active")
+    
+    embed = discord.Embed(
+        title="🔍 Surveillances actives",
+        color=discord.Color.blue()
+    )
+    
+    total = 0
+    for server, countries in surveillance.items():
+        if countries:
+            country_list = []
+            for country, data in countries.items():
+                status = "⚔️ ASSAUT POSSIBLE" if data["assaut_possible"] else "🛡️ Pas d'assaut"
+                country_list.append(f"• {country} - {status}")
+                total += 1
+            
+            embed.add_field(
+                name=f"{SERVERS[server]['emoji']} {server.upper()} ({len(countries)})",
+                value="\n".join(country_list),
+                inline=False
+            )
+    
+    embed.set_footer(text=f"Total: {total} surveillance(s)")
+    await interaction.followup.send(embed=embed)
 
 # ==================== SERVEUR WEB / SELF-PING ====================
 
