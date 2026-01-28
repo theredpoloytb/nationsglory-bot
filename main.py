@@ -188,14 +188,20 @@ async def check_command(interaction: discord.Interaction, server: str, country: 
 # ==================== ASSAUT START/STOP ====================
 
 async def assaut_loop(server: str, country: str):
+    members, country_name = await get_country_members(server, country)
+    channel = client.get_channel(ASSAUT_CHANNEL_ID)
+    
+    # Vérifier que tout est OK avant d'initialiser la surveillance
+    if not members or not channel:
+        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: membres={bool(members)}, channel={bool(channel)}")
+        return
+    
+    # Initialiser la surveillance APRÈS avoir vérifié que c'est possible
     if server not in surveillance:
         surveillance[server] = {}
     surveillance[server][country] = {"task": asyncio.current_task(), "assaut_possible": False}
     
-    members, country_name = await get_country_members(server, country)
-    channel = client.get_channel(ASSAUT_CHANNEL_ID)
-    if not members or not channel:
-        return
+    print(f"✅ Surveillance démarrée pour {country_name} ({len(members)} membres)")
     
     try:
         while True:
@@ -206,7 +212,8 @@ async def assaut_loop(server: str, country: str):
                 ranks = {p: await get_user_rank(p, server) for p in connected}
                 recruits = [p for p, r in ranks.items() if r == "recruit"]
                 valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
-                if not recruits or valids:
+                # Assaut possible si: pas que des recruits OU au moins un membre valide
+                if (not recruits) or valids:
                     possible = True
             prev = surveillance[server][country]["assaut_possible"]
             if possible and not prev:
@@ -218,7 +225,15 @@ async def assaut_loop(server: str, country: str):
             await asyncio.sleep(2)
     except asyncio.CancelledError:
         # La tâche a été annulée (surveillance arrêtée)
-        pass
+        print(f"🛑 Surveillance annulée pour {country_name} sur {server}")
+    except Exception as e:
+        print(f"❌ Erreur dans assaut_loop pour {country} sur {server}: {e}")
+    finally:
+        # Nettoyer la surveillance si la tâche se termine
+        if server in surveillance and country in surveillance[server]:
+            del surveillance[server][country]
+            if not surveillance[server]:
+                del surveillance[server]
 
 @tree.command(name="assaut", description="Gérer la surveillance des assauts")
 @app_commands.autocomplete(
@@ -377,6 +392,8 @@ async def on_ready():
     
     if not country_info:
         print(f"❌ Impossible de récupérer les infos de {AUTO_SURVEILLANCE_COUNTRY}")
+        if channel:
+            await channel.send(f"❌ Impossible de récupérer les infos de {AUTO_SURVEILLANCE_COUNTRY}")
         return
     
     enemies = country_info.get("enemies", [])
@@ -389,22 +406,25 @@ async def on_ready():
     else:
         print(f"⚔️ Ennemis trouvés: {', '.join(enemies)}")
         
-        started = 0
+        started = []
         failed = []
         for enemy in enemies:
             # Vérifier que le pays ennemi existe et a des membres
             members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
             if members:
+                # Créer la tâche et attendre un peu pour s'assurer qu'elle démarre
                 asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
-                started += 1
+                await asyncio.sleep(0.5)  # Petit délai pour laisser la tâche s'initialiser
+                started.append(country_name or enemy)
                 print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
             else:
                 failed.append(enemy)
                 print(f"⚠️ Pays {enemy} introuvable ou sans membres")
         
         if channel:
-            msg = f"🤖 Bot démarré - {started}/{len(enemies)} surveillance(s) activée(s)\n"
-            msg += f"📍 Pays surveillés: {', '.join([e for e in enemies if e not in failed])}"
+            msg = f"🤖 Bot démarré - {len(started)}/{len(enemies)} surveillance(s) activée(s)\n"
+            if started:
+                msg += f"📍 Pays surveillés: {', '.join(started)}"
             if failed:
                 msg += f"\n⚠️ Pays ignorés: {', '.join(failed)}"
             await channel.send(msg)
