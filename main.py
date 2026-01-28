@@ -95,10 +95,10 @@ async def get_country_info(server: str, country: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                if resp.status == 200:
+                if resp.status in (200, 500):  # L'API peut renvoyer 500 même quand ça marche
                     return await resp.json()
-        except:
-            pass
+        except Exception as e:
+            print(f"❌ Erreur get_country_info({server}, {country}): {e}")
     return None
 
 async def get_online_players(server: str):
