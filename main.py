@@ -41,11 +41,12 @@ USER_RANK_TTL = 60
 surveillance = {}  # {server: {country: {"task": asyncio.Task, "assaut_possible": bool}}}
 ASSAUT_CHANNEL_ID = 1465336287471861771
 
-# Pays à surveiller par défaut au démarrage
-DEFAULT_SURVEILLANCES = [
-    {"server": "lime", "country": "coreedunord"},
-    {"server": "lime", "country": "slovaquie"}
-]
+# Configuration de la surveillance automatique
+AUTO_SURVEILLANCE_SERVER = "lime"
+AUTO_SURVEILLANCE_COUNTRY = "tasmanie"  # Le pays dont on surveille les ennemis
+AUTO_UPDATE_INTERVAL = 5  # Mise à jour des ennemis toutes les 5 secondes
+
+current_enemies = set()  # Pour tracker les ennemis actuels
 
 # ==================== FONCTIONS ====================
 
@@ -85,6 +86,20 @@ async def get_country_members(server: str, country: str):
         except:
             pass
     return None, None
+
+async def get_country_info(server: str, country: str):
+    """Récupère toutes les infos d'un pays incluant les ennemis"""
+    url = f"https://publicapi.nationsglory.fr/country/{server}/{country}"
+    headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        try:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+        except:
+            pass
+    return None
 
 async def get_online_players(server: str):
     url = SERVERS[server]["url"]
@@ -266,6 +281,53 @@ async def assaut_list_command(interaction: discord.Interaction):
 
 # ==================== SERVEUR WEB / SELF-PING ====================
 
+async def update_enemies_surveillance():
+    """Met à jour automatiquement les surveillances en fonction des ennemis"""
+    global current_enemies
+    channel = client.get_channel(ASSAUT_CHANNEL_ID)
+    
+    await asyncio.sleep(10)  # Attendre que le bot soit bien démarré
+    
+    while True:
+        try:
+            # Récupérer les ennemis actuels
+            country_info = await get_country_info(AUTO_SURVEILLANCE_SERVER, AUTO_SURVEILLANCE_COUNTRY)
+            
+            if country_info:
+                new_enemies = set(country_info.get("enemies", []))
+                
+                # Nouveaux ennemis à ajouter
+                to_add = new_enemies - current_enemies
+                for enemy in to_add:
+                    # Vérifier que le pays existe
+                    members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
+                    if members:
+                        # Vérifier qu'on ne surveille pas déjà ce pays
+                        if not surveillance.get(AUTO_SURVEILLANCE_SERVER, {}).get(enemy):
+                            asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
+                            print(f"➕ Nouveau pays surveillé: {country_name}")
+                            if channel:
+                                await channel.send(f"➕ Nouvelle guerre détectée ! Surveillance activée pour **{country_name}**")
+                
+                # Ennemis à retirer (paix signée)
+                to_remove = current_enemies - new_enemies
+                for enemy in to_remove:
+                    if surveillance.get(AUTO_SURVEILLANCE_SERVER, {}).get(enemy):
+                        surveillance[AUTO_SURVEILLANCE_SERVER][enemy]["task"].cancel()
+                        del surveillance[AUTO_SURVEILLANCE_SERVER][enemy]
+                        if not surveillance[AUTO_SURVEILLANCE_SERVER]:
+                            del surveillance[AUTO_SURVEILLANCE_SERVER]
+                        print(f"➖ Pays retiré: {enemy} (paix signée)")
+                        if channel:
+                            await channel.send(f"🕊️ Paix signée avec **{enemy}** - Surveillance arrêtée")
+                
+                current_enemies = new_enemies
+                
+        except Exception as e:
+            print(f"❌ Erreur update enemies: {e}")
+        
+        await asyncio.sleep(AUTO_UPDATE_INTERVAL)
+
 async def handle_health(request):
     return web.Response(text="Bot actif! ✅")
 
@@ -303,27 +365,53 @@ async def main():
 
 @client.event
 async def on_ready():
+    global current_enemies
     await tree.sync()
     print(f"✅ Bot connecté en tant que {client.user}")
     
-    # Démarrer les surveillances par défaut
+    # Récupérer les ennemis de la Tasmanie et les surveiller
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
-    started = 0
-    for surv in DEFAULT_SURVEILLANCES:
-        server = surv["server"]
-        country = surv["country"]
-        
-        # Vérifier que le pays existe
-        members, country_name = await get_country_members(server, country)
-        if members:
-            asyncio.create_task(assaut_loop(server, country))
-            started += 1
-            print(f"🔍 Surveillance démarrée: {country} sur {server.upper()}")
-        else:
-            print(f"⚠️ Pays {country} introuvable sur {server.upper()}")
     
-    if started > 0 and channel:
-        await channel.send(f"🤖 Bot démarré - {started} surveillance(s) activée(s)")
+    print(f"🔍 Récupération des ennemis de {AUTO_SURVEILLANCE_COUNTRY} sur {AUTO_SURVEILLANCE_SERVER.upper()}...")
+    country_info = await get_country_info(AUTO_SURVEILLANCE_SERVER, AUTO_SURVEILLANCE_COUNTRY)
+    
+    if not country_info:
+        print(f"❌ Impossible de récupérer les infos de {AUTO_SURVEILLANCE_COUNTRY}")
+        return
+    
+    enemies = country_info.get("enemies", [])
+    current_enemies = set(enemies)  # Initialiser la liste des ennemis actuels
+    
+    if not enemies:
+        print(f"ℹ️ Aucun ennemi trouvé pour {AUTO_SURVEILLANCE_COUNTRY}")
+        if channel:
+            await channel.send(f"🤖 Bot démarré - Aucun pays en guerre avec {country_info.get('name', AUTO_SURVEILLANCE_COUNTRY)}")
+    else:
+        print(f"⚔️ Ennemis trouvés: {', '.join(enemies)}")
+        
+        started = 0
+        failed = []
+        for enemy in enemies:
+            # Vérifier que le pays ennemi existe et a des membres
+            members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
+            if members:
+                asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
+                started += 1
+                print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
+            else:
+                failed.append(enemy)
+                print(f"⚠️ Pays {enemy} introuvable ou sans membres")
+        
+        if channel:
+            msg = f"🤖 Bot démarré - {started}/{len(enemies)} surveillance(s) activée(s)\n"
+            msg += f"📍 Pays surveillés: {', '.join([e for e in enemies if e not in failed])}"
+            if failed:
+                msg += f"\n⚠️ Pays ignorés: {', '.join(failed)}"
+            await channel.send(msg)
+    
+    # Lancer la tâche de mise à jour automatique
+    asyncio.create_task(update_enemies_surveillance())
+    print(f"🔄 Mise à jour automatique activée (toutes les {AUTO_UPDATE_INTERVAL}s)")
 
 if __name__ == "__main__":
     asyncio.run(main())
