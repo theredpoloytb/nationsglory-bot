@@ -39,7 +39,13 @@ USER_RANK_TTL = 60
 # ==================== SURVEILLANCE DES ASSAUTS ====================
 
 surveillance = {}  # {server: {country: {"task": asyncio.Task, "assaut_possible": bool}}}
-ASSAUT_CHANNEL_ID = 1465336287471861771  # À remplacer par ton channel
+ASSAUT_CHANNEL_ID = 1465336287471861771
+
+# Pays à surveiller par défaut au démarrage
+DEFAULT_SURVEILLANCES = [
+    {"server": "lime", "country": "coreedunord"},
+    {"server": "lime", "country": "slovaquie"}
+]
 
 # ==================== FONCTIONS ====================
 
@@ -170,28 +176,34 @@ async def assaut_loop(server: str, country: str):
     if server not in surveillance:
         surveillance[server] = {}
     surveillance[server][country] = {"task": asyncio.current_task(), "assaut_possible": False}
+    
     members, country_name = await get_country_members(server, country)
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
     if not members or not channel:
         return
-    while True:
-        online = await get_online_players(server)
-        connected = [m for m in members if m in online]
-        possible = False
-        if len(connected) >= 2:
-            ranks = {p: await get_user_rank(p, server) for p in connected}
-            recruits = [p for p, r in ranks.items() if r == "recruit"]
-            valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
-            if not recruits or valids:
-                possible = True
-        prev = surveillance[server][country]["assaut_possible"]
-        if possible and not prev:
-            await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
-            surveillance[server][country]["assaut_possible"] = True
-        elif not possible and prev:
-            await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
-            surveillance[server][country]["assaut_possible"] = False
-        await asyncio.sleep(2)
+    
+    try:
+        while True:
+            online = await get_online_players(server)
+            connected = [m for m in members if m in online]
+            possible = False
+            if len(connected) >= 2:
+                ranks = {p: await get_user_rank(p, server) for p in connected}
+                recruits = [p for p, r in ranks.items() if r == "recruit"]
+                valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
+                if not recruits or valids:
+                    possible = True
+            prev = surveillance[server][country]["assaut_possible"]
+            if possible and not prev:
+                await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
+                surveillance[server][country]["assaut_possible"] = True
+            elif not possible and prev:
+                await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
+                surveillance[server][country]["assaut_possible"] = False
+            await asyncio.sleep(2)
+    except asyncio.CancelledError:
+        # La tâche a été annulée (surveillance arrêtée)
+        pass
 
 @tree.command(name="assaut", description="Gérer la surveillance des assauts")
 @app_commands.autocomplete(
@@ -203,13 +215,21 @@ async def assaut_command(interaction: discord.Interaction, server: str, country:
     await interaction.response.defer()
     if action.lower() not in ("start", "stop"):
         return await interaction.followup.send("❌ Action invalide: start ou stop")
+    
     if action.lower() == "start":
+        # Vérifier si déjà actif
+        if surveillance.get(server, {}).get(country):
+            return await interaction.followup.send(f"⚠️ Surveillance déjà active pour {country} sur {server.upper()}")
+        
         task = asyncio.create_task(assaut_loop(server, country))
         await interaction.followup.send(f"🔍 Surveillance activée pour {country} sur {server.upper()}")
     else:
         if surveillance.get(server, {}).get(country):
             surveillance[server][country]["task"].cancel()
             del surveillance[server][country]
+            if not surveillance[server]:
+                del surveillance[server]
+            
             await interaction.followup.send(f"🛑 Surveillance arrêtée pour {country} sur {server.upper()}")
         else:
             await interaction.followup.send("❌ Cette surveillance n'existe pas")
@@ -285,6 +305,25 @@ async def main():
 async def on_ready():
     await tree.sync()
     print(f"✅ Bot connecté en tant que {client.user}")
+    
+    # Démarrer les surveillances par défaut
+    channel = client.get_channel(ASSAUT_CHANNEL_ID)
+    started = 0
+    for surv in DEFAULT_SURVEILLANCES:
+        server = surv["server"]
+        country = surv["country"]
+        
+        # Vérifier que le pays existe
+        members, country_name = await get_country_members(server, country)
+        if members:
+            asyncio.create_task(assaut_loop(server, country))
+            started += 1
+            print(f"🔍 Surveillance démarrée: {country} sur {server.upper()}")
+        else:
+            print(f"⚠️ Pays {country} introuvable sur {server.upper()}")
+    
+    if started > 0 and channel:
+        await channel.send(f"🤖 Bot démarré - {started} surveillance(s) activée(s)")
 
 if __name__ == "__main__":
     asyncio.run(main())
