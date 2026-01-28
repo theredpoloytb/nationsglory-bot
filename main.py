@@ -79,12 +79,13 @@ async def get_country_members(server: str, country: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                data = await resp.json()
-                if "members" in data and data["members"]:
-                    members = [m.lstrip("*+-") for m in data.get("members", [])]
-                    return members, data.get("name", country)
-        except:
-            pass
+                if resp.status in (200, 500):  # L'API peut renvoyer 500 même quand ça marche
+                    data = await resp.json()
+                    if "members" in data and data["members"]:
+                        members = [m.lstrip("*+-") for m in data.get("members", [])]
+                        return members, data.get("name", country)
+        except Exception as e:
+            print(f"❌ Erreur get_country_members({server}, {country}): {e}")
     return None, None
 
 async def get_country_info(server: str, country: str):
