@@ -41,7 +41,7 @@ ASSAUT_CHANNEL_ID = 1465336287471861771
 # Configuration de la surveillance automatique
 AUTO_SURVEILLANCE_SERVER = "lime"
 AUTO_SURVEILLANCE_COUNTRY = "tasmanie"  # Le pays dont on surveille les ennemis
-AUTO_UPDATE_INTERVAL = 30  # Mise à jour des ennemis toutes les 30 secondes (au lieu de 5)
+AUTO_UPDATE_INTERVAL = 30  # Mise à jour des ennemis toutes les 30 secondes
 
 current_enemies = set()  # Pour tracker les ennemis actuels
 
@@ -459,7 +459,7 @@ async def on_ready():
                 asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, country_to_watch))
                 await asyncio.sleep(0.5)  # Petit délai pour laisser la tâche s'initialiser
                 started.append(country_name or country_to_watch)
-                print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
+                print(f"✅ Surveillance démarrée: {country_name} ({len(membres)} membres)")
             else:
                 failed.append(country_to_watch)
                 print(f"⚠️ Pays {country_to_watch} introuvable ou sans membres")
