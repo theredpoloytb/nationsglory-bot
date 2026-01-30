@@ -193,12 +193,19 @@ async def assaut_loop(server: str, country: str):
     members, country_name = await get_country_members(server, country)
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
     
-    # Vérifier que tout est OK avant d'initialiser la surveillance
-    if not members or not channel:
-        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: membres={bool(members)}, channel={bool(channel)}")
+    # Vérifier le channel
+    if not channel:
+        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: channel introuvable")
         return
     
-    # Initialiser la surveillance APRÈS avoir vérifié que c'est possible
+    # Si pas de membres au départ, on initialise quand même la surveillance
+    # Les membres seront récupérés au prochain cycle
+    if not members:
+        print(f"⚠️ Pas de membres trouvés pour {country} sur {server}, réessai au prochain cycle...")
+        members = []
+        country_name = country
+    
+    # Initialiser la surveillance
     if server not in surveillance:
         surveillance[server] = {}
     surveillance[server][country] = {"task": asyncio.current_task(), "assaut_possible": False}
@@ -234,24 +241,26 @@ async def assaut_loop(server: str, country: str):
                 
                 last_member_update = current_time
             
-            # Vérifier l'état d'assaut
-            online = await get_online_players(server)
-            connected = [m for m in members if m in online]
-            possible = False
-            if len(connected) >= 2:
-                ranks = {p: await get_user_rank(p, server) for p in connected}
-                recruits = [p for p, r in ranks.items() if r == "recruit"]
-                valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
-                # Assaut possible si: pas que des recruits OU au moins un membre valide
-                if (not recruits) or valids:
-                    possible = True
-            prev = surveillance[server][country]["assaut_possible"]
-            if possible and not prev:
-                await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
-                surveillance[server][country]["assaut_possible"] = True
-            elif not possible and prev:
-                await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
-                surveillance[server][country]["assaut_possible"] = False
+            # Vérifier l'état d'assaut seulement si on a des membres
+            if members:
+                online = await get_online_players(server)
+                connected = [m for m in members if m in online]
+                possible = False
+                if len(connected) >= 2:
+                    ranks = {p: await get_user_rank(p, server) for p in connected}
+                    recruits = [p for p, r in ranks.items() if r == "recruit"]
+                    valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
+                    # Assaut possible si: pas que des recruits OU au moins un membre valide
+                    if (not recruits) or valids:
+                        possible = True
+                prev = surveillance[server][country]["assaut_possible"]
+                if possible and not prev:
+                    await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
+                    surveillance[server][country]["assaut_possible"] = True
+                elif not possible and prev:
+                    await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
+                    surveillance[server][country]["assaut_possible"] = False
+            
             await asyncio.sleep(2)
     except asyncio.CancelledError:
         # La tâche a été annulée (surveillance arrêtée)
@@ -439,8 +448,14 @@ async def on_ready():
         started = []
         failed = []
         for enemy in enemies:
-            # Vérifier que le pays ennemi existe et a des membres
-            members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
+            # Essayer plusieurs fois de récupérer les membres (au cas où l'API est lente)
+            members, country_name = None, None
+            for attempt in range(3):
+                members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
+                if members:
+                    break
+                await asyncio.sleep(1)  # Attendre 1 seconde entre chaque tentative
+            
             if members:
                 # Créer la tâche et attendre un peu pour s'assurer qu'elle démarre
                 asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
@@ -448,8 +463,12 @@ async def on_ready():
                 started.append(country_name or enemy)
                 print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
             else:
+                # Démarrer quand même la surveillance, elle récupérera les membres plus tard
+                asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
+                await asyncio.sleep(0.5)
+                started.append(enemy)
+                print(f"⚠️ Surveillance démarrée pour {enemy} (membres seront récupérés au prochain cycle)")
                 failed.append(enemy)
-                print(f"⚠️ Pays {enemy} introuvable ou sans membres")
         
         if channel:
             msg = f"🤖 Bot démarré - {len(started)}/{len(enemies)} surveillance(s) activée(s)\n"
