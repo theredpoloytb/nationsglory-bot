@@ -66,17 +66,17 @@ async def get_countries_list(server: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                # L'API NG peut renvoyer n'importe quel code (même 500) mais avoir des données valides
                 try:
                     data = await resp.json()
-                    if data and "claimed" in data:
+                    if data and isinstance(data, dict) and "claimed" in data:
                         claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
                         countries_cache[server] = (claimed, now)
                         return claimed
-                except:
-                    pass
-        except:
-            pass
+                except Exception as e:
+                    print(f"⚠️ Erreur get_countries_list({server}): {e}")
+        except Exception as e:
+            print(f"❌ Erreur réseau get_countries_list({server}): {e}")
     return []
 
 async def get_country_members(server: str, country: str):
@@ -86,14 +86,18 @@ async def get_country_members(server: str, country: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                # L'API NG peut renvoyer n'importe quel code (même 500) mais avoir des données valides
+                # On ignore le status code et on essaie juste de parser le JSON
                 try:
                     data = await resp.json()
-                    if data and "members" in data and data["members"]:
+                    # Vérifier que les données sont valides (pas juste un message d'erreur)
+                    if data and isinstance(data, dict) and "members" in data and "name" in data:
                         members = [m.lstrip("*+-") for m in data.get("members", [])]
                         return members, data.get("name", country)
-                except:
-                    pass
+                    else:
+                        print(f"⚠️ get_country_members({server}, {country}): Données invalides ou incomplètes")
+                except Exception as json_error:
+                    print(f"❌ Erreur JSON get_country_members({server}, {country}): {json_error}")
         except Exception as e:
             print(f"❌ Erreur get_country_members({server}, {country}): {e}")
     return None, None
@@ -168,15 +172,15 @@ async def get_user_rank(username: str, server: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                # L'API NG peut renvoyer n'importe quel code (même 500) mais avoir des données valides
                 try:
                     data = await resp.json()
-                    if data and "servers" in data:
+                    if data and isinstance(data, dict) and "servers" in data:
                         return data.get("servers", {}).get(server, {}).get("country_rank")
-                except:
-                    pass
+                except Exception as e:
+                    print(f"⚠️ Erreur JSON get_user_rank({username}, {server}): {e}")
         except Exception as e:
-            print(f"⚠️ Erreur get_user_rank({username}, {server}): {e}")
+            print(f"⚠️ Erreur réseau get_user_rank({username}, {server}): {e}")
     return None
 
 # ==================== AUTOCOMPLETIONS ====================
@@ -259,14 +263,14 @@ async def assaut_loop(server: str, country: str):
             now = time.time()
             if now - last_member_refresh > 30:
                 new_members, new_name = await get_country_members(server, country)
-                if new_members:
+                if new_members is not None:  # Le pays existe (même avec 0 membres théoriquement)
                     members = new_members
                     country_name = new_name
                     last_member_refresh = now
                     print(f"🔄 Membres rafraîchis pour {country_name}: {len(members)} membres")
                 else:
-                    # Le pays n'existe plus
-                    print(f"⚠️ Le pays {country} n'existe plus sur {server}")
+                    # Le pays n'existe vraiment plus (API n'a pas retourné de données valides)
+                    print(f"⚠️ Le pays {country} n'existe plus sur {server} (pas de données de l'API)")
                     await channel.send(f"⚠️ Le pays **{country_name}** n'existe plus sur {server.upper()} - Surveillance arrêtée")
                     break
             
