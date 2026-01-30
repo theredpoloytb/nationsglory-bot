@@ -41,7 +41,7 @@ ASSAUT_CHANNEL_ID = 1465336287471861771
 # Configuration de la surveillance automatique
 AUTO_SURVEILLANCE_SERVER = "lime"
 AUTO_SURVEILLANCE_COUNTRY = "tasmanie"  # Le pays dont on surveille les ennemis
-AUTO_UPDATE_INTERVAL = 5  # Mise à jour des ennemis toutes les 5 secondes
+AUTO_UPDATE_INTERVAL = 30  # Mise à jour des ennemis toutes les 30 secondes (au lieu de 5)
 
 current_enemies = set()  # Pour tracker les ennemis actuels
 
@@ -60,11 +60,15 @@ async def get_countries_list(server: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                if resp.status in (200, 500):
+                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                try:
                     data = await resp.json()
-                    claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
-                    countries_cache[server] = (claimed, now)
-                    return claimed
+                    if data and "claimed" in data:
+                        claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
+                        countries_cache[server] = (claimed, now)
+                        return claimed
+                except:
+                    pass
         except:
             pass
     return []
@@ -76,11 +80,14 @@ async def get_country_members(server: str, country: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                if resp.status in (200, 500):  # L'API peut renvoyer 500 même quand ça marche
+                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                try:
                     data = await resp.json()
-                    if "members" in data and data["members"]:
+                    if data and "members" in data and data["members"]:
                         members = [m.lstrip("*+-") for m in data.get("members", [])]
                         return members, data.get("name", country)
+                except:
+                    pass
         except Exception as e:
             print(f"❌ Erreur get_country_members({server}, {country}): {e}")
     return None, None
@@ -93,10 +100,18 @@ async def get_country_info(server: str, country: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                if resp.status in (200, 500):  # L'API peut renvoyer 500 même quand ça marche
-                    return await resp.json()
+                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                try:
+                    data = await resp.json()
+                    # Vérifier que les données sont valides
+                    if data and "name" in data:
+                        return data
+                except Exception as json_error:
+                    print(f"❌ Erreur JSON get_country_info({server}, {country}): {json_error}")
+        except asyncio.TimeoutError:
+            print(f"⏱️ Timeout get_country_info({server}, {country})")
         except Exception as e:
-            print(f"❌ Erreur get_country_info({server}, {country}): {e}")
+            print(f"❌ Erreur get_country_info({server}, {country}): {type(e).__name__} - {e}")
     return None
 
 async def get_online_players(server: str):
@@ -120,9 +135,13 @@ async def get_user_rank(username: str, server: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                if resp.status == 200:
+                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                try:
                     data = await resp.json()
-                    return data.get("servers", {}).get(server, {}).get("country_rank")
+                    if data and "servers" in data:
+                        return data.get("servers", {}).get(server, {}).get("country_rank")
+                except:
+                    pass
         except Exception as e:
             print(f"⚠️ Erreur get_user_rank({username}, {server}): {e}")
     return None
@@ -420,30 +439,34 @@ async def on_ready():
     enemies = country_info.get("enemies", [])
     current_enemies = set(enemies)  # Initialiser la liste des ennemis actuels
     
-    if not enemies:
-        print(f"ℹ️ Aucun ennemi trouvé pour {AUTO_SURVEILLANCE_COUNTRY}")
+    # Ajouter la Tasmanie elle-même à la surveillance
+    all_to_watch = [AUTO_SURVEILLANCE_COUNTRY] + enemies
+    
+    if not all_to_watch or len(all_to_watch) == 1:
+        print(f"ℹ️ Surveillance uniquement de {AUTO_SURVEILLANCE_COUNTRY} (aucun ennemi)")
         if channel:
-            await channel.send(f"🤖 Bot démarré - Aucun pays en guerre avec {country_info.get('name', AUTO_SURVEILLANCE_COUNTRY)}")
+            await channel.send(f"🤖 Bot démarré - Surveillance de {country_info.get('name', AUTO_SURVEILLANCE_COUNTRY)} uniquement")
     else:
-        print(f"⚔️ Ennemis trouvés: {', '.join(enemies)}")
+        print(f"⚔️ Pays à surveiller: {', '.join(all_to_watch)}")
         
         started = []
         failed = []
-        for enemy in enemies:
-            # Vérifier que le pays ennemi existe et a des membres
-            members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
+        for country_to_watch in all_to_watch:
+            # Vérifier que le pays existe et a des membres
+            members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, country_to_watch)
             if members:
                 # Créer la tâche et attendre un peu pour s'assurer qu'elle démarre
-                asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
+                asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, country_to_watch))
                 await asyncio.sleep(0.5)  # Petit délai pour laisser la tâche s'initialiser
-                started.append(country_name or enemy)
+                started.append(country_name or country_to_watch)
                 print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
             else:
-                failed.append(enemy)
-                print(f"⚠️ Pays {enemy} introuvable ou sans membres")
+                failed.append(country_to_watch)
+                print(f"⚠️ Pays {country_to_watch} introuvable ou sans membres")
         
         if channel:
-            msg = f"🤖 Bot démarré - {len(started)}/{len(enemies)} surveillance(s) activée(s)\n"
+            total_countries = len(all_to_watch)
+            msg = f"🤖 Bot démarré - {len(started)}/{total_countries} surveillance(s) activée(s)\n"
             if started:
                 msg += f"📍 Pays surveillés: {', '.join(started)}"
             if failed:
