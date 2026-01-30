@@ -12,6 +12,12 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 NG_API_KEY = os.getenv("NG_API_KEY")
 RENDER_URL = os.getenv("RENDER_EXTERNAL_URL", "")
 
+# Vérification au démarrage
+print(f"🌍 NG_API_KEY: {'✅ Définie' if NG_API_KEY else '❌ Non définie'}")
+print(f"🌍 DISCORD_TOKEN: {'✅ Définie' if DISCORD_TOKEN else '❌ Non définie'}")
+if NG_API_KEY:
+    print(f"🔑 API Key longueur: {len(NG_API_KEY)}")
+
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
@@ -97,21 +103,48 @@ async def get_country_info(server: str, country: str):
     url = f"https://publicapi.nationsglory.fr/country/{server}/{country}"
     headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
     timeout = aiohttp.ClientTimeout(total=10)
+    
+    print(f"🔍 Tentative de récupération: {url}")
+    
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
+                # Log du status code pour debug
+                print(f"📡 API Response status pour {country} sur {server}: {resp.status}")
+                
                 # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
+                # On essaie de parser le JSON quoi qu'il arrive
                 try:
                     data = await resp.json()
+                    
+                    # Log pour debug
+                    if data:
+                        print(f"✅ Données reçues pour {country}: nom={data.get('name', 'NO NAME')}, membres={data.get('count_members', 0)}, ennemis={len(data.get('enemies', []))}")
+                    else:
+                        print(f"⚠️ Réponse vide pour {country}")
+                    
                     # Vérifier que les données sont valides
-                    if data and "name" in data:
+                    if data and isinstance(data, dict) and "name" in data:
                         return data
+                    else:
+                        print(f"⚠️ Structure de données invalide pour {country}: {type(data)}")
+                        if data:
+                            print(f"    Clés présentes: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
+                        
                 except Exception as json_error:
                     print(f"❌ Erreur JSON get_country_info({server}, {country}): {json_error}")
+                    # Essayer de lire le texte brut pour debug
+                    try:
+                        text = await resp.text()
+                        print(f"📄 Réponse brute (200 premiers chars): {text[:200]}")
+                    except:
+                        print(f"📄 Impossible de lire la réponse brute")
+                    
         except asyncio.TimeoutError:
             print(f"⏱️ Timeout get_country_info({server}, {country})")
         except Exception as e:
             print(f"❌ Erreur get_country_info({server}, {country}): {type(e).__name__} - {e}")
+    
     return None
 
 async def get_online_players(server: str):
@@ -377,6 +410,8 @@ async def update_enemies_surveillance():
                             await channel.send(f"🕊️ Paix signée avec **{enemy}** - Surveillance arrêtée")
                 
                 current_enemies = new_enemies
+            else:
+                print(f"⚠️ Échec de récupération des ennemis dans update_enemies_surveillance")
                 
         except Exception as e:
             print(f"❌ Erreur update enemies: {e}")
@@ -424,6 +459,20 @@ async def on_ready():
     await tree.sync()
     print(f"✅ Bot connecté en tant que {client.user}")
     
+    # TEST DE L'API AVANT TOUT
+    print("=" * 60)
+    print("🧪 TEST DE L'API")
+    print("=" * 60)
+    test_result = await get_country_info(AUTO_SURVEILLANCE_SERVER, AUTO_SURVEILLANCE_COUNTRY)
+    if test_result:
+        print(f"✅ TEST RÉUSSI: {test_result.get('name')} trouvé")
+        print(f"   - Membres: {test_result.get('count_members')}")
+        print(f"   - Ennemis: {test_result.get('enemies', [])}")
+    else:
+        print(f"❌ TEST ÉCHOUÉ: Impossible de récupérer {AUTO_SURVEILLANCE_COUNTRY}")
+        print("⚠️ Le bot ne pourra pas surveiller les ennemis automatiquement")
+    print("=" * 60)
+    
     # Récupérer les ennemis de la Tasmanie et les surveiller
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
     
@@ -459,7 +508,7 @@ async def on_ready():
                 asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, country_to_watch))
                 await asyncio.sleep(0.5)  # Petit délai pour laisser la tâche s'initialiser
                 started.append(country_name or country_to_watch)
-                print(f"✅ Surveillance démarrée: {country_name} ({len(membres)} membres)")
+                print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
             else:
                 failed.append(country_to_watch)
                 print(f"⚠️ Pays {country_to_watch} introuvable ou sans membres")
