@@ -12,12 +12,6 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 NG_API_KEY = os.getenv("NG_API_KEY")
 RENDER_URL = os.getenv("RENDER_EXTERNAL_URL", "")
 
-# Vérification au démarrage
-print(f"🌍 NG_API_KEY: {'✅ Définie' if NG_API_KEY else '❌ Non définie'}")
-print(f"🌍 DISCORD_TOKEN: {'✅ Définie' if DISCORD_TOKEN else '❌ Non définie'}")
-if NG_API_KEY:
-    print(f"🔑 API Key longueur: {len(NG_API_KEY)}")
-
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
@@ -39,6 +33,9 @@ SERVERS = {
 countries_cache = {}
 CACHE_TTL = 900
 
+user_rank_cache = {}
+USER_RANK_TTL = 60
+
 # ==================== SURVEILLANCE DES ASSAUTS ====================
 
 surveillance = {}  # {server: {country: {"task": asyncio.Task, "assaut_possible": bool}}}
@@ -47,7 +44,8 @@ ASSAUT_CHANNEL_ID = 1465336287471861771
 # Configuration de la surveillance automatique
 AUTO_SURVEILLANCE_SERVER = "lime"
 AUTO_SURVEILLANCE_COUNTRY = "tasmanie"  # Le pays dont on surveille les ennemis
-AUTO_UPDATE_INTERVAL = 30  # Mise à jour des ennemis toutes les 30 secondes
+AUTO_UPDATE_INTERVAL = 5  # Mise à jour des ennemis toutes les 5 secondes
+MEMBER_UPDATE_INTERVAL = 5  # Mise à jour des membres toutes les 5 secondes
 
 current_enemies = set()  # Pour tracker les ennemis actuels
 
@@ -66,17 +64,13 @@ async def get_countries_list(server: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # L'API NG peut renvoyer n'importe quel code (même 500) mais avoir des données valides
-                try:
+                if resp.status in (200, 500):
                     data = await resp.json()
-                    if data and isinstance(data, dict) and "claimed" in data:
-                        claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
-                        countries_cache[server] = (claimed, now)
-                        return claimed
-                except Exception as e:
-                    print(f"⚠️ Erreur get_countries_list({server}): {e}")
-        except Exception as e:
-            print(f"❌ Erreur réseau get_countries_list({server}): {e}")
+                    claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
+                    countries_cache[server] = (claimed, now)
+                    return claimed
+        except:
+            pass
     return []
 
 async def get_country_members(server: str, country: str):
@@ -86,18 +80,11 @@ async def get_country_members(server: str, country: str):
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # L'API NG peut renvoyer n'importe quel code (même 500) mais avoir des données valides
-                # On ignore le status code et on essaie juste de parser le JSON
-                try:
+                if resp.status in (200, 500):  # L'API peut renvoyer 500 même quand ça marche
                     data = await resp.json()
-                    # Vérifier que les données sont valides (pas juste un message d'erreur)
-                    if data and isinstance(data, dict) and "members" in data and "name" in data:
+                    if "members" in data and data["members"]:
                         members = [m.lstrip("*+-") for m in data.get("members", [])]
                         return members, data.get("name", country)
-                    else:
-                        print(f"⚠️ get_country_members({server}, {country}): Données invalides ou incomplètes")
-                except Exception as json_error:
-                    print(f"❌ Erreur JSON get_country_members({server}, {country}): {json_error}")
         except Exception as e:
             print(f"❌ Erreur get_country_members({server}, {country}): {e}")
     return None, None
@@ -107,48 +94,13 @@ async def get_country_info(server: str, country: str):
     url = f"https://publicapi.nationsglory.fr/country/{server}/{country}"
     headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
     timeout = aiohttp.ClientTimeout(total=10)
-    
-    print(f"🔍 Tentative de récupération: {url}")
-    
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # Log du status code pour debug
-                print(f"📡 API Response status pour {country} sur {server}: {resp.status}")
-                
-                # L'API NG peut renvoyer n'importe quel code mais avoir des données valides
-                # On essaie de parser le JSON quoi qu'il arrive
-                try:
-                    data = await resp.json()
-                    
-                    # Log pour debug
-                    if data:
-                        print(f"✅ Données reçues pour {country}: nom={data.get('name', 'NO NAME')}, membres={data.get('count_members', 0)}, ennemis={len(data.get('enemies', []))}")
-                    else:
-                        print(f"⚠️ Réponse vide pour {country}")
-                    
-                    # Vérifier que les données sont valides
-                    if data and isinstance(data, dict) and "name" in data:
-                        return data
-                    else:
-                        print(f"⚠️ Structure de données invalide pour {country}: {type(data)}")
-                        if data:
-                            print(f"    Clés présentes: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
-                        
-                except Exception as json_error:
-                    print(f"❌ Erreur JSON get_country_info({server}, {country}): {json_error}")
-                    # Essayer de lire le texte brut pour debug
-                    try:
-                        text = await resp.text()
-                        print(f"📄 Réponse brute (200 premiers chars): {text[:200]}")
-                    except:
-                        print(f"📄 Impossible de lire la réponse brute")
-                    
-        except asyncio.TimeoutError:
-            print(f"⏱️ Timeout get_country_info({server}, {country})")
+                if resp.status in (200, 500):  # L'API peut renvoyer 500 même quand ça marche
+                    return await resp.json()
         except Exception as e:
-            print(f"❌ Erreur get_country_info({server}, {country}): {type(e).__name__} - {e}")
-    
+            print(f"❌ Erreur get_country_info({server}, {country}): {e}")
     return None
 
 async def get_online_players(server: str):
@@ -165,22 +117,25 @@ async def get_online_players(server: str):
     return []
 
 async def get_user_rank(username: str, server: str):
-    """Récupère le rang d'un joueur SANS cache pour assurer la fraîcheur des données"""
+    now = time.time()
+    key = f"{username}:{server}"
+    if key in user_rank_cache:
+        rank, ts = user_rank_cache[key]
+        if now - ts < USER_RANK_TTL:
+            return rank
     url = f"https://publicapi.nationsglory.fr/user/{username}"
     headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
     timeout = aiohttp.ClientTimeout(total=5)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
-                # L'API NG peut renvoyer n'importe quel code (même 500) mais avoir des données valides
-                try:
+                if resp.status == 200:
                     data = await resp.json()
-                    if data and isinstance(data, dict) and "servers" in data:
-                        return data.get("servers", {}).get(server, {}).get("country_rank")
-                except Exception as e:
-                    print(f"⚠️ Erreur JSON get_user_rank({username}, {server}): {e}")
-        except Exception as e:
-            print(f"⚠️ Erreur réseau get_user_rank({username}, {server}): {e}")
+                    rank = data.get("servers", {}).get(server, {}).get("country_rank")
+                    user_rank_cache[key] = (rank, now)
+                    return rank
+        except:
+            pass
     return None
 
 # ==================== AUTOCOMPLETIONS ====================
@@ -235,63 +190,61 @@ async def check_command(interaction: discord.Interaction, server: str, country: 
 # ==================== ASSAUT START/STOP ====================
 
 async def assaut_loop(server: str, country: str):
+    members, country_name = await get_country_members(server, country)
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
     
-    # Vérifier que le channel existe
-    if not channel:
-        print(f"❌ Channel introuvable pour surveillance {country} sur {server}")
+    # Vérifier que tout est OK avant d'initialiser la surveillance
+    if not members or not channel:
+        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: membres={bool(members)}, channel={bool(channel)}")
         return
     
-    # Récupération initiale
-    members, country_name = await get_country_members(server, country)
-    if not members:
-        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: pays introuvable")
-        return
-    
-    # Initialiser la surveillance
+    # Initialiser la surveillance APRÈS avoir vérifié que c'est possible
     if server not in surveillance:
         surveillance[server] = {}
     surveillance[server][country] = {"task": asyncio.current_task(), "assaut_possible": False}
     
     print(f"✅ Surveillance démarrée pour {country_name} ({len(members)} membres)")
     
-    last_member_refresh = time.time()
+    last_member_update = time.time()
     
     try:
         while True:
-            # Rafraîchir la liste des membres toutes les 30 secondes
-            now = time.time()
-            if now - last_member_refresh > 30:
-                new_members, new_name = await get_country_members(server, country)
-                if new_members is not None:  # Le pays existe (même avec 0 membres théoriquement)
+            # Mettre à jour la liste des membres périodiquement
+            current_time = time.time()
+            if current_time - last_member_update >= MEMBER_UPDATE_INTERVAL:
+                new_members, new_country_name = await get_country_members(server, country)
+                if new_members:
+                    # Détecter les changements
+                    added = set(new_members) - set(members)
+                    removed = set(members) - set(new_members)
+                    
+                    if added:
+                        print(f"➕ {country_name}: Nouveaux membres détectés: {', '.join(added)}")
+                        await channel.send(f"➕ **{country_name}** - Nouveaux membres: {', '.join(added)}")
+                    
+                    if removed:
+                        print(f"➖ {country_name}: Membres partis: {', '.join(removed)}")
+                        await channel.send(f"➖ **{country_name}** - Membres partis: {', '.join(removed)}")
+                    
                     members = new_members
-                    country_name = new_name
-                    last_member_refresh = now
-                    print(f"🔄 Membres rafraîchis pour {country_name}: {len(members)} membres")
+                    country_name = new_country_name or country_name
+                    print(f"🔄 Liste des membres mise à jour pour {country_name} ({len(members)} membres)")
                 else:
-                    # Le pays n'existe vraiment plus (API n'a pas retourné de données valides)
-                    print(f"⚠️ Le pays {country} n'existe plus sur {server} (pas de données de l'API)")
-                    await channel.send(f"⚠️ Le pays **{country_name}** n'existe plus sur {server.upper()} - Surveillance arrêtée")
-                    break
+                    print(f"⚠️ Impossible de mettre à jour les membres de {country_name}")
+                
+                last_member_update = current_time
             
+            # Vérifier l'état d'assaut
             online = await get_online_players(server)
-            # Ne garder que les joueurs qui sont VRAIMENT membres
             connected = [m for m in members if m in online]
-            
             possible = False
             if len(connected) >= 2:
-                # Toujours fetch les rangs à jour (pas de cache)
-                ranks = {}
-                for p in connected:
-                    rank = await get_user_rank(p, server)
-                    ranks[p] = rank
-                
+                ranks = {p: await get_user_rank(p, server) for p in connected}
                 recruits = [p for p, r in ranks.items() if r == "recruit"]
                 valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
                 # Assaut possible si: pas que des recruits OU au moins un membre valide
                 if (not recruits) or valids:
                     possible = True
-            
             prev = surveillance[server][country]["assaut_possible"]
             if possible and not prev:
                 await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
@@ -299,14 +252,14 @@ async def assaut_loop(server: str, country: str):
             elif not possible and prev:
                 await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
                 surveillance[server][country]["assaut_possible"] = False
-            
             await asyncio.sleep(2)
     except asyncio.CancelledError:
+        # La tâche a été annulée (surveillance arrêtée)
         print(f"🛑 Surveillance annulée pour {country_name} sur {server}")
     except Exception as e:
         print(f"❌ Erreur dans assaut_loop pour {country} sur {server}: {e}")
     finally:
-        # Nettoyer la surveillance
+        # Nettoyer la surveillance si la tâche se termine
         if server in surveillance and country in surveillance[server]:
             del surveillance[server][country]
             if not surveillance[server]:
@@ -414,8 +367,6 @@ async def update_enemies_surveillance():
                             await channel.send(f"🕊️ Paix signée avec **{enemy}** - Surveillance arrêtée")
                 
                 current_enemies = new_enemies
-            else:
-                print(f"⚠️ Échec de récupération des ennemis dans update_enemies_surveillance")
                 
         except Exception as e:
             print(f"❌ Erreur update enemies: {e}")
@@ -463,20 +414,6 @@ async def on_ready():
     await tree.sync()
     print(f"✅ Bot connecté en tant que {client.user}")
     
-    # TEST DE L'API AVANT TOUT
-    print("=" * 60)
-    print("🧪 TEST DE L'API")
-    print("=" * 60)
-    test_result = await get_country_info(AUTO_SURVEILLANCE_SERVER, AUTO_SURVEILLANCE_COUNTRY)
-    if test_result:
-        print(f"✅ TEST RÉUSSI: {test_result.get('name')} trouvé")
-        print(f"   - Membres: {test_result.get('count_members')}")
-        print(f"   - Ennemis: {test_result.get('enemies', [])}")
-    else:
-        print(f"❌ TEST ÉCHOUÉ: Impossible de récupérer {AUTO_SURVEILLANCE_COUNTRY}")
-        print("⚠️ Le bot ne pourra pas surveiller les ennemis automatiquement")
-    print("=" * 60)
-    
     # Récupérer les ennemis de la Tasmanie et les surveiller
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
     
@@ -492,34 +429,30 @@ async def on_ready():
     enemies = country_info.get("enemies", [])
     current_enemies = set(enemies)  # Initialiser la liste des ennemis actuels
     
-    # Surveiller UNIQUEMENT les ennemis (pas la Tasmanie elle-même)
-    all_to_watch = enemies
-    
-    if not all_to_watch:
+    if not enemies:
         print(f"ℹ️ Aucun ennemi trouvé pour {AUTO_SURVEILLANCE_COUNTRY}")
         if channel:
             await channel.send(f"🤖 Bot démarré - Aucun pays en guerre avec {country_info.get('name', AUTO_SURVEILLANCE_COUNTRY)}")
     else:
-        print(f"⚔️ Ennemis à surveiller: {', '.join(all_to_watch)}")
+        print(f"⚔️ Ennemis trouvés: {', '.join(enemies)}")
         
         started = []
         failed = []
-        for country_to_watch in all_to_watch:
-            # Vérifier que le pays existe et a des membres
-            members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, country_to_watch)
+        for enemy in enemies:
+            # Vérifier que le pays ennemi existe et a des membres
+            members, country_name = await get_country_members(AUTO_SURVEILLANCE_SERVER, enemy)
             if members:
                 # Créer la tâche et attendre un peu pour s'assurer qu'elle démarre
-                asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, country_to_watch))
+                asyncio.create_task(assaut_loop(AUTO_SURVEILLANCE_SERVER, enemy))
                 await asyncio.sleep(0.5)  # Petit délai pour laisser la tâche s'initialiser
-                started.append(country_name or country_to_watch)
+                started.append(country_name or enemy)
                 print(f"✅ Surveillance démarrée: {country_name} ({len(members)} membres)")
             else:
-                failed.append(country_to_watch)
-                print(f"⚠️ Pays {country_to_watch} introuvable ou sans membres")
+                failed.append(enemy)
+                print(f"⚠️ Pays {enemy} introuvable ou sans membres")
         
         if channel:
-            total_countries = len(all_to_watch)
-            msg = f"🤖 Bot démarré - {len(started)}/{total_countries} surveillance(s) activée(s)\n"
+            msg = f"🤖 Bot démarré - {len(started)}/{len(enemies)} surveillance(s) activée(s)\n"
             if started:
                 msg += f"📍 Pays surveillés: {', '.join(started)}"
             if failed:
