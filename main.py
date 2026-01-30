@@ -439,15 +439,15 @@ async def on_ready():
     enemies = country_info.get("enemies", [])
     current_enemies = set(enemies)  # Initialiser la liste des ennemis actuels
     
-    # Ajouter la Tasmanie elle-même à la surveillance
-    all_to_watch = [AUTO_SURVEILLANCE_COUNTRY] + enemies
+    # Surveiller UNIQUEMENT les ennemis (pas la Tasmanie elle-même)
+    all_to_watch = enemies
     
-    if not all_to_watch or len(all_to_watch) == 1:
-        print(f"ℹ️ Surveillance uniquement de {AUTO_SURVEILLANCE_COUNTRY} (aucun ennemi)")
+    if not all_to_watch:
+        print(f"ℹ️ Aucun ennemi trouvé pour {AUTO_SURVEILLANCE_COUNTRY}")
         if channel:
-            await channel.send(f"🤖 Bot démarré - Surveillance de {country_info.get('name', AUTO_SURVEILLANCE_COUNTRY)} uniquement")
+            await channel.send(f"🤖 Bot démarré - Aucun pays en guerre avec {country_info.get('name', AUTO_SURVEILLANCE_COUNTRY)}")
     else:
-        print(f"⚔️ Pays à surveiller: {', '.join(all_to_watch)}")
+        print(f"⚔️ Ennemis à surveiller: {', '.join(all_to_watch)}")
         
         started = []
         failed = []
