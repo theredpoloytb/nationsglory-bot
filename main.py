@@ -45,7 +45,7 @@ ASSAUT_CHANNEL_ID = 1465336287471861771
 AUTO_SURVEILLANCE_SERVER = "lime"
 AUTO_SURVEILLANCE_COUNTRY = "tasmanie"  # Le pays dont on surveille les ennemis
 AUTO_UPDATE_INTERVAL = 5  # Mise à jour des ennemis toutes les 5 secondes
-MEMBER_UPDATE_INTERVAL = 30  # Mise à jour des membres toutes les 5 secondes
+MEMBER_UPDATE_INTERVAL = 10  # Mise à jour des membres toutes les 10 secondes
 
 current_enemies = set()  # Pour tracker les ennemis actuels
 
@@ -221,17 +221,15 @@ async def assaut_loop(server: str, country: str):
             if current_time - last_member_update >= MEMBER_UPDATE_INTERVAL:
                 new_members, new_country_name = await get_country_members(server, country)
                 if new_members:
-                    # Détecter les changements
+                    # Détecter les changements (UNIQUEMENT EN PRINT, PAS SUR DISCORD)
                     added = set(new_members) - set(members)
                     removed = set(members) - set(new_members)
                     
                     if added:
                         print(f"➕ {country_name}: Nouveaux membres détectés: {', '.join(added)}")
-                        await channel.send(f"➕ **{country_name}** - Nouveaux membres: {', '.join(added)}")
                     
                     if removed:
                         print(f"➖ {country_name}: Membres partis: {', '.join(removed)}")
-                        await channel.send(f"➖ **{country_name}** - Membres partis: {', '.join(removed)}")
                     
                     members = new_members
                     country_name = new_country_name or country_name
@@ -244,7 +242,9 @@ async def assaut_loop(server: str, country: str):
             # Vérifier l'état d'assaut seulement si on a des membres
             if members:
                 online = await get_online_players(server)
+                # IMPORTANT: Ne garder que les joueurs connectés QUI SONT TOUJOURS MEMBRES
                 connected = [m for m in members if m in online]
+                
                 possible = False
                 if len(connected) >= 2:
                     ranks = {p: await get_user_rank(p, server) for p in connected}
@@ -253,6 +253,7 @@ async def assaut_loop(server: str, country: str):
                     # Assaut possible si: pas que des recruits OU au moins un membre valide
                     if (not recruits) or valids:
                         possible = True
+                
                 prev = surveillance[server][country]["assaut_possible"]
                 if possible and not prev:
                     await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
