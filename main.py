@@ -45,7 +45,7 @@ ASSAUT_CHANNEL_ID = 1465336287471861771
 AUTO_SURVEILLANCE_SERVER = "lime"
 AUTO_SURVEILLANCE_COUNTRY = "tasmanie"  # Le pays dont on surveille les ennemis
 AUTO_UPDATE_INTERVAL = 5  # Mise à jour des ennemis toutes les 5 secondes
-MEMBER_UPDATE_INTERVAL = 5  # Mise à jour des membres toutes les 5 secondes
+MEMBER_UPDATE_INTERVAL = 30  # Mise à jour des membres toutes les 5 secondes
 
 current_enemies = set()  # Pour tracker les ennemis actuels
 
