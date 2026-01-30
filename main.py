@@ -33,9 +33,6 @@ SERVERS = {
 countries_cache = {}
 CACHE_TTL = 900
 
-user_rank_cache = {}
-USER_RANK_TTL = 60
-
 # ==================== SURVEILLANCE DES ASSAUTS ====================
 
 surveillance = {}  # {server: {country: {"task": asyncio.Task, "assaut_possible": bool}}}
@@ -116,12 +113,7 @@ async def get_online_players(server: str):
     return []
 
 async def get_user_rank(username: str, server: str):
-    now = time.time()
-    key = f"{username}:{server}"
-    if key in user_rank_cache:
-        rank, ts = user_rank_cache[key]
-        if now - ts < USER_RANK_TTL:
-            return rank
+    """Récupère le rang d'un joueur SANS cache pour assurer la fraîcheur des données"""
     url = f"https://publicapi.nationsglory.fr/user/{username}"
     headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
     timeout = aiohttp.ClientTimeout(total=5)
@@ -130,11 +122,9 @@ async def get_user_rank(username: str, server: str):
             async with session.get(url, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    rank = data.get("servers", {}).get(server, {}).get("country_rank")
-                    user_rank_cache[key] = (rank, now)
-                    return rank
-        except:
-            pass
+                    return data.get("servers", {}).get(server, {}).get("country_rank")
+        except Exception as e:
+            print(f"⚠️ Erreur get_user_rank({username}, {server}): {e}")
     return None
 
 # ==================== AUTOCOMPLETIONS ====================
@@ -189,33 +179,63 @@ async def check_command(interaction: discord.Interaction, server: str, country: 
 # ==================== ASSAUT START/STOP ====================
 
 async def assaut_loop(server: str, country: str):
-    members, country_name = await get_country_members(server, country)
     channel = client.get_channel(ASSAUT_CHANNEL_ID)
     
-    # Vérifier que tout est OK avant d'initialiser la surveillance
-    if not members or not channel:
-        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: membres={bool(members)}, channel={bool(channel)}")
+    # Vérifier que le channel existe
+    if not channel:
+        print(f"❌ Channel introuvable pour surveillance {country} sur {server}")
         return
     
-    # Initialiser la surveillance APRÈS avoir vérifié que c'est possible
+    # Récupération initiale
+    members, country_name = await get_country_members(server, country)
+    if not members:
+        print(f"❌ Impossible de démarrer surveillance pour {country} sur {server}: pays introuvable")
+        return
+    
+    # Initialiser la surveillance
     if server not in surveillance:
         surveillance[server] = {}
     surveillance[server][country] = {"task": asyncio.current_task(), "assaut_possible": False}
     
     print(f"✅ Surveillance démarrée pour {country_name} ({len(members)} membres)")
     
+    last_member_refresh = time.time()
+    
     try:
         while True:
+            # Rafraîchir la liste des membres toutes les 30 secondes
+            now = time.time()
+            if now - last_member_refresh > 30:
+                new_members, new_name = await get_country_members(server, country)
+                if new_members:
+                    members = new_members
+                    country_name = new_name
+                    last_member_refresh = now
+                    print(f"🔄 Membres rafraîchis pour {country_name}: {len(members)} membres")
+                else:
+                    # Le pays n'existe plus
+                    print(f"⚠️ Le pays {country} n'existe plus sur {server}")
+                    await channel.send(f"⚠️ Le pays **{country_name}** n'existe plus sur {server.upper()} - Surveillance arrêtée")
+                    break
+            
             online = await get_online_players(server)
+            # Ne garder que les joueurs qui sont VRAIMENT membres
             connected = [m for m in members if m in online]
+            
             possible = False
             if len(connected) >= 2:
-                ranks = {p: await get_user_rank(p, server) for p in connected}
+                # Toujours fetch les rangs à jour (pas de cache)
+                ranks = {}
+                for p in connected:
+                    rank = await get_user_rank(p, server)
+                    ranks[p] = rank
+                
                 recruits = [p for p, r in ranks.items() if r == "recruit"]
                 valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
                 # Assaut possible si: pas que des recruits OU au moins un membre valide
                 if (not recruits) or valids:
                     possible = True
+            
             prev = surveillance[server][country]["assaut_possible"]
             if possible and not prev:
                 await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
@@ -223,14 +243,14 @@ async def assaut_loop(server: str, country: str):
             elif not possible and prev:
                 await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
                 surveillance[server][country]["assaut_possible"] = False
+            
             await asyncio.sleep(2)
     except asyncio.CancelledError:
-        # La tâche a été annulée (surveillance arrêtée)
         print(f"🛑 Surveillance annulée pour {country_name} sur {server}")
     except Exception as e:
         print(f"❌ Erreur dans assaut_loop pour {country} sur {server}: {e}")
     finally:
-        # Nettoyer la surveillance si la tâche se termine
+        # Nettoyer la surveillance
         if server in surveillance and country in surveillance[server]:
             del surveillance[server][country]
             if not surveillance[server]:
