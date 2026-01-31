@@ -242,12 +242,27 @@ async def assaut_loop(server: str, country: str):
             # Vérifier l'état d'assaut seulement si on a des membres
             if members:
                 online = await get_online_players(server)
-                # IMPORTANT: Ne garder que les joueurs connectés QUI SONT TOUJOURS MEMBRES
+                # Étape 1: Filtrer les joueurs en ligne qui sont dans notre liste locale
                 connected = [m for m in members if m in online]
                 
+                # Étape 2: VÉRIFICATION EN TEMPS RÉEL - Re-vérifier que les joueurs sont VRAIMENT encore membres
+                # Cela évite les faux positifs si quelqu'un quitte le pays
+                verified_connected = []
+                if len(connected) >= 2:  # Ne vérifier que si on a potentiellement un assaut
+                    fresh_members, _ = await get_country_members(server, country)
+                    if fresh_members:
+                        # Ne garder que les joueurs qui sont VRAIMENT encore membres
+                        verified_connected = [p for p in connected if p in fresh_members]
+                        if len(connected) != len(verified_connected):
+                            print(f"🔍 {country_name}: {len(connected)} en ligne → {len(verified_connected)} vérifiés membres")
+                    else:
+                        # Si on ne peut pas vérifier, on ne prend pas de risque
+                        verified_connected = []
+                        print(f"⚠️ {country_name}: Impossible de vérifier les membres, aucune alerte envoyée")
+                
                 possible = False
-                if len(connected) >= 2:
-                    ranks = {p: await get_user_rank(p, server) for p in connected}
+                if len(verified_connected) >= 2:
+                    ranks = {p: await get_user_rank(p, server) for p in verified_connected}
                     recruits = [p for p, r in ranks.items() if r == "recruit"]
                     valids = [p for p, r in ranks.items() if r in ("member", "officer", "leader")]
                     # Assaut possible si: pas que des recruits OU au moins un membre valide
@@ -256,7 +271,7 @@ async def assaut_loop(server: str, country: str):
                 
                 prev = surveillance[server][country]["assaut_possible"]
                 if possible and not prev:
-                    await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(connected)}")
+                    await channel.send(f"⚔️ @everyone ASSAUT POSSIBLE sur {country_name} ({server.upper()})\n👥 Connectés : {', '.join(verified_connected)}")
                     surveillance[server][country]["assaut_possible"] = True
                 elif not possible and prev:
                     await channel.send(f"ℹ️ Assaut plus possible sur {country_name} ({server.upper()})")
@@ -332,6 +347,251 @@ async def assaut_list_command(interaction: discord.Interaction):
             )
     
     embed.set_footer(text=f"Total: {total} surveillance(s)")
+    await interaction.followup.send(embed=embed)
+
+# ==================== COMMANDES DEBUG ====================
+
+@tree.command(name="debug_members", description="[DEBUG] Affiche tous les membres d'un pays")
+@app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
+async def debug_members_command(interaction: discord.Interaction, server: str, country: str):
+    await interaction.response.defer()
+    
+    if server not in SERVERS:
+        return await interaction.followup.send("❌ Serveur invalide")
+    
+    members, country_name = await get_country_members(server, country)
+    
+    if not members:
+        return await interaction.followup.send(f"❌ Impossible de récupérer les membres de {country}")
+    
+    embed = discord.Embed(
+        title=f"👥 Membres de {country_name}",
+        description=f"**Serveur :** {SERVERS[server]['emoji']} {server.upper()}",
+        color=discord.Color.blue()
+    )
+    
+    # Diviser en chunks de 20 membres par field
+    chunks = [members[i:i+20] for i in range(0, len(members), 20)]
+    
+    for i, chunk in enumerate(chunks):
+        field_name = f"Membres ({i*20+1}-{i*20+len(chunk)})" if len(chunks) > 1 else "Membres"
+        embed.add_field(
+            name=field_name,
+            value=", ".join(chunk),
+            inline=False
+        )
+    
+    embed.set_footer(text=f"Total: {len(members)} membre(s)")
+    await interaction.followup.send(embed=embed)
+
+@tree.command(name="debug_online", description="[DEBUG] Affiche qui est en ligne sur un serveur")
+@app_commands.autocomplete(server=server_autocomplete)
+async def debug_online_command(interaction: discord.Interaction, server: str):
+    await interaction.response.defer()
+    
+    if server not in SERVERS:
+        return await interaction.followup.send("❌ Serveur invalide")
+    
+    online = await get_online_players(server)
+    
+    if not online:
+        return await interaction.followup.send(f"ℹ️ Personne en ligne sur {server.upper()} (ou erreur Dynmap)")
+    
+    embed = discord.Embed(
+        title=f"🟢 Joueurs en ligne sur {server.upper()}",
+        color=discord.Color.green()
+    )
+    
+    # Diviser en chunks de 30 joueurs par field
+    chunks = [online[i:i+30] for i in range(0, len(online), 30)]
+    
+    for i, chunk in enumerate(chunks):
+        field_name = f"Joueurs ({i*30+1}-{i*30+len(chunk)})" if len(chunks) > 1 else "Joueurs"
+        embed.add_field(
+            name=field_name,
+            value=", ".join(chunk),
+            inline=False
+        )
+    
+    embed.set_footer(text=f"Total: {len(online)} joueur(s)")
+    await interaction.followup.send(embed=embed)
+
+@tree.command(name="debug_country", description="[DEBUG] Affiche toutes les infos d'un pays (ennemis, alliés, etc.)")
+@app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
+async def debug_country_command(interaction: discord.Interaction, server: str, country: str):
+    await interaction.response.defer()
+    
+    if server not in SERVERS:
+        return await interaction.followup.send("❌ Serveur invalide")
+    
+    country_info = await get_country_info(server, country)
+    
+    if not country_info:
+        return await interaction.followup.send(f"❌ Impossible de récupérer les infos de {country}")
+    
+    embed = discord.Embed(
+        title=f"📊 Infos de {country_info.get('name', country)}",
+        description=f"**Serveur :** {SERVERS[server]['emoji']} {server.upper()}",
+        color=discord.Color.purple()
+    )
+    
+    # Membres
+    members = country_info.get("members", [])
+    if members:
+        members_clean = [m.lstrip("*+-") for m in members]
+        members_preview = ", ".join(members_clean[:10])
+        if len(members_clean) > 10:
+            members_preview += f"... (+{len(members_clean)-10})"
+        embed.add_field(name=f"👥 Membres ({len(members_clean)})", value=members_preview, inline=False)
+    
+    # Ennemis
+    enemies = country_info.get("enemies", [])
+    if enemies:
+        embed.add_field(name=f"⚔️ Ennemis ({len(enemies)})", value=", ".join(enemies), inline=False)
+    else:
+        embed.add_field(name="⚔️ Ennemis", value="Aucun", inline=False)
+    
+    # Alliés
+    allies = country_info.get("allies", [])
+    if allies:
+        embed.add_field(name=f"🤝 Alliés ({len(allies)})", value=", ".join(allies), inline=False)
+    else:
+        embed.add_field(name="🤝 Alliés", value="Aucun", inline=False)
+    
+    # Autres infos
+    if "balance" in country_info:
+        embed.add_field(name="💰 Balance", value=f"{country_info['balance']}", inline=True)
+    if "chunks" in country_info:
+        embed.add_field(name="🗺️ Chunks", value=f"{country_info['chunks']}", inline=True)
+    if "leader" in country_info:
+        embed.add_field(name="👑 Leader", value=country_info['leader'], inline=True)
+    
+    await interaction.followup.send(embed=embed)
+
+@tree.command(name="debug_state", description="[DEBUG] Affiche l'état interne d'une surveillance")
+@app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
+async def debug_state_command(interaction: discord.Interaction, server: str, country: str):
+    await interaction.response.defer()
+    
+    if server not in SERVERS:
+        return await interaction.followup.send("❌ Serveur invalide")
+    
+    # Vérifier si une surveillance existe
+    if not surveillance.get(server, {}).get(country):
+        return await interaction.followup.send(f"❌ Aucune surveillance active pour {country} sur {server.upper()}")
+    
+    # Récupérer les données
+    members, country_name = await get_country_members(server, country)
+    online = await get_online_players(server)
+    
+    if not members:
+        return await interaction.followup.send(f"❌ Impossible de récupérer les données")
+    
+    # Calculer connected
+    connected = [m for m in members if m in online]
+    
+    # Vérification temps réel
+    verified_connected = []
+    if len(connected) >= 2:
+        fresh_members, _ = await get_country_members(server, country)
+        if fresh_members:
+            verified_connected = [p for p in connected if p in fresh_members]
+    
+    embed = discord.Embed(
+        title=f"🔍 État de surveillance: {country_name}",
+        description=f"**Serveur :** {SERVERS[server]['emoji']} {server.upper()}",
+        color=discord.Color.orange()
+    )
+    
+    # État de la surveillance
+    assaut_possible = surveillance[server][country]["assaut_possible"]
+    status = "⚔️ ASSAUT POSSIBLE" if assaut_possible else "🛡️ Pas d'assaut"
+    embed.add_field(name="📍 Statut actuel", value=status, inline=False)
+    
+    # Membres du pays
+    members_preview = ", ".join(members[:10])
+    if len(members) > 10:
+        members_preview += f"... (+{len(members)-10})"
+    embed.add_field(name=f"👥 Membres ({len(members)})", value=members_preview, inline=False)
+    
+    # Joueurs en ligne sur le serveur
+    embed.add_field(name=f"🟢 En ligne sur {server.upper()}", value=f"{len(online)} joueur(s)", inline=True)
+    
+    # Membres du pays en ligne
+    if connected:
+        embed.add_field(
+            name=f"🎮 Membres connectés ({len(connected)})",
+            value=", ".join(connected),
+            inline=False
+        )
+    else:
+        embed.add_field(name="🎮 Membres connectés", value="Aucun", inline=False)
+    
+    # Vérifiés temps réel
+    if len(connected) >= 2:
+        if verified_connected:
+            embed.add_field(
+                name=f"✅ Vérifiés API temps réel ({len(verified_connected)})",
+                value=", ".join(verified_connected),
+                inline=False
+            )
+        else:
+            embed.add_field(
+                name="✅ Vérifiés API temps réel",
+                value="⚠️ Aucun (erreur API ou tous partis)",
+                inline=False
+            )
+    
+    await interaction.followup.send(embed=embed)
+
+@tree.command(name="debug_cache", description="[DEBUG] Affiche l'état du cache")
+async def debug_cache_command(interaction: discord.Interaction):
+    await interaction.response.defer()
+    
+    embed = discord.Embed(
+        title="🗄️ État du cache",
+        color=discord.Color.gold()
+    )
+    
+    # Cache des pays
+    countries_count = len(countries_cache)
+    embed.add_field(
+        name="📋 Countries cache",
+        value=f"{countries_count} serveur(s) en cache",
+        inline=False
+    )
+    
+    # Cache des grades
+    ranks_count = len(user_rank_cache)
+    embed.add_field(
+        name="🎖️ User rank cache",
+        value=f"{ranks_count} grade(s) en cache",
+        inline=False
+    )
+    
+    # Ennemis actuels
+    if current_enemies:
+        embed.add_field(
+            name=f"⚔️ Ennemis de {AUTO_SURVEILLANCE_COUNTRY} ({len(current_enemies)})",
+            value=", ".join(current_enemies),
+            inline=False
+        )
+    else:
+        embed.add_field(
+            name=f"⚔️ Ennemis de {AUTO_SURVEILLANCE_COUNTRY}",
+            value="Aucun",
+            inline=False
+        )
+    
+    # Surveillances actives
+    total_surveillances = sum(len(countries) for countries in surveillance.values())
+    embed.add_field(
+        name="🔍 Surveillances actives",
+        value=f"{total_surveillances} pays surveillé(s)",
+        inline=False
+    )
+    
+    embed.set_footer(text=f"TTL countries: {CACHE_TTL}s | TTL ranks: {USER_RANK_TTL}s")
     await interaction.followup.send(embed=embed)
 
 # ==================== SERVEUR WEB / SELF-PING ====================
