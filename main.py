@@ -6,7 +6,7 @@ import time
 import json
 import os
 from aiohttp import web
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 # ==================== CONFIGURATION ====================
 
@@ -26,6 +26,8 @@ WATCH_LIST_DEFAULT = [
 
 WATCH_LIST = list(WATCH_LIST_DEFAULT)
 watchlist_message_id = None
+history_message_id = None
+player_history = {}  # {player: [{day: 0-6, hour: 0-23, ts: timestamp}, ...]}
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -86,6 +88,80 @@ async def save_watchlist():
             pass
     msg = await channel.send(content)
     watchlist_message_id = msg.id
+
+# ==================== HISTORIQUE CONNEXIONS ====================
+
+async def load_history():
+    global player_history, history_message_id
+    channel = client.get_channel(STORAGE_CHANNEL_ID)
+    if not channel:
+        return
+    async for msg in channel.history(limit=20):
+        if msg.author == client.user and msg.content.startswith("HISTORY:"):
+            try:
+                player_history = json.loads(msg.content[len("HISTORY:"):])
+                history_message_id = msg.id
+                print(f"✅ Historique chargé pour {len(player_history)} joueurs")
+                return
+            except:
+                pass
+    await save_history()
+
+async def save_history():
+    global history_message_id
+    channel = client.get_channel(STORAGE_CHANNEL_ID)
+    if not channel:
+        return
+    # Limiter à 50 sessions par joueur pour pas dépasser 2000 chars
+    trimmed = {p: v[-50:] for p, v in player_history.items()}
+    content = "HISTORY:" + json.dumps(trimmed)
+    # Si trop long, on réduit encore
+    if len(content) > 1900:
+        trimmed = {p: v[-20:] for p, v in player_history.items()}
+        content = "HISTORY:" + json.dumps(trimmed)
+    if history_message_id:
+        try:
+            msg = await channel.fetch_message(history_message_id)
+            await msg.edit(content=content)
+            return
+        except discord.NotFound:
+            pass
+    msg = await channel.send(content)
+    history_message_id = msg.id
+
+def record_connection(player: str):
+    now = datetime.utcnow() + timedelta(hours=1)
+    if player not in player_history:
+        player_history[player] = []
+    player_history[player].append({
+        "day": now.weekday(),  # 0=lundi, 6=dimanche
+        "hour": now.hour,
+        "ts": int(now.timestamp())
+    })
+
+def get_pronostic(player: str):
+    sessions = player_history.get(player, [])
+    if len(sessions) < 3:
+        return None
+    DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    # Compter les connexions par jour
+    day_counts = [0] * 7
+    hour_by_day = [[] for _ in range(7)]
+    for s in sessions:
+        d = s["day"]
+        day_counts[d] += 1
+        hour_by_day[d].append(s["hour"])
+    # Jours les plus actifs
+    total = len(sessions)
+    result = []
+    for d in range(7):
+        if day_counts[d] == 0:
+            continue
+        avg_hour = round(sum(hour_by_day[d]) / len(hour_by_day[d]))
+        pct = round(day_counts[d] / total * 100)
+        result.append((d, avg_hour, pct))
+    result.sort(key=lambda x: -x[2])
+    return result[:4], DAYS, total
 
 # ==================== FONCTIONS COMMUNES ====================
 
@@ -212,38 +288,48 @@ async def online_command(interaction: discord.Interaction, server: str):
         embed.description = "Aucun joueur connecté"
     await interaction.followup.send(embed=embed)
 
-# ==================== COMMANDE STATS ====================
+# ==================== COMMANDE CHECKALL ====================
 
-@tree.command(name="stats", description="Voir les stats d'un joueur sur NationsGlory")
-@app_commands.autocomplete(server=server_autocomplete)
-async def stats_command(interaction: discord.Interaction, joueur: str, server: str):
+@tree.command(name="checkall", description="Voir sur quel serveur un joueur est connecté")
+async def checkall_command(interaction: discord.Interaction, joueur: str):
     await interaction.response.defer()
-    url = f"https://publicapi.nationsglory.fr/user/{joueur}"
-    headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
-    timeout = aiohttp.ClientTimeout(total=10)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            async with session.get(url, headers=headers) as resp:
-                if resp.status != 200:
-                    return await interaction.followup.send(f"❌ Joueur **{joueur}** introuvable")
-                data = await resp.json()
-        except:
-            return await interaction.followup.send("❌ Erreur lors de la récupération des stats")
-    server_data = data.get("servers", {}).get(server, {})
-    embed = discord.Embed(
-        title=f"📊 Stats de {joueur} — {server.upper()}",
-        color=discord.Color.gold()
-    )
-    if server_data:
-        embed.add_field(name="🏅 Rang", value=server_data.get("country_rank", "N/A"), inline=True)
-        embed.add_field(name="💰 Argent", value=f"{server_data.get('money', 'N/A')} $", inline=True)
-        embed.add_field(name="⚔️ Kills", value=server_data.get("kills", "N/A"), inline=True)
-        embed.add_field(name="💀 Morts", value=server_data.get("deaths", "N/A"), inline=True)
-        kd = round(server_data.get("kills", 0) / max(server_data.get("deaths", 1), 1), 2)
-        embed.add_field(name="📈 K/D", value=kd, inline=True)
-        embed.add_field(name="🏳️ Pays", value=server_data.get("country", "Sans pays"), inline=True)
+    tasks = {s: get_online_players(s) for s in SERVERS}
+    results = await asyncio.gather(*tasks.values())
+    online_by_server = dict(zip(tasks.keys(), results))
+
+    found = [s for s, players in online_by_server.items() if joueur in players]
+
+    embed = discord.Embed(title=f"🔍 Localisation de {joueur}", color=discord.Color.red())
+    if found:
+        embed.color = discord.Color.green()
+        embed.description = "\n".join([f"{SERVERS[s]['emoji']} **{s.upper()}**" for s in found])
     else:
-        embed.description = f"Aucune donnée pour **{joueur}** sur **{server.upper()}**"
+        embed.description = f"**{joueur}** n'est connecté sur aucun serveur"
+    await interaction.followup.send(embed=embed)
+
+# ==================== COMMANDE PRONOSTIC ====================
+
+@tree.command(name="pronostic", description="Pronostic de connexion d'un joueur surveillé")
+async def pronostic_command(interaction: discord.Interaction, joueur: str):
+    await interaction.response.defer()
+    result = get_pronostic(joueur)
+    if not result:
+        return await interaction.followup.send(f"⚠️ Pas assez de données pour **{joueur}** (minimum 3 connexions)", ephemeral=True)
+
+    top, DAYS, total = result
+    embed = discord.Embed(
+        title=f"🔮 Pronostic — {joueur}",
+        description=f"Basé sur **{total}** connexions enregistrées",
+        color=discord.Color.purple()
+    )
+    for d, avg_hour, pct in top:
+        bar = "█" * (pct // 10) + "░" * (10 - pct // 10)
+        embed.add_field(
+            name=f"{DAYS[d]} — {pct}%",
+            value=f"`{bar}` Heure moyenne : **{avg_hour}h**",
+            inline=False
+        )
+    embed.set_footer(text="Les % représentent la fréquence de connexion par jour")
     await interaction.followup.send(embed=embed)
 
 # ==================== COMMANDES WATCHLIST ====================
@@ -295,6 +381,7 @@ async def scanner_loop():
 
     await client.wait_until_ready()
     await load_watchlist()
+    await load_history()
 
     rapport_channel = client.get_channel(RAPPORT_CHANNEL_ID)
     alerte_channel  = client.get_channel(ALERTE_CHANNEL_ID)
@@ -311,6 +398,8 @@ async def scanner_loop():
                 prev = last_known_state.get(player)
 
                 if prev is not None and is_online != prev:
+                    if is_online:
+                        record_connection(player)
                     if alerte_channel:
                         if is_online:
                             alert_embed = discord.Embed(
@@ -380,6 +469,16 @@ async def scanner_loop():
 
         await asyncio.sleep(1)
 
+    # Sauvegarde historique toutes les 5 min (300 tours)
+scanner_save_counter = 0
+
+async def history_saver():
+    await client.wait_until_ready()
+    while True:
+        await asyncio.sleep(300)
+        await save_history()
+        print("💾 Historique sauvegardé")
+
 # ==================== SERVEUR WEB / SELF-PING ====================
 
 async def handle_health(request):
@@ -416,6 +515,7 @@ async def main():
     if RENDER_URL:
         asyncio.create_task(self_ping())
     asyncio.create_task(scanner_loop())
+    asyncio.create_task(history_saver())
     await client.start(DISCORD_TOKEN)
 
 @client.event
