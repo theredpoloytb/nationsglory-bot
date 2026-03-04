@@ -11,8 +11,8 @@ from datetime import timedelta, datetime
 # ==================== CONFIGURATION ====================
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-NG_API_KEY = os.getenv("NG_API_KEY")
-RENDER_URL = os.getenv("RENDER_EXTERNAL_URL", "")
+NG_API_KEY    = os.getenv("NG_API_KEY")
+RENDER_URL    = os.getenv("RENDER_EXTERNAL_URL", "")
 
 RAPPORT_CHANNEL_ID = 1459182029924073558
 ALERTE_CHANNEL_ID  = 1465309715230888090
@@ -24,14 +24,16 @@ WATCH_LIST_DEFAULT = [
     "FLOTYR2", "Raptor51"
 ]
 
-WATCH_LIST = list(WATCH_LIST_DEFAULT)
-watchlist_message_id = None
-history_message_id = None
-player_history = {}  # {player: [{day: 0-6, hour: 0-23, ts: timestamp}, ...]}
+WATCH_LIST         = list(WATCH_LIST_DEFAULT)
+watchlist_msg_id   = None
+
+# Historique global : {pseudo: [{day, hour, server, ts}]}
+global_history     = {}
+history_chunks_ids = []  # liste d'IDs de messages HISTORY_X
 
 intents = discord.Intents.default()
-client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(client)
+client  = discord.Client(intents=intents)
+tree    = app_commands.CommandTree(client)
 
 SERVERS = {
     "blue":   {"url": "https://blue.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🔵"},
@@ -47,123 +49,165 @@ SERVERS = {
     "lime":   {"url": "https://lime.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🟢"}
 }
 
-LIME_URL = "https://lime.nationsglory.fr/standalone/dynmap_world.json"
-
-countries_cache = {}
+LIME_URL  = "https://lime.nationsglory.fr/standalone/dynmap_world.json"
 CACHE_TTL = 900
+countries_cache = {}
 
-# ==================== WATCHLIST STOCKAGE DISCORD ====================
+# ==================== UTILS ====================
+
+def now_paris():
+    return datetime.utcnow() + timedelta(hours=1)
+
+# ==================== WATCHLIST ====================
 
 async def load_watchlist():
-    global WATCH_LIST, watchlist_message_id
+    global WATCH_LIST, watchlist_msg_id
     channel = client.get_channel(STORAGE_CHANNEL_ID)
     if not channel:
-        print("⚠️ Channel storage introuvable")
         return
-    async for msg in channel.history(limit=10):
+    async for msg in channel.history(limit=50):
         if msg.author == client.user and msg.content.startswith("WATCHLIST:"):
             try:
                 data = json.loads(msg.content[len("WATCHLIST:"):])
-                WATCH_LIST = data["players"]
-                watchlist_message_id = msg.id
-                print(f"✅ Watchlist chargée depuis Discord : {WATCH_LIST}")
+                WATCH_LIST      = data["players"]
+                watchlist_msg_id = msg.id
+                print(f"✅ Watchlist chargée : {WATCH_LIST}")
                 return
             except:
                 pass
-    # Aucun message trouvé, on crée
     await save_watchlist()
 
 async def save_watchlist():
-    global watchlist_message_id
+    global watchlist_msg_id
     channel = client.get_channel(STORAGE_CHANNEL_ID)
     if not channel:
         return
     content = "WATCHLIST:" + json.dumps({"players": WATCH_LIST})
-    if watchlist_message_id:
+    if watchlist_msg_id:
         try:
-            msg = await channel.fetch_message(watchlist_message_id)
+            msg = await channel.fetch_message(watchlist_msg_id)
             await msg.edit(content=content)
             return
         except discord.NotFound:
             pass
     msg = await channel.send(content)
-    watchlist_message_id = msg.id
+    watchlist_msg_id = msg.id
 
-# ==================== HISTORIQUE CONNEXIONS ====================
+# ==================== HISTORIQUE ====================
+
+MAX_SESSIONS_PER_PLAYER = 30
+CHUNK_SIZE = 1800  # chars max par message Discord
 
 async def load_history():
-    global player_history, history_message_id
+    global global_history, history_chunks_ids
     channel = client.get_channel(STORAGE_CHANNEL_ID)
     if not channel:
         return
-    async for msg in channel.history(limit=20):
-        if msg.author == client.user and msg.content.startswith("HISTORY:"):
+    chunks = {}
+    async for msg in channel.history(limit=100):
+        if msg.author == client.user and msg.content.startswith("HISTORY_"):
             try:
-                player_history = json.loads(msg.content[len("HISTORY:"):])
-                history_message_id = msg.id
-                print(f"✅ Historique chargé pour {len(player_history)} joueurs")
-                return
+                idx   = int(msg.content.split(":")[0].replace("HISTORY_", ""))
+                data  = json.loads(msg.content[msg.content.index(":")+1:])
+                chunks[idx] = (msg.id, data)
             except:
                 pass
-    await save_history()
+    if chunks:
+        history_chunks_ids = []
+        for idx in sorted(chunks.keys()):
+            msg_id, data = chunks[idx]
+            history_chunks_ids.append(msg_id)
+            global_history.update(data)
+        print(f"✅ Historique chargé : {len(global_history)} joueurs")
+    else:
+        await save_history()
 
 async def save_history():
-    global history_message_id
+    global history_chunks_ids
     channel = client.get_channel(STORAGE_CHANNEL_ID)
     if not channel:
         return
-    # Limiter à 50 sessions par joueur pour pas dépasser 2000 chars
-    trimmed = {p: v[-50:] for p, v in player_history.items()}
-    content = "HISTORY:" + json.dumps(trimmed)
-    # Si trop long, on réduit encore
-    if len(content) > 1900:
-        trimmed = {p: v[-20:] for p, v in player_history.items()}
-        content = "HISTORY:" + json.dumps(trimmed)
-    if history_message_id:
-        try:
-            msg = await channel.fetch_message(history_message_id)
-            await msg.edit(content=content)
-            return
-        except discord.NotFound:
-            pass
-    msg = await channel.send(content)
-    history_message_id = msg.id
 
-def record_connection(player: str):
-    now = datetime.utcnow() + timedelta(hours=1)
-    if player not in player_history:
-        player_history[player] = []
-    player_history[player].append({
-        "day": now.weekday(),  # 0=lundi, 6=dimanche
-        "hour": now.hour,
-        "ts": int(now.timestamp())
+    # Sérialiser et splitter en chunks de CHUNK_SIZE
+    full_json = json.dumps(global_history)
+    # Split par joueur pour ne pas couper au milieu
+    chunks    = []
+    current   = {}
+    current_len = 0
+    for player, sessions in global_history.items():
+        entry     = json.dumps({player: sessions})
+        entry_len = len(entry)
+        if current_len + entry_len > CHUNK_SIZE and current:
+            chunks.append(current)
+            current     = {}
+            current_len = 0
+        current[player]  = sessions
+        current_len     += entry_len
+    if current:
+        chunks.append(current)
+
+    # Mettre à jour ou créer les messages
+    new_ids = []
+    for i, chunk in enumerate(chunks):
+        content = f"HISTORY_{i}:" + json.dumps(chunk)
+        if i < len(history_chunks_ids):
+            try:
+                msg = await channel.fetch_message(history_chunks_ids[i])
+                await msg.edit(content=content)
+                new_ids.append(msg.id)
+                continue
+            except discord.NotFound:
+                pass
+        msg = await channel.send(content)
+        new_ids.append(msg.id)
+
+    # Supprimer les anciens messages en trop
+    for old_id in history_chunks_ids[len(chunks):]:
+        try:
+            msg = await channel.fetch_message(old_id)
+            await msg.delete()
+        except:
+            pass
+
+    history_chunks_ids = new_ids
+
+def record_connection(player: str, server: str):
+    n = now_paris()
+    if player not in global_history:
+        global_history[player] = []
+    global_history[player].append({
+        "day":    n.weekday(),
+        "hour":   n.hour,
+        "server": server,
+        "ts":     int(n.timestamp())
     })
+    # Garder seulement les N dernières sessions
+    if len(global_history[player]) > MAX_SESSIONS_PER_PLAYER:
+        global_history[player] = global_history[player][-MAX_SESSIONS_PER_PLAYER:]
 
 def get_pronostic(player: str):
-    sessions = player_history.get(player, [])
+    sessions = global_history.get(player, [])
     if len(sessions) < 3:
         return None
     DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-    # Compter les connexions par jour
-    day_counts = [0] * 7
+    day_counts  = [0] * 7
     hour_by_day = [[] for _ in range(7)]
     for s in sessions:
         d = s["day"]
         day_counts[d] += 1
         hour_by_day[d].append(s["hour"])
-    # Jours les plus actifs
-    total = len(sessions)
+    total  = len(sessions)
     result = []
     for d in range(7):
         if day_counts[d] == 0:
             continue
         avg_hour = round(sum(hour_by_day[d]) / len(hour_by_day[d]))
-        pct = round(day_counts[d] / total * 100)
+        pct      = round(day_counts[d] / total * 100)
         result.append((d, avg_hour, pct))
     result.sort(key=lambda x: -x[2])
     return result[:4], DAYS, total
 
-# ==================== FONCTIONS COMMUNES ====================
+# ==================== FONCTIONS API ====================
 
 async def get_countries_list(server: str):
     now = time.time()
@@ -171,14 +215,14 @@ async def get_countries_list(server: str):
         cached_data, cached_time = countries_cache[server]
         if now - cached_time < CACHE_TTL:
             return cached_data
-    url = f"https://publicapi.nationsglory.fr/country/list/{server}"
+    url     = f"https://publicapi.nationsglory.fr/country/list/{server}"
     headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as resp:
                 if resp.status in (200, 500):
-                    data = await resp.json()
+                    data    = await resp.json()
                     claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
                     countries_cache[server] = (claimed, now)
                     return claimed
@@ -187,7 +231,7 @@ async def get_countries_list(server: str):
     return []
 
 async def get_country_members(server: str, country: str):
-    url = f"https://publicapi.nationsglory.fr/country/{server}/{country}"
+    url     = f"https://publicapi.nationsglory.fr/country/{server}/{country}"
     headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -202,7 +246,7 @@ async def get_country_members(server: str, country: str):
     return None, None
 
 async def get_online_players(server: str):
-    url = SERVERS[server]["url"]
+    url     = SERVERS[server]["url"]
     timeout = aiohttp.ClientTimeout(total=5)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
@@ -234,36 +278,47 @@ async def check_command(interaction: discord.Interaction, server: str, country: 
     await interaction.response.defer()
     if server not in SERVERS:
         return await interaction.followup.send("❌ Serveur invalide")
-
     members, country_name = await get_country_members(server, country)
     if not members:
         return await interaction.followup.send("❌ Pays introuvable")
-
-    tasks = {s: get_online_players(s) for s in SERVERS}
-    results = await asyncio.gather(*tasks.values())
+    tasks          = {s: get_online_players(s) for s in SERVERS}
+    results        = await asyncio.gather(*tasks.values())
     online_by_server = dict(zip(tasks.keys(), results))
-
     found = {}
     total = 0
     for s, players in online_by_server.items():
         f = [m for m in members if m in players]
         if f:
             found[s] = f
-            total += len(f)
-
+            total   += len(f)
     embed = discord.Embed(title=f"📊 Espionnage {country_name}", color=discord.Color.red())
     if found:
-        sorted_servers = sorted(found.items(), key=lambda x: (x[0] != server, x[0]))
-        for s, pl in sorted_servers:
+        for s, pl in sorted(found.items(), key=lambda x: (x[0] != server, x[0])):
             label = f"{SERVERS[s]['emoji']} {s.upper()} ({len(pl)})"
             if s == server:
                 label += " ← serveur cible"
             embed.add_field(name=label, value=", ".join(pl), inline=False)
-        embed.set_footer(text=f"Total connectés : {total} joueurs | {len(members)} membres au total")
+        embed.set_footer(text=f"Total connectés : {total} | {len(members)} membres au total")
     else:
-        embed.description = f"✅ Aucun membre de {country_name} n'est connecté en ce moment"
-        embed.color = discord.Color.green()
+        embed.description = f"✅ Aucun membre de {country_name} n'est connecté"
+        embed.color       = discord.Color.green()
+    await interaction.followup.send(embed=embed)
 
+# ==================== COMMANDE CHECKALL ====================
+
+@tree.command(name="checkall", description="Voir sur quel serveur un joueur est connecté")
+async def checkall_command(interaction: discord.Interaction, joueur: str):
+    await interaction.response.defer()
+    tasks          = {s: get_online_players(s) for s in SERVERS}
+    results        = await asyncio.gather(*tasks.values())
+    online_by_server = dict(zip(tasks.keys(), results))
+    found = [s for s, players in online_by_server.items() if joueur in players]
+    embed = discord.Embed(title=f"🔍 Localisation de {joueur}", color=discord.Color.red())
+    if found:
+        embed.color       = discord.Color.green()
+        embed.description = "\n".join([f"{SERVERS[s]['emoji']} **{s.upper()}**" for s in found])
+    else:
+        embed.description = f"**{joueur}** n'est connecté sur aucun serveur"
     await interaction.followup.send(embed=embed)
 
 # ==================== COMMANDE ONLINE ====================
@@ -275,7 +330,7 @@ async def online_command(interaction: discord.Interaction, server: str):
     if server not in SERVERS:
         return await interaction.followup.send("❌ Serveur invalide")
     players = await get_online_players(server)
-    embed = discord.Embed(
+    embed   = discord.Embed(
         title=f"{SERVERS[server]['emoji']} Joueurs en ligne — {server.upper()}",
         color=discord.Color.blurple()
     )
@@ -288,34 +343,14 @@ async def online_command(interaction: discord.Interaction, server: str):
         embed.description = "Aucun joueur connecté"
     await interaction.followup.send(embed=embed)
 
-# ==================== COMMANDE CHECKALL ====================
-
-@tree.command(name="checkall", description="Voir sur quel serveur un joueur est connecté")
-async def checkall_command(interaction: discord.Interaction, joueur: str):
-    await interaction.response.defer()
-    tasks = {s: get_online_players(s) for s in SERVERS}
-    results = await asyncio.gather(*tasks.values())
-    online_by_server = dict(zip(tasks.keys(), results))
-
-    found = [s for s, players in online_by_server.items() if joueur in players]
-
-    embed = discord.Embed(title=f"🔍 Localisation de {joueur}", color=discord.Color.red())
-    if found:
-        embed.color = discord.Color.green()
-        embed.description = "\n".join([f"{SERVERS[s]['emoji']} **{s.upper()}**" for s in found])
-    else:
-        embed.description = f"**{joueur}** n'est connecté sur aucun serveur"
-    await interaction.followup.send(embed=embed)
-
 # ==================== COMMANDE PRONOSTIC ====================
 
-@tree.command(name="pronostic", description="Pronostic de connexion d'un joueur surveillé")
+@tree.command(name="pronostic", description="Pronostic de connexion d'un joueur")
 async def pronostic_command(interaction: discord.Interaction, joueur: str):
     await interaction.response.defer()
     result = get_pronostic(joueur)
     if not result:
         return await interaction.followup.send(f"⚠️ Pas assez de données pour **{joueur}** (minimum 3 connexions)", ephemeral=True)
-
     top, DAYS, total = result
     embed = discord.Embed(
         title=f"🔮 Pronostic — {joueur}",
@@ -329,7 +364,7 @@ async def pronostic_command(interaction: discord.Interaction, joueur: str):
             value=f"`{bar}` Heure moyenne : **{avg_hour}h**",
             inline=False
         )
-    embed.set_footer(text="Les % représentent la fréquence de connexion par jour")
+    embed.set_footer(text="% = fréquence de connexion par jour de la semaine")
     await interaction.followup.send(embed=embed)
 
 # ==================== COMMANDES WATCHLIST ====================
@@ -359,25 +394,51 @@ async def watchlist_command(interaction: discord.Interaction):
     embed.set_footer(text=f"{len(WATCH_LIST)} joueurs surveillés")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# ==================== SCANNER LIME ====================
+# ==================== SCANNER INTERSERVEUR ====================
 
-last_known_state = {}
+# {server: {player: bool}}
+last_states = {s: {} for s in SERVERS}
+
+async def scan_server(server: str, alerte_channel):
+    players = await get_online_players(server)
+    player_set = set(players)
+    prev = last_states[server]
+
+    for player in player_set:
+        if not prev.get(player, False):
+            # Connexion détectée
+            record_connection(player, server)
+            # Alerte watchlist
+            if player in WATCH_LIST and alerte_channel:
+                embed = discord.Embed(
+                    title="🟢 CONNEXION DÉTECTÉE",
+                    description=f"**{player}** vient de se connecter sur **{server.upper()}**",
+                    color=discord.Color.green(),
+                    timestamp=discord.utils.utcnow()
+                )
+                await alerte_channel.send(embed=embed)
+
+    for player in list(prev.keys()):
+        if prev[player] and player not in player_set:
+            # Déconnexion watchlist
+            if player in WATCH_LIST and alerte_channel:
+                embed = discord.Embed(
+                    title="🔴 DÉCONNEXION",
+                    description=f"**{player}** vient de se déconnecter de **{server.upper()}**",
+                    color=discord.Color.red(),
+                    timestamp=discord.utils.utcnow()
+                )
+                await alerte_channel.send(embed=embed)
+
+    last_states[server] = {p: True for p in player_set}
+    return players
+
+# ==================== SCANNER LIME (RAPPORT) ====================
+
 rapport_message_id = None
 
-async def fetch_lime_players():
-    timeout = aiohttp.ClientTimeout(total=5)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            async with session.get(LIME_URL) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    return [p["name"] for p in data.get("players", [])], data.get("currentcount", 0), data.get("servertime", 0)
-        except:
-            pass
-    return [], 0, 0
-
 async def scanner_loop():
-    global last_known_state, rapport_message_id
+    global rapport_message_id
 
     await client.wait_until_ready()
     await load_watchlist()
@@ -388,47 +449,26 @@ async def scanner_loop():
 
     while True:
         try:
-            online_players, total_online, servertime = await fetch_lime_players()
+            # Scanner tous les serveurs en parallèle
+            tasks   = {s: scan_server(s, alerte_channel) for s in SERVERS}
+            results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+            server_players = dict(zip(tasks.keys(), results))
+
+            # Rapport Lime
+            lime_players = server_players.get("lime", [])
+            if isinstance(lime_players, Exception):
+                lime_players = []
+
+            total_lime = len(lime_players)
 
             watched_online  = []
             watched_offline = []
-
             for player in WATCH_LIST:
-                is_online = player in online_players
-                prev = last_known_state.get(player)
-
-                if prev is not None and is_online != prev:
-                    if is_online:
-                        record_connection(player)
-                    if alerte_channel:
-                        if is_online:
-                            alert_embed = discord.Embed(
-                                title="🟢 CONNEXION DÉTECTÉE",
-                                description=f"**{player}** vient de se connecter sur **LIME**",
-                                color=discord.Color.green(),
-                                timestamp=discord.utils.utcnow()
-                            )
-                        else:
-                            alert_embed = discord.Embed(
-                                title="🔴 DÉCONNEXION",
-                                description=f"**{player}** vient de se déconnecter de **LIME**",
-                                color=discord.Color.red(),
-                                timestamp=discord.utils.utcnow()
-                            )
-                        await alerte_channel.send(embed=alert_embed)
-
-                last_known_state[player] = is_online
-                (watched_online if is_online else watched_offline).append(player)
-
-            # Heure IG
-            hours   = (servertime // 1000) % 24
-            minutes = int((servertime % 1000) / 1000 * 60)
-            time_ig = f"{str(hours).zfill(2)}:{str(minutes).zfill(2)}"
+                (watched_online if player in lime_players else watched_offline).append(player)
 
             now      = discord.utils.utcnow()
             time_str = (now + timedelta(hours=1)).strftime("%H:%M:%S")
 
-            # Rapport
             status_text = ""
             if watched_online:
                 status_text += f"🟢 **En ligne ({len(watched_online)}) :**\n"
@@ -446,11 +486,10 @@ async def scanner_loop():
                 color=discord.Color.green() if watched_online else discord.Color.greyple(),
                 timestamp=now
             )
-            rapport_embed.add_field(name="👥 Connectés Total", value=f"**{total_online}**", inline=True)
-            rapport_embed.add_field(name="🕐 Heure IG",        value=f"**{time_ig}**",      inline=True)
-            rapport_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",     inline=True)
+            rapport_embed.add_field(name="👥 Connectés Total", value=f"**{total_lime}**", inline=True)
+            rapport_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",   inline=True)
             rapport_embed.add_field(name="👁️ Surveillance", value=status_text or "Aucun joueur surveillé en ligne", inline=False)
-            rapport_embed.set_footer(text="Scanner en temps réel • Actualisation 1s")
+            rapport_embed.set_footer(text="Scanner interserveur • Actualisation 1s")
 
             if rapport_channel:
                 if rapport_message_id:
@@ -469,15 +508,12 @@ async def scanner_loop():
 
         await asyncio.sleep(1)
 
-    # Sauvegarde historique toutes les 5 min (300 tours)
-scanner_save_counter = 0
-
 async def history_saver():
     await client.wait_until_ready()
     while True:
         await asyncio.sleep(300)
         await save_history()
-        print("💾 Historique sauvegardé")
+        print(f"💾 Historique sauvegardé — {len(global_history)} joueurs")
 
 # ==================== SERVEUR WEB / SELF-PING ====================
 
@@ -521,8 +557,8 @@ async def main():
 @client.event
 async def on_ready():
     await tree.sync()
-    print(f"✅ Bot connecté en tant que {client.user}")
-    print(f"👁️ Scanner Lime actif — watchlist chargée depuis Discord")
+    print(f"✅ Bot connecté : {client.user}")
+    print(f"🌍 Scanner interserveur actif — {len(SERVERS)} serveurs")
 
 if __name__ == "__main__":
     asyncio.run(main())
