@@ -218,7 +218,7 @@ async def scanner_loop():
             time_ig = f"{str(hours).zfill(2)}:{str(minutes).zfill(2)}"
 
             now = discord.utils.utcnow()
-            time_str = now.strftime("%H:%M:%S")
+            time_str = (now + __import__('datetime').timedelta(hours=1)).strftime("%H:%M:%S")
 
             # Construction du rapport
             status_text = ""
@@ -242,7 +242,7 @@ async def scanner_loop():
             rapport_embed.add_field(name="🕐 Heure IG", value=f"**{time_ig}**", inline=True)
             rapport_embed.add_field(name="⏱️ Dernier relevé", value=f"**{time_str}**", inline=True)
             rapport_embed.add_field(name="👁️ Surveillance", value=status_text or "Aucun joueur surveillé en ligne", inline=False)
-            rapport_embed.set_footer(text="Scanner en temps réel • Actualisation 2s")
+            rapport_embed.set_footer(text="Scanner en temps réel • Actualisation 1s")
 
             # Envoyer ou modifier le message rapport
             if rapport_channel:
@@ -260,7 +260,7 @@ async def scanner_loop():
         except Exception as e:
             print(f"❌ Erreur scanner: {e}")
 
-        await asyncio.sleep(2)
+        await asyncio.sleep(1)
 
 # ==================== SERVEUR WEB / SELF-PING ====================
 
