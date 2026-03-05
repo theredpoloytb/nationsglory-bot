@@ -67,7 +67,7 @@ def init_mongo():
         return
     try:
         from pymongo import MongoClient, ASCENDING
-        mongo_client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=8000)
+        mongo_client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=8000, tls=True, tlsAllowInvalidCertificates=True)
         mongo_client.admin.command('ping')
         db           = mongo_client["mossadglory"]
         sessions_col = db["sessions"]
