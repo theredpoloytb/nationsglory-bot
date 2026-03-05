@@ -5,10 +5,9 @@ import asyncio
 import time
 import json
 import os
+import sys
 from aiohttp import web
 from datetime import timedelta, datetime
-from pymongo import MongoClient, ASCENDING
-from pymongo.errors import ConnectionFailure
 
 # ==================== CONFIGURATION ====================
 
@@ -29,7 +28,6 @@ WATCH_LIST_DEFAULT = [
 
 WATCH_LIST       = list(WATCH_LIST_DEFAULT)
 watchlist_msg_id = None
-rapport_msg_id   = None
 
 intents = discord.Intents.default()
 client  = discord.Client(intents=intents)
@@ -58,48 +56,61 @@ countries_cache = {}
 mongo_client = None
 db           = None
 sessions_col = None
-rapport_col  = None
+config_col   = None
+mongo_ok     = False
 
 def init_mongo():
-    global mongo_client, db, sessions_col, rapport_col
+    global mongo_client, db, sessions_col, config_col, mongo_ok
+    print("🔌 Connexion MongoDB...", flush=True)
+    if not MONGO_URL:
+        print("❌ MONGO_URL non défini !", flush=True)
+        return
     try:
-        mongo_client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
+        from pymongo import MongoClient, ASCENDING
+        mongo_client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=8000)
         mongo_client.admin.command('ping')
         db           = mongo_client["mossadglory"]
         sessions_col = db["sessions"]
-        rapport_col  = db["config"]
-        # Index pour requêtes rapides
+        config_col   = db["config"]
         sessions_col.create_index([("player", ASCENDING), ("ts", ASCENDING)])
-        print("✅ MongoDB connecté")
+        mongo_ok = True
+        print("✅ MongoDB connecté !", flush=True)
     except Exception as e:
-        print(f"❌ MongoDB erreur: {e}")
+        print(f"❌ MongoDB erreur: {e}", flush=True)
 
 def record_connection(player: str, server: str):
-    if sessions_col is None:
+    if not mongo_ok or sessions_col is None:
         return
-    now = datetime.utcnow() + timedelta(hours=1)
-    sessions_col.insert_one({
-        "player":  player,
-        "server":  server,
-        "ts":      now,
-        "day":     now.weekday(),   # 0=lundi
-        "hour":    now.hour,
-        "minute":  now.minute
-    })
+    try:
+        now = datetime.utcnow() + timedelta(hours=1)
+        sessions_col.insert_one({
+            "player":  player,
+            "server":  server,
+            "ts":      now,
+            "day":     now.weekday(),
+            "hour":    now.hour,
+            "minute":  now.minute
+        })
+    except Exception as e:
+        print(f"❌ record_connection erreur: {e}", flush=True)
 
 def get_sessions(player: str, limit: int = 500):
-    if sessions_col is None:
+    if not mongo_ok or sessions_col is None:
         return []
-    return list(sessions_col.find(
-        {"player": player},
-        {"_id": 0}
-    ).sort("ts", ASCENDING).limit(limit))
+    try:
+        from pymongo import ASCENDING
+        return list(sessions_col.find(
+            {"player": player},
+            {"_id": 0}
+        ).sort("ts", ASCENDING).limit(limit))
+    except:
+        return []
 
 def get_pronostic(player: str):
     sessions = get_sessions(player, limit=200)
     if len(sessions) < 3:
         return None
-    DAYS       = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    DAYS        = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
     day_counts  = [0] * 7
     hour_by_day = [[] for _ in range(7)]
     for s in sessions:
@@ -111,42 +122,46 @@ def get_pronostic(player: str):
     for d in range(7):
         if day_counts[d] == 0:
             continue
-        avg_hour = sum(hour_by_day[d]) / len(hour_by_day[d])
-        avg_h    = int(avg_hour)
-        avg_m    = int((avg_hour - avg_h) * 60)
-        pct      = round(day_counts[d] / total * 100)
+        avg   = sum(hour_by_day[d]) / len(hour_by_day[d])
+        avg_h = int(avg)
+        avg_m = int((avg - avg_h) * 60)
+        pct   = round(day_counts[d] / total * 100)
         result.append((d, avg_h, avg_m, pct))
     result.sort(key=lambda x: -x[3])
     return result[:5], DAYS, total
 
 def get_plages(player: str):
-    """Retourne les plages horaires de connexion par jour"""
     sessions = get_sessions(player, limit=500)
     if not sessions:
         return None
-    DAYS   = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
-    # Heatmap heure x jour (compteur)
+    DAYS    = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
     heatmap = [[0]*24 for _ in range(7)]
     for s in sessions:
         heatmap[s["day"]][s["hour"]] += 1
     return heatmap, DAYS
 
 def save_rapport_id(msg_id: int):
-    if rapport_col is None:
+    if not mongo_ok or config_col is None:
         return
-    rapport_col.update_one(
-        {"key": "rapport_msg_id"},
-        {"$set": {"value": msg_id}},
-        upsert=True
-    )
+    try:
+        config_col.update_one(
+            {"key": "rapport_msg_id"},
+            {"$set": {"value": msg_id}},
+            upsert=True
+        )
+    except:
+        pass
 
 def load_rapport_id():
-    if rapport_col is None:
+    if not mongo_ok or config_col is None:
         return None
-    doc = rapport_col.find_one({"key": "rapport_msg_id"})
-    return doc["value"] if doc else None
+    try:
+        doc = config_col.find_one({"key": "rapport_msg_id"})
+        return doc["value"] if doc else None
+    except:
+        return None
 
-# ==================== WATCHLIST (Discord) ====================
+# ==================== WATCHLIST ====================
 
 async def load_watchlist():
     global WATCH_LIST, watchlist_msg_id
@@ -159,7 +174,7 @@ async def load_watchlist():
                 data             = json.loads(msg.content[len("WATCHLIST:"):])
                 WATCH_LIST       = data["players"]
                 watchlist_msg_id = msg.id
-                print(f"✅ Watchlist chargée : {WATCH_LIST}")
+                print(f"✅ Watchlist chargée : {WATCH_LIST}", flush=True)
                 return
             except:
                 pass
@@ -244,7 +259,7 @@ async def country_autocomplete(interaction: discord.Interaction, current: str):
     countries = await get_countries_list(server)
     return [app_commands.Choice(name=c, value=c) for c in countries if current.lower() in c.lower()][:25]
 
-# ==================== COMMANDE CHECK ====================
+# ==================== COMMANDES ====================
 
 @tree.command(name="check", description="Espionne les membres d'un pays sur tous les serveurs")
 @app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
@@ -278,8 +293,6 @@ async def check_command(interaction: discord.Interaction, server: str, country: 
         embed.color       = discord.Color.green()
     await interaction.followup.send(embed=embed)
 
-# ==================== COMMANDE CHECKALL ====================
-
 @tree.command(name="checkall", description="Voir sur quel serveur un joueur est connecté")
 async def checkall_command(interaction: discord.Interaction, joueur: str):
     await interaction.response.defer()
@@ -294,8 +307,6 @@ async def checkall_command(interaction: discord.Interaction, joueur: str):
     else:
         embed.description = f"**{joueur}** n'est connecté sur aucun serveur"
     await interaction.followup.send(embed=embed)
-
-# ==================== COMMANDE ONLINE ====================
 
 @tree.command(name="online", description="Voir tous les joueurs connectés sur un serveur")
 @app_commands.autocomplete(server=server_autocomplete)
@@ -317,11 +328,11 @@ async def online_command(interaction: discord.Interaction, server: str):
         embed.description = "Aucun joueur connecté"
     await interaction.followup.send(embed=embed)
 
-# ==================== COMMANDE PRONOSTIC ====================
-
 @tree.command(name="pronostic", description="Pronostic de connexion d'un joueur")
 async def pronostic_command(interaction: discord.Interaction, joueur: str):
     await interaction.response.defer()
+    if not mongo_ok:
+        return await interaction.followup.send("❌ MongoDB non connecté", ephemeral=True)
     result = get_pronostic(joueur)
     if not result:
         return await interaction.followup.send(
@@ -343,49 +354,33 @@ async def pronostic_command(interaction: discord.Interaction, joueur: str):
     embed.set_footer(text="% = fréquence de connexion par jour de la semaine")
     await interaction.followup.send(embed=embed)
 
-# ==================== COMMANDE PLAGES ====================
-
 @tree.command(name="plages", description="Voir les plages horaires de connexion d'un joueur")
 async def plages_command(interaction: discord.Interaction, joueur: str):
     await interaction.response.defer()
+    if not mongo_ok:
+        return await interaction.followup.send("❌ MongoDB non connecté", ephemeral=True)
     result = get_plages(joueur)
     if not result:
-        return await interaction.followup.send(
-            f"⚠️ Aucune donnée pour **{joueur}**", ephemeral=True
-        )
+        return await interaction.followup.send(f"⚠️ Aucune donnée pour **{joueur}**", ephemeral=True)
     heatmap, DAYS = result
-    embed = discord.Embed(
-        title=f"🕐 Plages horaires — {joueur}",
-        color=discord.Color.orange()
-    )
+    embed = discord.Embed(title=f"🕐 Plages horaires — {joueur}", color=discord.Color.orange())
     for d in range(7):
         row = heatmap[d]
         if sum(row) == 0:
             continue
-        # Trouver les plages actives (heures avec connexions)
-        active = [f"{h}h" for h in range(24) if row[h] > 0]
-        # Regrouper en plages continues
-        plages = []
-        i = 0
         hours_with_data = [h for h in range(24) if row[h] > 0]
-        if hours_with_data:
-            start = hours_with_data[0]
-            prev  = hours_with_data[0]
-            for h in hours_with_data[1:]:
-                if h - prev > 2:
-                    plages.append(f"{start}h-{prev+1}h")
-                    start = h
-                prev = h
-            plages.append(f"{start}h-{prev+1}h")
-        embed.add_field(
-            name=DAYS[d],
-            value=" • ".join(plages) if plages else "—",
-            inline=True
-        )
+        plages = []
+        start  = hours_with_data[0]
+        prev   = hours_with_data[0]
+        for h in hours_with_data[1:]:
+            if h - prev > 2:
+                plages.append(f"{start}h-{prev+1}h")
+                start = h
+            prev = h
+        plages.append(f"{start}h-{prev+1}h")
+        embed.add_field(name=DAYS[d], value=" • ".join(plages), inline=True)
     embed.set_footer(text="Basé sur l'historique complet des connexions")
     await interaction.followup.send(embed=embed)
-
-# ==================== COMMANDES WATCHLIST ====================
 
 @tree.command(name="addwatch", description="Ajouter un joueur à la surveillance")
 async def addwatch_command(interaction: discord.Interaction, joueur: str):
@@ -412,9 +407,10 @@ async def watchlist_command(interaction: discord.Interaction):
     embed.set_footer(text=f"{len(WATCH_LIST)} joueurs surveillés")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# ==================== SCANNER INTERSERVEUR ====================
+# ==================== SCANNER ====================
 
-last_states = {s: {} for s in SERVERS}
+last_states        = {s: {} for s in SERVERS}
+rapport_message_id = None
 
 async def scan_server(server: str, alerte_channel):
     players    = await get_online_players(server)
@@ -423,10 +419,7 @@ async def scan_server(server: str, alerte_channel):
 
     for player in player_set:
         if not prev.get(player, False):
-            # Connexion — enregistrer dans MongoDB
-            await asyncio.get_event_loop().run_in_executor(
-                None, record_connection, player, server
-            )
+            record_connection(player, server)
             if player in WATCH_LIST and alerte_channel:
                 embed = discord.Embed(
                     title="🟢 CONNEXION DÉTECTÉE",
@@ -450,20 +443,14 @@ async def scan_server(server: str, alerte_channel):
     last_states[server] = {p: True for p in player_set}
     return players
 
-# ==================== SCANNER PRINCIPAL ====================
-
-rapport_message_id = None
-
 async def scanner_loop():
     global rapport_message_id
 
     await client.wait_until_ready()
     await load_watchlist()
 
-    # Charger l'ID du rapport depuis MongoDB
-    rapport_message_id = await asyncio.get_event_loop().run_in_executor(
-        None, load_rapport_id
-    )
+    rapport_message_id = await asyncio.get_event_loop().run_in_executor(None, load_rapport_id)
+    print(f"📋 Rapport message ID: {rapport_message_id}", flush=True)
 
     rapport_channel = client.get_channel(RAPPORT_CHANNEL_ID)
     alerte_channel  = client.get_channel(ALERTE_CHANNEL_ID)
@@ -472,12 +459,11 @@ async def scanner_loop():
 
     while True:
         try:
-            # Scanner tous les serveurs en parallèle
-            tasks   = {s: scan_server(s, alerte_channel) for s in SERVERS}
-            results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+            tasks          = {s: scan_server(s, alerte_channel) for s in SERVERS}
+            results        = await asyncio.gather(*tasks.values(), return_exceptions=True)
             server_players = dict(zip(tasks.keys(), results))
 
-            # Rapport Lime toutes les 5s
+            # Rapport toutes les 5s
             if scan_tick % 5 == 0:
                 lime_players = server_players.get("lime", [])
                 if isinstance(lime_players, Exception):
@@ -509,7 +495,7 @@ async def scanner_loop():
                 rapport_embed.add_field(name="👥 Connectés Total", value=f"**{len(lime_players)}**", inline=True)
                 rapport_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",          inline=True)
                 rapport_embed.add_field(name="👁️ Surveillance", value=status_text or "Aucun joueur surveillé en ligne", inline=False)
-                rapport_embed.set_footer(text="Scanner interserveur • Actualisation 5s")
+                rapport_embed.set_footer(text=f"Scanner interserveur • MongoDB {'✅' if mongo_ok else '❌'}")
 
                 if rapport_channel:
                     if rapport_message_id:
@@ -519,27 +505,23 @@ async def scanner_loop():
                         except discord.NotFound:
                             msg                = await rapport_channel.send(embed=rapport_embed)
                             rapport_message_id = msg.id
-                            await asyncio.get_event_loop().run_in_executor(
-                                None, save_rapport_id, rapport_message_id
-                            )
+                            await asyncio.get_event_loop().run_in_executor(None, save_rapport_id, rapport_message_id)
                     else:
                         msg                = await rapport_channel.send(embed=rapport_embed)
                         rapport_message_id = msg.id
-                        await asyncio.get_event_loop().run_in_executor(
-                            None, save_rapport_id, rapport_message_id
-                        )
+                        await asyncio.get_event_loop().run_in_executor(None, save_rapport_id, rapport_message_id)
 
             scan_tick += 1
 
         except Exception as e:
-            print(f"❌ Erreur scanner: {e}")
+            print(f"❌ Erreur scanner: {e}", flush=True)
 
         await asyncio.sleep(1)
 
-# ==================== SERVEUR WEB / SELF-PING ====================
+# ==================== SERVEUR WEB ====================
 
 async def handle_health(request):
-    return web.Response(text="Bot actif! ✅")
+    return web.Response(text=f"Bot actif ✅ | MongoDB {'✅' if mongo_ok else '❌'}")
 
 async def start_webserver():
     app = web.Application()
@@ -550,7 +532,7 @@ async def start_webserver():
     port = int(os.getenv("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"🌐 Serveur HTTP démarré sur {port}")
+    print(f"🌐 Serveur HTTP démarré sur {port}", flush=True)
 
 async def self_ping():
     await asyncio.sleep(60)
@@ -568,6 +550,7 @@ async def self_ping():
 # ==================== LANCEMENT ====================
 
 async def main():
+    print("🚀 Démarrage du bot...", flush=True)
     init_mongo()
     asyncio.create_task(start_webserver())
     if RENDER_URL:
@@ -578,8 +561,9 @@ async def main():
 @client.event
 async def on_ready():
     await tree.sync()
-    print(f"✅ Bot connecté : {client.user}")
-    print(f"🌍 Scanner interserveur actif — {len(SERVERS)} serveurs | MongoDB ✅")
+    print(f"✅ Bot connecté : {client.user}", flush=True)
+    print(f"🌍 Scanner interserveur actif — {len(SERVERS)} serveurs", flush=True)
+    print(f"🗄️ MongoDB : {'✅ OK' if mongo_ok else '❌ NON CONNECTÉ'}", flush=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
