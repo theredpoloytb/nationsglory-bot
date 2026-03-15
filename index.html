@@ -218,7 +218,7 @@
     <div class="ph">
       <span class="pt">◉ Joueurs en ligne</span>
       <div class="row" style="flex-wrap:nowrap">
-        <select id="ol-srv" style="max-width:150px">
+        <select id="ol-srv" style="max-width:150px" onchange="$('ol-body').innerHTML=ld();loadOnline()">
           <option value="">Tous les serveurs</option>
           <option value="blue">BLUE</option><option value="coral">CORAL</option>
           <option value="orange">ORANGE</option><option value="red">RED</option>
@@ -522,6 +522,7 @@ function goOnline(server) {
 // Filtre depuis la vue "Tous les serveurs" sans changer d'onglet
 function filterOnline(server) {
   $('ol-srv').value = server;
+  $('ol-body').innerHTML = ld();
   loadOnline();
 }
 
