@@ -8,237 +8,150 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --gold: #c9a84c;
-    --gold-bright: #f0c040;
-    --gold-dim: #3a2e10;
-    --bg: #030507;
-    --bg2: #070b0f;
-    --bg3: #0c1018;
-    --panel: #080d13;
-    --border: #131d27;
-    --border-gold: #2a2010;
-    --green: #00ff88;
-    --red: #ff3355;
-    --cyan: #00ccff;
-    --text: #b8c8d8;
-    --text-dim: #3a4a5a;
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'Rajdhani', sans-serif;
+    --gold:#c9a84c;--gold-bright:#f0c040;--gold-dim:#3a2e10;
+    --bg:#030507;--bg2:#070b0f;--panel:#080d13;
+    --border:#131d27;--border-gold:#2a2010;
+    --green:#00ff88;--red:#ff3355;--cyan:#00ccff;
+    --text:#b8c8d8;--text-dim:#3a4a5a;
+    --font-mono:'Share Tech Mono',monospace;
+    --font-display:'Bebas Neue',sans-serif;
+    --font-body:'Rajdhani',sans-serif;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:9999}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  .header{position:sticky;top:0;z-index:200;background:rgba(3,5,7,0.97);border-bottom:1px solid var(--border-gold);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;backdrop-filter:blur(16px)}
+  .logo{display:flex;align-items:center;gap:.9rem}
+  .logo-text{display:flex;flex-direction:column;line-height:1}
+  .logo-main{font-family:var(--font-display);font-size:1.5rem;letter-spacing:.2em;color:var(--gold-bright);text-shadow:0 0 20px rgba(240,192,64,.35)}
+  .logo-sub{font-family:var(--font-mono);font-size:.55rem;color:var(--text-dim);letter-spacing:.3em}
+  .header-right{display:flex;align-items:center;gap:1.2rem;font-family:var(--font-mono);font-size:.68rem}
+  .status-pill{display:flex;align-items:center;gap:.35rem;color:var(--text-dim)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+  .dot.off{background:var(--red);box-shadow:0 0 6px var(--red)}
+  #clock{color:var(--gold);letter-spacing:.1em}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-  body::before {
-    content:'';
-    position:fixed; top:0; left:0; right:0; bottom:0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
-    pointer-events:none; z-index:9999;
-  }
+  .nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;overflow-x:auto}
+  .tab{padding:.7rem 1.2rem;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;transition:all .15s}
+  .tab:hover{color:var(--gold)}
+  .tab.active{color:var(--gold-bright);border-bottom-color:var(--gold-bright);text-shadow:0 0 10px rgba(240,192,64,.4)}
 
-  /* HEADER */
-  .header {
-    position:sticky; top:0; z-index:200;
-    background: rgba(3,5,7,0.97);
-    border-bottom: 1px solid var(--border-gold);
-    padding: 0 1.5rem;
-    display:flex; align-items:center; justify-content:space-between;
-    height:58px;
-    backdrop-filter:blur(16px);
-  }
-  .logo { display:flex; align-items:center; gap:0.9rem; }
-  .logo-text { display:flex; flex-direction:column; line-height:1; }
-  .logo-main { font-family:var(--font-display); font-size:1.5rem; letter-spacing:0.2em; color:var(--gold-bright); text-shadow:0 0 20px rgba(240,192,64,0.35); }
-  .logo-sub  { font-family:var(--font-mono); font-size:0.55rem; color:var(--text-dim); letter-spacing:0.3em; }
-  .header-right { display:flex; align-items:center; gap:1.2rem; font-family:var(--font-mono); font-size:0.68rem; }
-  .status-pill { display:flex; align-items:center; gap:0.35rem; color:var(--text-dim); }
-  .dot { width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); animation:blink 2s infinite; }
-  .dot.off { background:var(--red); box-shadow:0 0 6px var(--red); }
-  #clock { color:var(--gold); letter-spacing:0.1em; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .main{padding:1.2rem 1.5rem;max-width:1600px;margin:0 auto}
+  .section{display:none}
+  .section.active{display:block;animation:fadeIn .25s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-  /* NAV */
-  .nav {
-    display:flex; background:var(--bg2);
-    border-bottom:1px solid var(--border);
-    padding:0 1.5rem; gap:0; overflow-x:auto;
-  }
-  .tab {
-    padding:0.7rem 1.2rem;
-    font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--text-dim); cursor:pointer;
-    border:none; border-bottom:2px solid transparent;
-    background:none; white-space:nowrap; transition:all 0.15s;
-  }
-  .tab:hover { color:var(--gold); }
-  .tab.active { color:var(--gold-bright); border-bottom-color:var(--gold-bright); text-shadow:0 0 10px rgba(240,192,64,0.4); }
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+  .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+  .mb{margin-bottom:1rem}
+  @media(max-width:800px){.g2,.g3,.g4{grid-template-columns:1fr}.main{padding:.8rem}}
 
-  /* LAYOUT */
-  .main { padding:1.2rem 1.5rem; max-width:1600px; margin:0 auto; }
-  .section { display:none; }
-  .section.active { display:block; animation:fadeIn 0.25s ease; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .panel{background:var(--panel);border:1px solid var(--border);position:relative;overflow:hidden}
+  .panel::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+  .ph{padding:.65rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+  .pt{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
+  .pb{padding:1rem}
+  .badge{font-family:var(--font-mono);font-size:.62rem;padding:.12rem .45rem;background:rgba(201,168,76,.08);border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px}
 
-  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-  .g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-  .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
-  .mb { margin-bottom:1rem; }
+  .scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);animation:scanMove 4s linear infinite}
+  @keyframes scanMove{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
 
-  @media(max-width:800px){ .g2,.g3,.g4{grid-template-columns:1fr} .main{padding:0.8rem} }
+  .row{display:flex;gap:.5rem;align-items:stretch;flex-wrap:wrap}
+  input,select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:.55rem .8rem;font-family:var(--font-mono);font-size:.75rem;outline:none;transition:border-color .15s;letter-spacing:.05em;flex:1;min-width:100px}
+  input:focus,select:focus{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.02)}
+  input::placeholder{color:var(--text-dim)}
+  select option{background:var(--bg2)}
 
-  /* PANEL */
-  .panel {
-    background:var(--panel);
-    border:1px solid var(--border);
-    position:relative; overflow:hidden;
-  }
-  .panel::after {
-    content:''; position:absolute; top:0; left:0; right:0; height:1px;
-    background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
-  }
-  .ph {
-    padding:0.65rem 1rem;
-    border-bottom:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between; gap:0.5rem;
-  }
-  .pt { font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.18em; color:var(--gold); text-transform:uppercase; }
-  .pb { padding:1rem; }
-  .badge {
-    font-family:var(--font-mono); font-size:0.62rem; padding:0.12rem 0.45rem;
-    background:rgba(201,168,76,0.08); border:1px solid var(--gold-dim); color:var(--gold); border-radius:2px;
-  }
+  .btn{padding:.55rem 1rem;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .btn:hover{border-color:var(--gold-bright);color:var(--gold-bright);box-shadow:0 0 10px rgba(201,168,76,.15)}
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn-red{border-color:rgba(255,51,85,.3);color:var(--red)}
+  .btn-red:hover{border-color:var(--red)}
+  .btn-green{border-color:rgba(0,255,136,.3);color:var(--green)}
+  .btn-green:hover{border-color:var(--green)}
 
-  /* SCAN LINE */
-  .scan { position:absolute; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent); animation:scanMove 4s linear infinite; }
-  @keyframes scanMove { 0%{top:0;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:100%;opacity:0} }
+  /* AUTOCOMPLETE */
+  .ac-wrap{position:relative;flex:1}
+  .ac-list{position:absolute;top:100%;left:0;right:0;background:#0a0f18;border:1px solid var(--border);border-top:none;max-height:220px;overflow-y:auto;z-index:50;display:none}
+  .ac-item{padding:.4rem .8rem;font-family:var(--font-mono);font-size:.72rem;color:var(--text);cursor:pointer;border-bottom:1px solid rgba(19,29,39,.5)}
+  .ac-item:hover,.ac-item.selected{background:rgba(201,168,76,.06);color:var(--gold)}
+  .ac-item:last-child{border-bottom:none}
 
-  /* INPUTS */
-  .row { display:flex; gap:0.5rem; align-items:stretch; flex-wrap:wrap; }
-  input, select {
-    background:var(--bg2); border:1px solid var(--border); color:var(--text);
-    padding:0.55rem 0.8rem; font-family:var(--font-mono); font-size:0.75rem;
-    outline:none; transition:border-color 0.15s; letter-spacing:0.05em;
-    flex:1; min-width:120px;
-  }
-  input:focus, select:focus { border-color:rgba(201,168,76,0.4); background:rgba(201,168,76,0.02); }
-  input::placeholder { color:var(--text-dim); }
-  select option { background:var(--bg2); }
+  .stat{background:var(--bg2);border:1px solid var(--border);padding:.9rem 1rem;text-align:center;position:relative}
+  .stat-val{font-family:var(--font-display);font-size:2rem;color:var(--gold-bright);line-height:1;margin-bottom:.25rem;text-shadow:0 0 18px rgba(240,192,64,.25)}
+  .stat-lbl{font-family:var(--font-mono);font-size:.58rem;color:var(--text-dim);letter-spacing:.2em;text-transform:uppercase}
 
-  .btn {
-    padding:0.55rem 1rem; background:transparent;
-    border:1px solid var(--gold-dim); color:var(--gold);
-    font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.08em;
-    text-transform:uppercase; cursor:pointer; transition:all 0.15s; white-space:nowrap;
-  }
-  .btn:hover { border-color:var(--gold-bright); color:var(--gold-bright); box-shadow:0 0 10px rgba(201,168,76,0.15); }
-  .btn:active { transform:scale(0.97); }
-  .btn:disabled { opacity:0.35; cursor:not-allowed; }
-  .btn-red { border-color:rgba(255,51,85,0.3); color:var(--red); }
-  .btn-red:hover { border-color:var(--red); box-shadow:0 0 10px rgba(255,51,85,0.15); }
-  .btn-green { border-color:rgba(0,255,136,0.3); color:var(--green); }
-  .btn-green:hover { border-color:var(--green); box-shadow:0 0 10px rgba(0,255,136,0.15); }
+  .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.6rem}
+  .scard{background:var(--bg2);border:1px solid var(--border);padding:.8rem;cursor:pointer;transition:all .15s}
+  .scard:hover{border-color:var(--gold-dim);background:rgba(201,168,76,.02)}
+  .scard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
+  .scard-name{font-family:var(--font-display);font-size:1rem;letter-spacing:.1em;color:var(--gold-bright)}
+  .scard-cnt{font-family:var(--font-display);font-size:1.6rem;color:var(--text)}
+  .scard-lbl{font-family:var(--font-mono);font-size:.55rem;color:var(--text-dim);letter-spacing:.15em}
+  .sbar{margin-top:.5rem;height:2px;background:var(--border)}
+  .sbar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .6s ease}
 
-  /* STAT CARDS */
-  .stat {
-    background:var(--bg2); border:1px solid var(--border);
-    padding:0.9rem 1rem; text-align:center; position:relative;
-  }
-  .stat-val { font-family:var(--font-display); font-size:2rem; color:var(--gold-bright); line-height:1; margin-bottom:0.25rem; text-shadow:0 0 18px rgba(240,192,64,0.25); }
-  .stat-lbl { font-family:var(--font-mono); font-size:0.58rem; color:var(--text-dim); letter-spacing:0.2em; text-transform:uppercase; }
+  .ptags{display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem 0}
+  .ptag{font-family:var(--font-mono);font-size:.68rem;padding:.18rem .5rem;background:rgba(19,29,39,.8);border:1px solid var(--border);color:var(--text);transition:all .12s;cursor:pointer}
+  .ptag:hover{border-color:var(--gold-dim);color:var(--gold)}
+  .ptag.watched{border-color:rgba(201,168,76,.4);color:var(--gold);background:rgba(201,168,76,.05)}
+  .ptag.online{border-color:rgba(0,255,136,.5);color:var(--green);background:rgba(0,255,136,.04);box-shadow:0 0 5px rgba(0,255,136,.1)}
 
-  /* SERVER GRID */
-  .sgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:0.6rem; }
-  .scard {
-    background:var(--bg2); border:1px solid var(--border);
-    padding:0.8rem; cursor:pointer; transition:all 0.15s;
-  }
-  .scard:hover { border-color:var(--gold-dim); background:rgba(201,168,76,0.02); }
-  .scard-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; }
-  .scard-name { font-family:var(--font-display); font-size:1rem; letter-spacing:0.1em; color:var(--gold-bright); }
-  .scard-cnt  { font-family:var(--font-display); font-size:1.6rem; color:var(--text); }
-  .scard-lbl  { font-family:var(--font-mono); font-size:0.55rem; color:var(--text-dim); letter-spacing:0.15em; }
-  .sbar { margin-top:0.5rem; height:2px; background:var(--border); }
-  .sbar-fill { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); transition:width 0.6s ease; }
+  .wi{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:.75rem}
+  .wi:last-child{border-bottom:none}
+  .wi-status{display:flex;align-items:center;gap:.35rem;font-size:.62rem;letter-spacing:.1em}
+  .wi-status.on{color:var(--green)}.wi-status.off{color:var(--text-dim)}
 
-  /* PLAYER TAGS */
-  .ptags { display:flex; flex-wrap:wrap; gap:0.3rem; padding:0.5rem 0; }
-  .ptag {
-    font-family:var(--font-mono); font-size:0.68rem; padding:0.18rem 0.5rem;
-    background:rgba(19,29,39,0.8); border:1px solid var(--border); color:var(--text);
-    transition:all 0.12s; cursor:pointer;
-  }
-  .ptag:hover { border-color:var(--gold-dim); color:var(--gold); }
-  .ptag.watched { border-color:rgba(201,168,76,0.4); color:var(--gold); background:rgba(201,168,76,0.05); }
-  .ptag.online  { border-color:rgba(0,255,136,0.5); color:var(--green); background:rgba(0,255,136,0.04); box-shadow:0 0 5px rgba(0,255,136,0.1); }
+  .res{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold-dim);padding:.9rem 1rem;margin-top:.7rem;font-family:var(--font-mono);font-size:.75rem;line-height:1.8;animation:fadeIn .25s ease}
+  .res.ok{border-left-color:var(--green)}.res.err{border-left-color:var(--red)}.res.inf{border-left-color:var(--cyan)}
+  .res-title{font-size:.6rem;color:var(--text-dim);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
 
-  /* WATCHLIST ITEMS */
-  .wi { display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border); font-family:var(--font-mono); font-size:0.75rem; }
-  .wi:last-child { border-bottom:none; }
-  .wi-name { color:var(--text); }
-  .wi-status { display:flex; align-items:center; gap:0.35rem; font-size:0.62rem; letter-spacing:0.1em; }
-  .wi-status.on  { color:var(--green); }
-  .wi-status.off { color:var(--text-dim); }
+  .feed{max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+  .aitem{display:flex;align-items:flex-start;gap:.6rem;padding:.55rem 0;border-bottom:1px solid rgba(19,29,39,.6);font-family:var(--font-mono);font-size:.68rem;animation:slideIn .25s ease}
+  .aitem:last-child{border-bottom:none}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+  .adot{width:7px;height:7px;border-radius:50%;margin-top:3px;flex-shrink:0}
+  .adot.g{background:var(--green);box-shadow:0 0 5px var(--green)}.adot.r{background:var(--red);box-shadow:0 0 5px var(--red)}
+  .atime{color:var(--text-dim);min-width:65px}.amsg{color:var(--text);flex:1}
+  .amsg span{color:var(--gold)}.asrv{color:var(--cyan);font-size:.6rem;padding:.08rem .3rem;border:1px solid var(--border);margin-left:.3rem}
 
-  /* RESULT BLOCKS */
-  .res {
-    background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--gold-dim);
-    padding:0.9rem 1rem; margin-top:0.7rem; font-family:var(--font-mono); font-size:0.75rem; line-height:1.8;
-    animation:fadeIn 0.25s ease;
-  }
-  .res.ok  { border-left-color:var(--green); }
-  .res.err { border-left-color:var(--red); }
-  .res.inf { border-left-color:var(--cyan); }
-  .res-title { font-size:0.6rem; color:var(--text-dim); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:0.5rem; padding-bottom:0.35rem; border-bottom:1px solid var(--border); }
+  .prow{display:flex;align-items:center;gap:.8rem;padding:.45rem 0;border-bottom:1px solid rgba(19,29,39,.5);font-family:var(--font-mono);font-size:.72rem}
+  .prow:last-child{border-bottom:none}
+  .pday{min-width:75px;color:var(--gold);letter-spacing:.08em}
+  .pbar-w{flex:1;height:5px;background:var(--border)}
+  .pbar-f{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright));transition:width .8s ease}
+  .ppct{min-width:38px;color:var(--text-dim);text-align:right;font-size:.65rem}
+  .ptime{min-width:55px;color:var(--text);text-align:right}
 
-  /* ALERT FEED */
-  .feed { max-height:380px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
-  .aitem { display:flex; align-items:flex-start; gap:0.6rem; padding:0.55rem 0; border-bottom:1px solid rgba(19,29,39,0.6); font-family:var(--font-mono); font-size:0.68rem; animation:slideIn 0.25s ease; }
-  .aitem:last-child { border-bottom:none; }
-  @keyframes slideIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
-  .adot { width:7px; height:7px; border-radius:50%; margin-top:3px; flex-shrink:0; }
-  .adot.g { background:var(--green); box-shadow:0 0 5px var(--green); }
-  .adot.r { background:var(--red);   box-shadow:0 0 5px var(--red); }
-  .atime { color:var(--text-dim); min-width:65px; }
-  .amsg  { color:var(--text); flex:1; }
-  .amsg span { color:var(--gold); }
-  .asrv  { color:var(--cyan); font-size:0.6rem; padding:0.08rem 0.3rem; border:1px solid var(--border); margin-left:0.3rem; }
+  .tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:.72rem}
+  .tbl th{text-align:left;padding:.45rem .7rem;color:var(--text-dim);border-bottom:1px solid var(--border);letter-spacing:.1em;text-transform:uppercase;font-weight:normal}
+  .tbl td{padding:.45rem .7rem;border-bottom:1px solid rgba(19,29,39,.5);color:var(--text)}
+  .tbl tr:hover td{background:rgba(201,168,76,.02)}
+  .tbl tr:last-child td{border-bottom:none}
 
-  /* PRONOSTIC */
-  .prow { display:flex; align-items:center; gap:0.8rem; padding:0.45rem 0; border-bottom:1px solid rgba(19,29,39,0.5); font-family:var(--font-mono); font-size:0.72rem; }
-  .prow:last-child { border-bottom:none; }
-  .pday { min-width:75px; color:var(--gold); letter-spacing:0.08em; }
-  .pbar-w { flex:1; height:5px; background:var(--border); }
-  .pbar-f { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright)); transition:width 0.8s ease; }
-  .ppct  { min-width:38px; color:var(--text-dim); text-align:right; font-size:0.65rem; }
-  .ptime { min-width:55px; color:var(--text); text-align:right; }
+  .empty{padding:1.5rem;text-align:center;font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.1em}
+  .ld{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);padding:.6rem 0}
+  .ld-dots span{display:inline-block;animation:blink 1.2s infinite;color:var(--gold)}
+  .ld-dots span:nth-child(2){animation-delay:.2s}.ld-dots span:nth-child(3){animation-delay:.4s}
 
-  /* TABLE */
-  .tbl { width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.72rem; }
-  .tbl th { text-align:left; padding:0.45rem 0.7rem; color:var(--text-dim); border-bottom:1px solid var(--border); letter-spacing:0.1em; text-transform:uppercase; font-weight:normal; }
-  .tbl td { padding:0.45rem 0.7rem; border-bottom:1px solid rgba(19,29,39,0.5); color:var(--text); }
-  .tbl tr:hover td { background:rgba(201,168,76,0.02); }
-  .tbl tr:last-child td { border-bottom:none; }
+  .svr-tag{font-family:var(--font-mono);font-size:.6rem;padding:.08rem .3rem;border:1px solid var(--border);color:var(--text-dim);margin-left:.2rem}
 
-  /* EMPTY / LOADING */
-  .empty { padding:1.5rem; text-align:center; font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); letter-spacing:0.1em; }
-  .ld { display:inline-flex; align-items:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); padding:0.6rem 0; }
-  .ld-dots span { display:inline-block; animation:blink 1.2s infinite; color:var(--gold); }
-  .ld-dots span:nth-child(2){animation-delay:0.2s} .ld-dots span:nth-child(3){animation-delay:0.4s}
-
-  /* SUGGEST */
-  .suggest { display:flex; flex-wrap:wrap; gap:0.25rem; margin-top:0.4rem; }
+  /* STATS LAYOUT */
+  .stat-block{background:var(--bg2);border:1px solid var(--border);padding:.9rem 1rem;margin-bottom:.8rem}
+  .stat-block-title{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:.7rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+  .info-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(19,29,39,.5);font-family:var(--font-mono);font-size:.75rem}
+  .info-row:last-child{border-bottom:none}
+  .info-key{color:var(--text-dim);letter-spacing:.08em}
+  .info-val{color:var(--text)}
+  .info-val.hl{color:var(--gold-bright)}
+  .info-val.online-green{color:var(--green)}
 
   ::-webkit-scrollbar{width:3px;height:3px}
   ::-webkit-scrollbar-thumb{background:var(--border)}
-
-  .svr-tag { font-family:var(--font-mono); font-size:0.6rem; padding:0.08rem 0.3rem; border:1px solid var(--border); color:var(--text-dim); margin-left:0.2rem; }
 </style>
 </head>
 <body>
@@ -259,7 +172,7 @@
     <div class="status-pill"><div class="dot" id="api-dot"></div><span id="api-txt">CONNECTING</span></div>
     <div class="status-pill"><div class="dot" id="scan-dot"></div><span>SCAN</span></div>
     <span id="clock">--:--:--</span>
-    <span style="font-size:0.7rem;color:var(--text-dim);opacity:0.4">מוסד</span>
+    <span style="font-size:.7rem;color:var(--text-dim);opacity:.4">מוסד</span>
   </div>
 </header>
 
@@ -290,7 +203,7 @@
     </div>
     <div class="panel">
       <div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0</span></div>
-      <div style="padding:0.4rem 1rem"><div class="feed" id="alert-feed"><div class="empty">En attente...</div></div></div>
+      <div style="padding:.4rem 1rem"><div class="feed" id="alert-feed"><div class="empty">En attente...</div></div></div>
     </div>
   </div>
   <div class="panel mb">
@@ -327,7 +240,12 @@
     <div class="ph"><span class="pt">⊕ Localiser un joueur</span></div>
     <div class="pb">
       <div class="row">
-        <input id="ca-input" placeholder="Nom du joueur..." onkeydown="if(event.key==='Enter')doCheckall()"/>
+        <div class="ac-wrap">
+          <input id="ca-input" placeholder="Nom du joueur..." autocomplete="off"
+            oninput="acFilter('ca-input','ca-list',onlinePlayers)"
+            onkeydown="acKey(event,'ca-list',()=>doCheckall())"/>
+          <div class="ac-list" id="ca-list"></div>
+        </div>
         <button class="btn" onclick="doCheckall()">→ LOCALISER</button>
       </div>
       <div id="ca-result"></div>
@@ -339,7 +257,7 @@
   </div>
 </section>
 
-<!-- CHECK / ESPIONNER -->
+<!-- ESPIONNER -->
 <section class="section" id="s-check">
   <div class="panel mb">
     <div class="ph"><span class="pt">◎ Espionner un pays</span></div>
@@ -354,10 +272,14 @@
           <option value="black">BLACK</option><option value="cyan">CYAN</option>
           <option value="lime">LIME</option>
         </select>
-        <input id="ck-country" placeholder="Nom du pays..." onkeydown="if(event.key==='Enter')doCheck()"/>
+        <div class="ac-wrap">
+          <input id="ck-country" placeholder="Nom du pays..." autocomplete="off"
+            oninput="acFilterCountry()"
+            onkeydown="acKey(event,'ck-list',()=>doCheck())"/>
+          <div class="ac-list" id="ck-list"></div>
+        </div>
         <button class="btn" onclick="doCheck()">→ ESPIONNER</button>
       </div>
-      <div class="suggest" id="ck-suggest"></div>
       <div id="ck-result"></div>
     </div>
   </div>
@@ -369,8 +291,13 @@
     <div class="panel">
       <div class="ph"><span class="pt">◈ Gérer la watchlist</span></div>
       <div class="pb">
-        <div class="row mb" style="margin-bottom:0.8rem">
-          <input id="wl-add-input" placeholder="Ajouter un joueur..." onkeydown="if(event.key==='Enter')wlAdd()"/>
+        <div class="row mb" style="margin-bottom:.8rem">
+          <div class="ac-wrap">
+            <input id="wl-add-input" placeholder="Ajouter un joueur..." autocomplete="off"
+              oninput="acFilter('wl-add-input','wl-add-list',onlinePlayers)"
+              onkeydown="acKey(event,'wl-add-list',()=>wlAdd())"/>
+            <div class="ac-list" id="wl-add-list"></div>
+          </div>
           <button class="btn btn-green" onclick="wlAdd()">+ Ajouter</button>
         </div>
         <div id="wl-manage"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
@@ -389,7 +316,12 @@
     <div class="ph"><span class="pt">◐ Analyse comportementale</span></div>
     <div class="pb">
       <div class="row">
-        <input id="st-input" placeholder="Nom du joueur..." onkeydown="if(event.key==='Enter')loadStats()"/>
+        <div class="ac-wrap">
+          <input id="st-input" placeholder="Nom du joueur..." autocomplete="off"
+            oninput="acFilter('st-input','st-list',onlinePlayers)"
+            onkeydown="acKey(event,'st-list',()=>loadStats())"/>
+          <div class="ac-list" id="st-list"></div>
+        </div>
         <button class="btn" onclick="loadStats()">→ Analyser</button>
       </div>
     </div>
@@ -404,64 +336,114 @@ const API = 'https://nationsglory-spy.onrender.com';
 const SERVERS = ["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
 const EMO = {blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
 
-let watchlist   = [];
-let alerts      = [];
-let prevOnline  = {};
-let caHistory   = JSON.parse(localStorage.getItem('mg_history') || '[]');
-let scanTimer   = null;
+let watchlist  = [];
+let alerts     = [];
+let prevOnline = {};
+let caHistory  = JSON.parse(localStorage.getItem('mg_history')||'[]');
+let ctryCache  = {};
+let onlinePlayers = []; // pool de pseudos connus pour l'autocomplete
 
-// ---- UTILS ----
 const $ = id => document.getElementById(id);
 const ld = () => `<div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
 
-async function api(path) {
-  const r = await fetch(API + path);
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
+// ---- CASE-INSENSITIVE MATCH ----
+// Retrouve le vrai nom (avec la bonne casse) depuis un pool
+function resolvePlayer(input, pool) {
+  const low = input.toLowerCase();
+  return pool.find(p => p.toLowerCase() === low) || input;
 }
 
-async function apiPost(path, body) {
-  const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
+// ---- AUTOCOMPLETE ENGINE ----
+function acFilter(inputId, listId, pool) {
+  const val  = $(inputId).value.trim().toLowerCase();
+  const list = $(listId);
+  if (!val || !pool.length) { list.style.display='none'; return; }
+  const matches = pool.filter(p => p.toLowerCase().includes(val)).slice(0,12);
+  if (!matches.length) { list.style.display='none'; return; }
+  list.innerHTML = matches.map(p => `<div class="ac-item" onmousedown="acPick('${inputId}','${listId}','${p.replace(/'/g,"\\'")}')">${p}</div>`).join('');
+  list.style.display = 'block';
 }
+
+function acFilterCountry() {
+  const srv = $('ck-srv').value;
+  if (!srv) return;
+  const pool = (ctryCache[srv]||[]);
+  acFilter('ck-country','ck-list',pool);
+}
+
+function acPick(inputId, listId, value) {
+  $(inputId).value = value;
+  $(listId).style.display = 'none';
+}
+
+function acKey(e, listId, onEnter) {
+  const list  = $(listId);
+  const items = list.querySelectorAll('.ac-item');
+  const cur   = list.querySelector('.selected');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = cur ? cur.nextElementSibling : items[0];
+    if (cur) cur.classList.remove('selected');
+    if (next) next.classList.add('selected');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = cur ? cur.previousElementSibling : items[items.length-1];
+    if (cur) cur.classList.remove('selected');
+    if (prev) prev.classList.add('selected');
+  } else if (e.key === 'Enter') {
+    if (cur) { cur.onmousedown(); return; }
+    list.style.display = 'none';
+    onEnter();
+  } else if (e.key === 'Escape') {
+    list.style.display = 'none';
+  }
+}
+
+document.addEventListener('click', e => {
+  document.querySelectorAll('.ac-list').forEach(l => {
+    if (!l.parentElement.contains(e.target)) l.style.display='none';
+  });
+});
 
 // ---- CLOCK ----
-setInterval(() => {
-  $('clock').textContent = new Date().toLocaleTimeString('fr-FR');
-}, 1000);
+setInterval(() => { $('clock').textContent = new Date().toLocaleTimeString('fr-FR'); }, 1000);
+
+// ---- API ----
+async function api(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+async function apiPost(path, body) {
+  const r = await fetch(API+path, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if (!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
 
 // ---- NAV ----
 function nav(id, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  $('s-' + id).classList.add('active');
+  $('s-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'watchlist') { wlRender(); wlRefreshStatus(); }
-  if (id === 'online')    { loadOnline(); }
+  if (id==='watchlist') { wlRender(); wlRefreshStatus(); }
+  if (id==='online')    loadOnline();
 }
 
-// ---- CONNECTION CHECK ----
+// ---- CHECK API ----
 async function checkApi() {
   try {
-    const d = await api('/health');
-    $('api-dot').className = 'dot';
-    $('api-txt').textContent = 'API OK';
-    return true;
+    await api('/health');
+    $('api-dot').className='dot'; $('api-txt').textContent='API OK'; return true;
   } catch {
-    $('api-dot').className = 'dot off';
-    $('api-txt').textContent = 'API DOWN';
-    return false;
+    $('api-dot').className='dot off'; $('api-txt').textContent='API DOWN'; return false;
   }
 }
 
-// ---- WATCHLIST LOAD ----
+// ---- LOAD WATCHLIST ----
 async function loadWatchlist() {
-  try {
-    const d = await api('/api/watchlist');
-    watchlist = d.players || [];
-    $('st-wcount').textContent = watchlist.length;
-  } catch { watchlist = []; }
+  try { const d = await api('/api/watchlist'); watchlist = d.players||[]; $('st-wcount').textContent=watchlist.length; }
+  catch { watchlist=[]; }
 }
 
 // ---- DASHBOARD ----
@@ -469,24 +451,29 @@ async function loadDashboard() {
   $('srv-overview').innerHTML = ld();
   try {
     const all = await api('/api/online_all');
-    const lp  = all['lime'] || [];
+    const lp  = all['lime']||[];
     let total = 0;
-    const max = Math.max(...SERVERS.map(s => (all[s]||[]).length), 1);
+    const max = Math.max(...SERVERS.map(s=>(all[s]||[]).length),1);
 
-    // Detect connect/disconnect for watchlist
+    // Update global player pool for autocomplete
+    const pool = new Set(onlinePlayers);
+    SERVERS.forEach(s => (all[s]||[]).forEach(p => pool.add(p)));
+    onlinePlayers = [...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+
+    // Alerts
     watchlist.forEach(p => {
       SERVERS.forEach(s => {
         const online = (all[s]||[]).includes(p);
-        const key    = p+'@'+s;
-        if (online && !prevOnline[key])  pushAlert('connect',    p, s);
-        if (!online && prevOnline[key])  pushAlert('disconnect', p, s);
+        const key = p+'@'+s;
+        if (online && !prevOnline[key]) pushAlert('connect',p,s);
+        if (!online && prevOnline[key]) pushAlert('disconnect',p,s);
         prevOnline[key] = online;
       });
     });
 
     SERVERS.forEach(s => total += (all[s]||[]).length);
     $('st-total').textContent  = total;
-    $('st-wonline').textContent = watchlist.filter(p => (all['lime']||[]).includes(p)).length;
+    $('st-wonline').textContent = watchlist.filter(p => lp.includes(p)).length;
 
     $('srv-overview').innerHTML = SERVERS.map(s => {
       const cnt = (all[s]||[]).length;
@@ -498,29 +485,27 @@ async function loadDashboard() {
       </div>`;
     }).join('');
 
-    // Watchlist quick
     $('wl-quick').innerHTML = watchlist.length
-      ? `<div class="ptags">${watchlist.map(p => {
-          const on = lp.includes(p);
+      ? `<div class="ptags">${watchlist.map(p=>{
+          const on=lp.includes(p);
           return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
         }).join('')}</div>`
       : '<div class="empty">Watchlist vide</div>';
 
   } catch(e) {
-    $('srv-overview').innerHTML = `<div class="empty" style="color:var(--red)">Erreur : bot hors ligne ?<br/><span style="font-size:0.65rem">${e.message}</span></div>`;
+    $('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Erreur : bot hors ligne ?<br/><span style="font-size:.65rem">${e.message}</span></div>`;
   }
 }
 
-function pushAlert(type, player, server) {
-  alerts.unshift({ type, player, server, time: new Date().toLocaleTimeString('fr-FR') });
-  if (alerts.length > 60) alerts.pop();
+function pushAlert(type,player,server) {
+  alerts.unshift({type,player,server,time:new Date().toLocaleTimeString('fr-FR')});
+  if(alerts.length>60) alerts.pop();
   renderAlerts();
 }
-
 function renderAlerts() {
-  $('alert-badge').textContent = alerts.length + ' évts';
+  $('alert-badge').textContent = alerts.length+' évts';
   $('alert-feed').innerHTML = alerts.length
-    ? alerts.map(a => `<div class="aitem">
+    ? alerts.map(a=>`<div class="aitem">
         <div class="adot ${a.type==='connect'?'g':'r'}"></div>
         <span class="atime">${a.time}</span>
         <span class="amsg">${a.type==='connect'?'🟢 Connexion':'🔴 Déco'} — <span>${a.player}</span><span class="asrv">${a.server.toUpperCase()}</span></span>
@@ -541,56 +526,53 @@ async function loadOnline() {
   body.innerHTML = ld();
   try {
     if (!srv) {
-      const all   = await api('/api/online_all');
-      let total   = 0;
-      SERVERS.forEach(s => total += (all[s]||[]).length);
-      body.innerHTML = `<div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);margin-bottom:0.8rem">
-        TOTAL <span style="color:var(--gold-bright)">${total}</span> joueurs</div>
-        <div class="sgrid">${SERVERS.map(s => {
-          const pl = all[s]||[];
+      const all = await api('/api/online_all');
+      let total = 0; SERVERS.forEach(s=>total+=(all[s]||[]).length);
+      body.innerHTML=`<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.8rem">TOTAL <span style="color:var(--gold-bright)">${total}</span> joueurs</div>
+        <div class="sgrid">${SERVERS.map(s=>{
+          const pl=all[s]||[];
           return `<div class="scard">
             <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
             <div class="scard-cnt">${pl.length}</div>
-            <div class="ptags" style="max-height:100px;overflow-y:auto">${pl.slice(0,30).map(p =>
-              `<span class="ptag ${watchlist.includes(p)?'watched':''}" onclick="quickCA('${p}')">${p}</span>`
-            ).join('')}${pl.length>30?`<span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">+${pl.length-30}</span>`:''}</div>
+            <div class="ptags" style="max-height:100px;overflow-y:auto">${pl.slice(0,30).map(p=>
+              `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="quickCA('${p}')">${p}</span>`
+            ).join('')}${pl.length>30?`<span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">+${pl.length-30}</span>`:''}</div>
           </div>`;
         }).join('')}</div>`;
     } else {
-      const d  = await api('/api/online/' + srv);
-      const pl = d.players || [];
-      body.innerHTML = pl.length
-        ? `<div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);margin-bottom:0.6rem">
-            <span style="color:var(--gold-bright)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div>
-           <div class="ptags">${pl.map(p =>
-             `<span class="ptag ${watchlist.includes(p)?'online':''}" onclick="quickCA('${p}')">${p}</span>`
+      const d=await api('/api/online/'+srv);
+      const pl=d.players||[];
+      body.innerHTML=pl.length
+        ?`<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.6rem"><span style="color:var(--gold-bright)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div>
+           <div class="ptags">${pl.map(p=>
+             `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'online':''}" onclick="quickCA('${p}')">${p}</span>`
            ).join('')}</div>`
-        : `<div class="empty">Aucun joueur sur ${srv.toUpperCase()}</div>`;
+        :`<div class="empty">Aucun joueur sur ${srv.toUpperCase()}</div>`;
     }
-  } catch(e) {
-    body.innerHTML = `<div class="empty" style="color:var(--red)">Erreur API : ${e.message}</div>`;
-  }
+  } catch(e) { body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur API : ${e.message}</div>`; }
 }
 
 // ---- CHECKALL ----
 async function doCheckall() {
-  const p   = $('ca-input').value.trim();
-  if (!p) return;
+  const raw = $('ca-input').value.trim();
+  if (!raw) return;
+  // Résolution de la casse
+  const p   = resolvePlayer(raw, onlinePlayers);
+  $('ca-input').value = p;
   const res = $('ca-result');
   res.innerHTML = ld();
   try {
-    const d = await api('/api/checkall/' + encodeURIComponent(p));
+    const d = await api('/api/checkall/'+encodeURIComponent(p));
+    // Si pas trouvé, retry insensible à la casse côté serveur via le nom résolu
     res.innerHTML = d.servers.length
-      ? `<div class="res ok"><div class="res-title">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('')}</div>`
-      : `<div class="res err"><div class="res-title">Résultat</div><span style="color:var(--text-dim)">${p} n'est connecté nulle part</span></div>`;
-    caHistory = caHistory.filter(h=>h.p!==p);
-    caHistory.unshift({ p, servers: d.servers, t: new Date().toLocaleTimeString('fr-FR') });
-    if (caHistory.length > 15) caHistory.pop();
-    localStorage.setItem('mg_history', JSON.stringify(caHistory));
+      ?`<div class="res ok"><div class="res-title">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('')}</div>`
+      :`<div class="res err"><div class="res-title">Résultat</div><span style="color:var(--text-dim)">${p} n'est connecté nulle part</span></div>`;
+    caHistory = caHistory.filter(h=>h.p.toLowerCase()!==p.toLowerCase());
+    caHistory.unshift({p, servers:d.servers, t:new Date().toLocaleTimeString('fr-FR')});
+    if(caHistory.length>15) caHistory.pop();
+    localStorage.setItem('mg_history',JSON.stringify(caHistory));
     renderCAHistory();
-  } catch(e) {
-    res.innerHTML = `<div class="res err">Erreur : ${e.message}</div>`;
-  }
+  } catch(e) { res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`; }
 }
 
 function quickCA(player) {
@@ -598,151 +580,145 @@ function quickCA(player) {
   $('ca-input').value = player;
   doCheckall();
 }
-
 function renderCAHistory() {
-  const el = $('ca-history');
-  if (!caHistory.length) { el.innerHTML = '<div class="empty">Aucune recherche</div>'; return; }
-  el.innerHTML = `<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>` +
-    caHistory.slice(0,12).map(h => `<tr>
+  const el=$('ca-history');
+  if(!caHistory.length){el.innerHTML='<div class="empty">Aucune recherche</div>';return;}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>`+
+    caHistory.slice(0,12).map(h=>`<tr>
       <td style="color:var(--gold);cursor:pointer" onclick="quickCA('${h.p}')">${h.p}</td>
       <td>${h.servers.length?h.servers.map(s=>`<span class="svr-tag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--text-dim)">Hors ligne</span>'}</td>
       <td style="color:var(--text-dim)">${h.t}</td>
-    </tr>`).join('') + '</tbody></table>';
+    </tr>`).join('')+'</tbody></table>';
 }
 
 // ---- CHECK COUNTRY ----
-let ctryCache = {};
-
 async function loadCountrySuggest() {
-  const srv = $('ck-srv').value;
-  if (!srv) return;
-  $('ck-suggest').innerHTML = ld();
+  const srv=$('ck-srv').value;
+  if(!srv) return;
   try {
-    if (!ctryCache[srv]) {
-      const d = await api('/api/countries/' + srv);
-      ctryCache[srv] = d.countries || [];
+    if(!ctryCache[srv]) {
+      const d=await api('/api/countries/'+srv);
+      // Tri alphabétique
+      ctryCache[srv]=(d.countries||[]).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
     }
-    $('ck-suggest').innerHTML = ctryCache[srv].slice(0,50).map(c =>
-      `<span class="ptag" onclick="selectCountry('${c}')" style="cursor:pointer">${c}</span>`
-    ).join('');
-  } catch { $('ck-suggest').innerHTML = ''; }
+  } catch { ctryCache[srv]=[]; }
 }
 
-function selectCountry(c) {
-  $('ck-country').value = c;
-  doCheck();
+function acFilterCountry() {
+  const srv=$('ck-srv').value;
+  if(!srv) return;
+  const pool=ctryCache[srv]||[];
+  acFilter('ck-country','ck-list',pool);
 }
 
 async function doCheck() {
-  const srv = $('ck-srv').value;
-  const c   = $('ck-country').value.trim();
-  if (!srv || !c) return;
-  const res = $('ck-result');
-  res.innerHTML = ld();
+  const srv=$('ck-srv').value;
+  const raw=$('ck-country').value.trim();
+  if(!srv||!raw) return;
+  // Résolution casse pays
+  const pool=ctryCache[srv]||[];
+  const c=resolvePlayer(raw,pool);
+  $('ck-country').value=c;
+  const res=$('ck-result');
+  res.innerHTML=ld();
   try {
-    const d = await api(`/api/check/${srv}/${encodeURIComponent(c)}`);
-    if (d.online_total === 0) {
-      res.innerHTML = `<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span></div>`;
+    const d=await api(`/api/check/${srv}/${encodeURIComponent(c)}`);
+    if(d.online_total===0){
+      res.innerHTML=`<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span></div>`;
     } else {
-      res.innerHTML = `<div class="res err"><div class="res-title">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>` +
+      res.innerHTML=`<div class="res err"><div class="res-title">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>`+
         Object.entries(d.servers).sort((a,b)=>a[0]===srv?-1:1).map(([s,pl])=>
-          `<div style="margin:0.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${s===srv?'<span style="color:var(--red);font-size:0.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:0.4rem">${pl.join(', ')}</span></div>`
-        ).join('') + '</div>';
+          `<div style="margin:.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${s===srv?'<span style="color:var(--red);font-size:.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:.4rem">${pl.join(', ')}</span></div>`
+        ).join('')+'</div>';
     }
-  } catch(e) {
-    res.innerHTML = `<div class="res err"><div class="res-title">Erreur</div>${e.message}</div>`;
-  }
+  } catch(e){ res.innerHTML=`<div class="res err"><div class="res-title">Erreur</div>${e.message}</div>`; }
 }
 
 // ---- WATCHLIST ----
 function wlRender() {
-  const el = $('wl-manage');
-  $('st-wcount').textContent = watchlist.length;
-  if (!watchlist.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
-  el.innerHTML = watchlist.map(p => `
+  const el=$('wl-manage');
+  $('st-wcount').textContent=watchlist.length;
+  if(!watchlist.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
+  el.innerHTML=watchlist.map(p=>`
     <div class="wi">
       <span class="wi-name">${p}</span>
-      <button class="btn btn-red" style="padding:0.15rem 0.5rem;font-size:0.62rem" onclick="wlRemove('${p}')">✕</button>
+      <button class="btn btn-red" style="padding:.15rem .5rem;font-size:.62rem" onclick="wlRemove('${p}')">✕</button>
     </div>`).join('');
 }
-
 async function wlAdd() {
-  const name = $('wl-add-input').value.trim();
-  if (!name) return;
+  const raw=$('wl-add-input').value.trim();
+  if(!raw) return;
+  const name=resolvePlayer(raw,onlinePlayers);
+  $('wl-add-input').value='';
   try {
-    const d = await apiPost('/api/watchlist/add', { player: name });
-    watchlist = d.players;
-    $('wl-add-input').value = '';
-    wlRender();
-    wlRefreshStatus();
-  } catch(e) { alert('Erreur : ' + e.message); }
+    const d=await apiPost('/api/watchlist/add',{player:name});
+    watchlist=d.players; wlRender(); wlRefreshStatus();
+  } catch(e){ alert('Erreur : '+e.message); }
 }
-
 async function wlRemove(name) {
   try {
-    const d = await apiPost('/api/watchlist/remove', { player: name });
-    watchlist = d.players;
-    wlRender();
-    wlRefreshStatus();
-  } catch(e) { alert('Erreur : ' + e.message); }
+    const d=await apiPost('/api/watchlist/remove',{player:name});
+    watchlist=d.players; wlRender(); wlRefreshStatus();
+  } catch(e){ alert('Erreur : '+e.message); }
 }
-
 async function wlRefreshStatus() {
-  const el = $('wl-status');
-  el.innerHTML = ld();
+  const el=$('wl-status');
+  el.innerHTML=ld();
   try {
-    const d  = await api('/api/online/lime');
-    const lp = d.players || [];
-    if (!watchlist.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
-    const on  = watchlist.filter(p => lp.includes(p));
-    const off = watchlist.filter(p => !lp.includes(p));
-    el.innerHTML = [
-      ...on.map(p  => `<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · LIME</div></div>`),
-      ...off.map(p => `<div class="wi"><span class="wi-name" style="opacity:0.45">${p}</span><div class="wi-status off">◯ Hors ligne</div></div>`)
+    const d=await api('/api/online/lime');
+    const lp=d.players||[];
+    if(!watchlist.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
+    const on=watchlist.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
+    const off=watchlist.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
+    el.innerHTML=[
+      ...on.map(p=>`<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · LIME</div></div>`),
+      ...off.map(p=>`<div class="wi"><span class="wi-name" style="opacity:.45">${p}</span><div class="wi-status off">◯ Hors ligne</div></div>`)
     ].join('');
-  } catch(e) {
-    el.innerHTML = `<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
-  }
+  } catch(e){ el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`; }
 }
 
 // ---- STATS ----
 async function loadStats() {
-  const p   = $('st-input').value.trim();
-  if (!p) return;
-  const res = $('st-result');
-  res.innerHTML = `<div class="panel"><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
+  const raw=$('st-input').value.trim();
+  if(!raw) return;
+  const p=resolvePlayer(raw,onlinePlayers);
+  $('st-input').value=p;
+  const res=$('st-result');
+  res.innerHTML=`<div class="panel"><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
 
-  // Run in parallel: checkall + pronostic + plages
-  const [locR, pronoR, plagesR] = await Promise.allSettled([
-    api('/api/checkall/' + encodeURIComponent(p)),
-    api('/api/pronostic/' + encodeURIComponent(p)),
-    api('/api/plages/' + encodeURIComponent(p))
+  const [locR,pronoR,plagesR]=await Promise.allSettled([
+    api('/api/checkall/'+encodeURIComponent(p)),
+    api('/api/pronostic/'+encodeURIComponent(p)),
+    api('/api/plages/'+encodeURIComponent(p))
   ]);
 
-  const loc    = locR.status    === 'fulfilled' ? locR.value    : null;
-  const prono  = pronoR.status  === 'fulfilled' ? pronoR.value  : null;
-  const plages = plagesR.status === 'fulfilled' ? plagesR.value : null;
+  const loc    = locR.status   ==='fulfilled'?locR.value   :null;
+  const prono  = pronoR.status ==='fulfilled'?pronoR.value :null;
+  const plages = plagesR.status==='fulfilled'?plagesR.value:null;
+  const servers = loc?loc.servers:[];
 
-  const servers = loc ? loc.servers : [];
+  let html='';
 
-  let html = `<div class="g2 mb">`;
-
-  // Localisation
-  html += `<div class="panel">
-    <div class="ph"><span class="pt">Localisation</span>${servers.length?`<span class="badge" style="color:var(--green);border-color:var(--green)">🟢 EN LIGNE</span>`:'<span class="badge">⚫ Hors ligne</span>'}</div>
-    <div class="pb">`;
-  if (servers.length) {
-    html += servers.map(s => `<div style="margin:0.3rem 0;font-family:var(--font-mono);font-size:0.75rem">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('');
+  // ── BLOC 1 : Localisation ──
+  html+=`<div class="stat-block">
+    <div class="stat-block-title">◉ Localisation actuelle</div>`;
+  if(servers.length){
+    html+=servers.map(s=>`
+      <div class="info-row">
+        <span class="info-key">${EMO[s]} Serveur</span>
+        <span class="info-val online-green">${s.toUpperCase()}</span>
+      </div>`).join('');
   } else {
-    html += `<div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim)">Aucun serveur actif</div>`;
+    html+=`<div class="info-row"><span class="info-key">Statut</span><span class="info-val" style="color:var(--text-dim)">Hors ligne</span></div>`;
   }
-  html += `</div></div>`;
+  html+='</div>';
 
-  // Pronostic
-  html += `<div class="panel"><div class="ph"><span class="pt">Pronostic connexion</span></div><div class="pb">`;
-  if (prono && prono.pronostic) {
-    html += `<div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:0.5rem">Basé sur ${prono.total} connexions</div>`;
-    html += prono.pronostic.map(r => `
+  // ── BLOC 2 : Pronostic ──
+  html+=`<div class="stat-block">
+    <div class="stat-block-title">◐ Pronostic de connexion</div>`;
+  if(prono&&prono.pronostic&&prono.pronostic.length){
+    html+=`<div style="font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim);margin-bottom:.6rem">Basé sur ${prono.total} connexions enregistrées</div>`;
+    html+=prono.pronostic.map(r=>`
       <div class="prow">
         <span class="pday">${r.day}</span>
         <div class="pbar-w"><div class="pbar-f" style="width:${r.pct}%"></div></div>
@@ -750,49 +726,83 @@ async function loadStats() {
         <span class="ptime">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span>
       </div>`).join('');
   } else {
-    html += `<div class="empty">Pas assez de données<br/><span style="font-size:0.6rem">(min. 3 connexions enregistrées)</span></div>`;
+    html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Pas assez de connexions enregistrées (min. 3)</span></div>`;
   }
-  html += `</div></div></div>`;
+  html+='</div>';
 
-  // Plages horaires
-  if (plages && plages.heatmap) {
-    html += `<div class="panel mb"><div class="ph"><span class="pt">Plages horaires</span></div><div class="pb">`;
-    const heatmap = plages.heatmap;
-    const days    = plages.days;
-    const maxVal  = Math.max(...heatmap.flat(), 1);
-    html += `<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--font-mono);font-size:0.6rem">
-      <tr><td style="color:var(--text-dim);padding-right:0.5rem">Jour</td>${Array.from({length:24},(_,h)=>`<td style="color:var(--text-dim);text-align:center;padding:0 2px">${h}</td>`).join('')}</tr>`;
-    days.forEach((day, di) => {
-      html += `<tr><td style="color:var(--gold);padding-right:0.5rem;white-space:nowrap">${day}</td>`;
-      heatmap[di].forEach(v => {
-        const intensity = v ? Math.round(v/maxVal*100) : 0;
-        const bg = v ? `rgba(201,168,76,${0.08 + intensity/100*0.7})` : 'var(--border)';
-        html += `<td style="width:16px;height:16px;background:${bg};border-radius:2px;padding:0"></td>`;
+  // ── BLOC 3 : Plages horaires heatmap ──
+  html+=`<div class="stat-block">
+    <div class="stat-block-title">🕐 Plages horaires</div>`;
+  if(plages&&plages.heatmap){
+    const hm=plages.heatmap;
+    const days=plages.days;
+    const maxV=Math.max(...hm.flat(),1);
+    // En-têtes heures
+    html+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.6rem;width:100%">
+      <tr><td style="color:var(--text-dim);padding-right:.5rem;white-space:nowrap">Heure →</td>`;
+    for(let h=0;h<24;h++) html+=`<td style="color:var(--text-dim);text-align:center;padding:0 2px;font-size:.55rem">${h}</td>`;
+    html+='</tr>';
+    days.forEach((day,di)=>{
+      html+=`<tr><td style="color:var(--gold);padding-right:.5rem;white-space:nowrap;padding-top:2px">${day}</td>`;
+      hm[di].forEach(v=>{
+        const intensity=v?Math.round(v/maxV*100):0;
+        const bg=v?`rgba(201,168,76,${(0.08+intensity/100*0.75).toFixed(2)})`:'var(--border)';
+        html+=`<td style="width:16px;height:16px;background:${bg};border-radius:2px;padding:0;font-size:.55rem;text-align:center;color:rgba(240,192,64,.7)">${v||''}</td>`;
       });
-      html += '</tr>';
+      html+='</tr>';
     });
-    html += `</table></div></div></div>`;
+    html+='</table></div>';
+  } else {
+    html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Aucune donnée disponible</span></div>`;
   }
+  html+='</div>';
 
-  res.innerHTML = html;
+  // ── BLOC 4 : Historique des connexions ──
+  html+=`<div class="stat-block">
+    <div class="stat-block-title">◷ Historique des connexions</div>`;
+  // On récupère les sessions depuis l'API plages (on a déjà les données agrégées)
+  // On affiche un résumé par jour/heure
+  if(plages&&plages.heatmap){
+    const hm=plages.heatmap;
+    const days=plages.days;
+    const rows=[];
+    days.forEach((day,di)=>{
+      const total=hm[di].reduce((a,v)=>a+v,0);
+      if(!total) return;
+      const peakH=hm[di].indexOf(Math.max(...hm[di]));
+      rows.push({day,total,peakH});
+    });
+    rows.sort((a,b)=>b.total-a.total);
+    if(rows.length){
+      html+=`<table class="tbl"><thead><tr><th>Jour</th><th>Connexions</th><th>Pic d'activité</th></tr></thead><tbody>`;
+      html+=rows.map(r=>`<tr>
+        <td style="color:var(--gold)">${r.day}</td>
+        <td class="info-val hl">${r.total}</td>
+        <td style="color:var(--text-dim)">${r.peakH}h00 – ${r.peakH+1}h00</td>
+      </tr>`).join('');
+      html+='</tbody></table>';
+    } else {
+      html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Aucune connexion enregistrée</span></div>`;
+    }
+  } else {
+    html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Aucune donnée disponible</span></div>`;
+  }
+  html+='</div>';
+
+  res.innerHTML=html;
 }
 
 // ---- INIT ----
 async function init() {
   renderCAHistory();
-  const ok = await checkApi();
-  $('scan-dot').className = ok ? 'dot' : 'dot off';
-  if (ok) {
+  const ok=await checkApi();
+  $('scan-dot').className=ok?'dot':'dot off';
+  if(ok){
     await loadWatchlist();
     await loadDashboard();
-    // Auto-refresh dashboard every 30s
-    scanTimer = setInterval(async () => {
-      await loadWatchlist();
-      await loadDashboard();
-    }, 30000);
+    setInterval(async()=>{ await loadWatchlist(); await loadDashboard(); },30000);
   }
 }
-
 init();
 </script>
 </body>
