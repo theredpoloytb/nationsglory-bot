@@ -289,9 +289,13 @@
 
 <!-- WATCHLIST -->
 <section class="section" id="s-watchlist">
+  <div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.6rem;letter-spacing:.15em">
+    <span style="color:var(--gold)">◈ LIME</span> &nbsp;|&nbsp; <span style="cursor:pointer;padding:.2rem .5rem;border:1px solid var(--border)" onclick="switchWl('lime')" id="wl-tab-lime" class="wl-tab-active">LIME</span>
+    <span style="cursor:pointer;padding:.2rem .5rem;border:1px solid var(--border);margin-left:.3rem" onclick="switchWl('mocha')" id="wl-tab-mocha">MOCHA 🟤</span>
+  </div>
   <div class="g2">
     <div class="panel">
-      <div class="ph"><span class="pt">◈ Gérer la watchlist</span></div>
+      <div class="ph"><span class="pt" id="wl-panel-title">◈ Gérer la watchlist — LIME</span></div>
       <div class="pb">
         <div class="row mb" style="margin-bottom:.8rem">
           <div class="ac-wrap">
@@ -307,7 +311,7 @@
       </div>
     </div>
     <div class="panel">
-      <div class="ph"><span class="pt">⚡ Statut live — LIME</span><button class="btn" onclick="wlRefreshStatus()">↺</button></div>
+      <div class="ph"><span class="pt" id="wl-status-title">⚡ Statut live — LIME</span><button class="btn" onclick="wlRefreshStatus()">↺</button></div>
       <div class="pb" id="wl-status"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
     </div>
   </div>
@@ -448,6 +452,10 @@ async function checkApi() {
 async function loadWatchlist() {
   try { const d = await api('/api/watchlist'); watchlist = d.players||[]; $('st-wcount').textContent=watchlist.length; }
   catch { watchlist=[]; }
+}
+async function loadMochaWatchlist() {
+  try { const d = await api('/api/watchlist_mocha'); watchlistMocha = d.players||[]; }
+  catch { watchlistMocha=[]; }
 }
 
 // ---- DASHBOARD ----
@@ -601,6 +609,8 @@ async function doCheckall() {
     if(caHistory.length>15) caHistory.pop();
     localStorage.setItem('mg_history',JSON.stringify(caHistory));
     renderCAHistory();
+  // Init watchlist tab style
+  if($('wl-tab-lime')) { $('wl-tab-lime').style.borderColor='var(--gold)'; $('wl-tab-lime').style.color='var(--gold-bright)'; }
   } catch(e) { res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`; }
 }
 
@@ -693,9 +703,10 @@ async function doCheck() {
 // ---- WATCHLIST ----
 function wlRender() {
   const el=$('wl-manage');
+  const wl = currentWl==='mocha' ? watchlistMocha : watchlist;
   $('st-wcount').textContent=watchlist.length;
-  if(!watchlist.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
-  el.innerHTML=watchlist.map(p=>`
+  if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
+  el.innerHTML=wl.map(p=>`
     <div class="wi">
       <span class="wi-name">${p}</span>
       <button class="btn btn-red" style="padding:.15rem .5rem;font-size:.62rem" onclick="wlRemove('${p}')">✕</button>
@@ -706,28 +717,53 @@ async function wlAdd() {
   if(!raw) return;
   const name=resolvePlayer(raw,onlinePlayers);
   $('wl-add-input').value='';
+  const endpoint = currentWl==='mocha' ? '/api/watchlist_mocha/add' : '/api/watchlist/add';
   try {
-    const d=await apiPost('/api/watchlist/add',{player:name});
-    watchlist=d.players; wlRender(); wlRefreshStatus();
+    const d=await apiPost(endpoint,{player:name});
+    if(currentWl==='mocha') watchlistMocha=d.players;
+    else watchlist=d.players;
+    wlRender(); wlRefreshStatus();
   } catch(e){ alert('Erreur : '+e.message); }
 }
 async function wlRemove(name) {
+  const endpoint = currentWl==='mocha' ? '/api/watchlist_mocha/remove' : '/api/watchlist/remove';
   try {
-    const d=await apiPost('/api/watchlist/remove',{player:name});
-    watchlist=d.players; wlRender(); wlRefreshStatus();
+    const d=await apiPost(endpoint,{player:name});
+    if(currentWl==='mocha') watchlistMocha=d.players;
+    else watchlist=d.players;
+    wlRender(); wlRefreshStatus();
   } catch(e){ alert('Erreur : '+e.message); }
 }
+function switchWl(srv) {
+  currentWl = srv;
+  // Tab styles
+  document.querySelectorAll('#wl-tab-lime,#wl-tab-mocha').forEach(el => {
+    el.style.borderColor = 'var(--border)';
+    el.style.color = 'var(--text-dim)';
+  });
+  const active = $('wl-tab-' + srv);
+  active.style.borderColor = 'var(--gold)';
+  active.style.color = 'var(--gold-bright)';
+  // Titles
+  $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
+  $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
+  wlRender();
+  wlRefreshStatus();
+}
+
 async function wlRefreshStatus() {
   const el=$('wl-status');
   el.innerHTML=ld();
+  const srv = currentWl==='mocha' ? 'mocha' : 'lime';
+  const wl  = currentWl==='mocha' ? watchlistMocha : watchlist;
   try {
-    const d=await api('/api/online/lime');
+    const d=await api('/api/online/'+srv);
     const lp=d.players||[];
-    if(!watchlist.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
-    const on=watchlist.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
-    const off=watchlist.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
+    if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
+    const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
+    const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
     el.innerHTML=[
-      ...on.map(p=>`<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · LIME</div></div>`),
+      ...on.map(p=>`<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · ${srv.toUpperCase()}</div></div>`),
       ...off.map(p=>`<div class="wi"><span class="wi-name" style="opacity:.45">${p}</span><div class="wi-status off">◯ Hors ligne</div></div>`)
     ].join('');
   } catch(e){ el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`; }
@@ -851,10 +887,13 @@ async function loadStats() {
 // ---- INIT ----
 async function init() {
   renderCAHistory();
+  // Init watchlist tab style
+  if($('wl-tab-lime')) { $('wl-tab-lime').style.borderColor='var(--gold)'; $('wl-tab-lime').style.color='var(--gold-bright)'; }
   const ok=await checkApi();
   $('scan-dot').className=ok?'dot':'dot off';
   if(ok){
     await loadWatchlist();
+    await loadMochaWatchlist();
     await loadDashboard();
     setInterval(async()=>{ await loadWatchlist(); await loadDashboard(); },30000);
   }
