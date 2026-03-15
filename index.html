@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" dir="ltr">
+<html lang="fr">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -10,24 +10,23 @@
   :root {
     --gold: #c9a84c;
     --gold-bright: #f0c040;
-    --gold-dim: #6b5a2a;
+    --gold-dim: #3a2e10;
     --bg: #030507;
-    --bg2: #080c10;
-    --bg3: #0d1218;
-    --panel: #0a0f15;
-    --border: #1a2535;
+    --bg2: #070b0f;
+    --bg3: #0c1018;
+    --panel: #080d13;
+    --border: #131d27;
     --border-gold: #2a2010;
     --green: #00ff88;
     --red: #ff3355;
     --cyan: #00ccff;
-    --text: #c8d4e0;
-    --text-dim: #4a5a6a;
+    --text: #b8c8d8;
+    --text-dim: #3a4a5a;
     --font-mono: 'Share Tech Mono', monospace;
     --font-display: 'Bebas Neue', sans-serif;
     --font-body: 'Rajdhani', sans-serif;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
     background: var(--bg);
@@ -35,1380 +34,766 @@
     font-family: var(--font-body);
     min-height: 100vh;
     overflow-x: hidden;
-    cursor: crosshair;
   }
 
-  /* SCAN LINE EFFECT */
   body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.08) 2px,
-      rgba(0,0,0,0.08) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
+    content:'';
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+    pointer-events:none; z-index:9999;
   }
 
-  /* NOISE OVERLAY */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 9998;
-    opacity: 0.4;
-  }
-
-  /* ===== HEADER ===== */
+  /* HEADER */
   .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: linear-gradient(180deg, rgba(3,5,7,0.98) 0%, rgba(3,5,7,0.90) 100%);
+    position:sticky; top:0; z-index:200;
+    background: rgba(3,5,7,0.97);
     border-bottom: 1px solid var(--border-gold);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    backdrop-filter: blur(12px);
+    padding: 0 1.5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    height:58px;
+    backdrop-filter:blur(16px);
   }
+  .logo { display:flex; align-items:center; gap:0.9rem; }
+  .logo-text { display:flex; flex-direction:column; line-height:1; }
+  .logo-main { font-family:var(--font-display); font-size:1.5rem; letter-spacing:0.2em; color:var(--gold-bright); text-shadow:0 0 20px rgba(240,192,64,0.35); }
+  .logo-sub  { font-family:var(--font-mono); font-size:0.55rem; color:var(--text-dim); letter-spacing:0.3em; }
+  .header-right { display:flex; align-items:center; gap:1.2rem; font-family:var(--font-mono); font-size:0.68rem; }
+  .status-pill { display:flex; align-items:center; gap:0.35rem; color:var(--text-dim); }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); animation:blink 2s infinite; }
+  .dot.off { background:var(--red); box-shadow:0 0 6px var(--red); }
+  #clock { color:var(--gold); letter-spacing:0.1em; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-  .header-logo {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .star-of-david {
-    width: 36px;
-    height: 36px;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .logo-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-  }
-
-  .logo-main {
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    letter-spacing: 0.15em;
-    color: var(--gold-bright);
-    text-shadow: 0 0 20px rgba(240,192,64,0.4);
-  }
-
-  .logo-sub {
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-  }
-
-  .header-status {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-  }
-
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--text-dim);
-  }
-
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 8px var(--green);
-    animation: pulse 2s infinite;
-  }
-
-  .status-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  #clock {
-    color: var(--gold);
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-  }
-
-  /* ===== NAV TABS ===== */
+  /* NAV */
   .nav {
-    display: flex;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    gap: 0;
-    overflow-x: auto;
+    display:flex; background:var(--bg2);
+    border-bottom:1px solid var(--border);
+    padding:0 1.5rem; gap:0; overflow-x:auto;
   }
-
-  .nav-tab {
-    padding: 0.8rem 1.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    user-select: none;
+  .tab {
+    padding:0.7rem 1.2rem;
+    font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--text-dim); cursor:pointer;
+    border:none; border-bottom:2px solid transparent;
+    background:none; white-space:nowrap; transition:all 0.15s;
   }
+  .tab:hover { color:var(--gold); }
+  .tab.active { color:var(--gold-bright); border-bottom-color:var(--gold-bright); text-shadow:0 0 10px rgba(240,192,64,0.4); }
 
-  .nav-tab:hover { color: var(--gold); }
-  .nav-tab.active {
-    color: var(--gold-bright);
-    border-bottom-color: var(--gold-bright);
-    text-shadow: 0 0 12px rgba(240,192,64,0.5);
-  }
+  /* LAYOUT */
+  .main { padding:1.2rem 1.5rem; max-width:1600px; margin:0 auto; }
+  .section { display:none; }
+  .section.active { display:block; animation:fadeIn 0.25s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ===== LAYOUT ===== */
-  .main {
-    padding: 1.5rem 2rem;
-    max-width: 1600px;
-    margin: 0 auto;
-  }
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+  .mb { margin-bottom:1rem; }
 
-  .section { display: none; }
-  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @media(max-width:800px){ .g2,.g3,.g4{grid-template-columns:1fr} .main{padding:0.8rem} }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ===== PANELS ===== */
+  /* PANEL */
   .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    position: relative;
-    overflow: hidden;
+    background:var(--panel);
+    border:1px solid var(--border);
+    position:relative; overflow:hidden;
+  }
+  .panel::after {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+  }
+  .ph {
+    padding:0.65rem 1rem;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:0.5rem;
+  }
+  .pt { font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.18em; color:var(--gold); text-transform:uppercase; }
+  .pb { padding:1rem; }
+  .badge {
+    font-family:var(--font-mono); font-size:0.62rem; padding:0.12rem 0.45rem;
+    background:rgba(201,168,76,0.08); border:1px solid var(--gold-dim); color:var(--gold); border-radius:2px;
   }
 
-  .panel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  /* SCAN LINE */
+  .scan { position:absolute; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent); animation:scanMove 4s linear infinite; }
+  @keyframes scanMove { 0%{top:0;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:100%;opacity:0} }
+
+  /* INPUTS */
+  .row { display:flex; gap:0.5rem; align-items:stretch; flex-wrap:wrap; }
+  input, select {
+    background:var(--bg2); border:1px solid var(--border); color:var(--text);
+    padding:0.55rem 0.8rem; font-family:var(--font-mono); font-size:0.75rem;
+    outline:none; transition:border-color 0.15s; letter-spacing:0.05em;
+    flex:1; min-width:120px;
   }
-
-  .panel-header {
-    padding: 0.8rem 1.2rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-
-  .panel-title {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    color: var(--gold);
-    text-transform: uppercase;
-  }
-
-  .panel-badge {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    padding: 0.15rem 0.5rem;
-    background: rgba(201,168,76,0.1);
-    border: 1px solid var(--gold-dim);
-    color: var(--gold);
-    border-radius: 2px;
-  }
-
-  .panel-body { padding: 1.2rem; }
-
-  /* ===== GRID ===== */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
-  .gap { margin-bottom: 1rem; }
-
-  @media (max-width: 900px) {
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-    .main { padding: 1rem; }
-  }
-
-  /* ===== INPUTS ===== */
-  .input-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: stretch;
-  }
-
-  .input-field {
-    flex: 1;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 0.6rem 0.9rem;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    outline: none;
-    transition: border-color 0.2s;
-    letter-spacing: 0.05em;
-  }
-
-  .input-field:focus {
-    border-color: var(--gold-dim);
-    background: rgba(201,168,76,0.03);
-  }
-
-  .input-field::placeholder { color: var(--text-dim); }
-
-  select.input-field {
-    cursor: pointer;
-  }
-
-  select.input-field option {
-    background: var(--bg2);
-  }
+  input:focus, select:focus { border-color:rgba(201,168,76,0.4); background:rgba(201,168,76,0.02); }
+  input::placeholder { color:var(--text-dim); }
+  select option { background:var(--bg2); }
 
   .btn {
-    padding: 0.6rem 1.2rem;
-    background: transparent;
-    border: 1px solid var(--gold-dim);
-    color: var(--gold);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    position: relative;
-    overflow: hidden;
+    padding:0.55rem 1rem; background:transparent;
+    border:1px solid var(--gold-dim); color:var(--gold);
+    font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.08em;
+    text-transform:uppercase; cursor:pointer; transition:all 0.15s; white-space:nowrap;
   }
+  .btn:hover { border-color:var(--gold-bright); color:var(--gold-bright); box-shadow:0 0 10px rgba(201,168,76,0.15); }
+  .btn:active { transform:scale(0.97); }
+  .btn:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-red { border-color:rgba(255,51,85,0.3); color:var(--red); }
+  .btn-red:hover { border-color:var(--red); box-shadow:0 0 10px rgba(255,51,85,0.15); }
+  .btn-green { border-color:rgba(0,255,136,0.3); color:var(--green); }
+  .btn-green:hover { border-color:var(--green); box-shadow:0 0 10px rgba(0,255,136,0.15); }
 
-  .btn::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.1), transparent);
-    transition: left 0.4s;
+  /* STAT CARDS */
+  .stat {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:0.9rem 1rem; text-align:center; position:relative;
   }
+  .stat-val { font-family:var(--font-display); font-size:2rem; color:var(--gold-bright); line-height:1; margin-bottom:0.25rem; text-shadow:0 0 18px rgba(240,192,64,0.25); }
+  .stat-lbl { font-family:var(--font-mono); font-size:0.58rem; color:var(--text-dim); letter-spacing:0.2em; text-transform:uppercase; }
 
-  .btn:hover { border-color: var(--gold-bright); color: var(--gold-bright); box-shadow: 0 0 12px rgba(201,168,76,0.2); }
-  .btn:hover::before { left: 100%; }
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .btn-danger { border-color: rgba(255,51,85,0.4); color: var(--red); }
-  .btn-danger:hover { border-color: var(--red); box-shadow: 0 0 12px rgba(255,51,85,0.2); }
-
-  .btn-success { border-color: rgba(0,255,136,0.4); color: var(--green); }
-  .btn-success:hover { border-color: var(--green); box-shadow: 0 0 12px rgba(0,255,136,0.2); }
-
-  /* ===== TABLES ===== */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
+  /* SERVER GRID */
+  .sgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:0.6rem; }
+  .scard {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:0.8rem; cursor:pointer; transition:all 0.15s;
   }
+  .scard:hover { border-color:var(--gold-dim); background:rgba(201,168,76,0.02); }
+  .scard-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; }
+  .scard-name { font-family:var(--font-display); font-size:1rem; letter-spacing:0.1em; color:var(--gold-bright); }
+  .scard-cnt  { font-family:var(--font-display); font-size:1.6rem; color:var(--text); }
+  .scard-lbl  { font-family:var(--font-mono); font-size:0.55rem; color:var(--text-dim); letter-spacing:0.15em; }
+  .sbar { margin-top:0.5rem; height:2px; background:var(--border); }
+  .sbar-fill { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); transition:width 0.6s ease; }
 
-  .data-table th {
-    text-align: left;
-    padding: 0.5rem 0.8rem;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-weight: normal;
+  /* PLAYER TAGS */
+  .ptags { display:flex; flex-wrap:wrap; gap:0.3rem; padding:0.5rem 0; }
+  .ptag {
+    font-family:var(--font-mono); font-size:0.68rem; padding:0.18rem 0.5rem;
+    background:rgba(19,29,39,0.8); border:1px solid var(--border); color:var(--text);
+    transition:all 0.12s; cursor:pointer;
   }
+  .ptag:hover { border-color:var(--gold-dim); color:var(--gold); }
+  .ptag.watched { border-color:rgba(201,168,76,0.4); color:var(--gold); background:rgba(201,168,76,0.05); }
+  .ptag.online  { border-color:rgba(0,255,136,0.5); color:var(--green); background:rgba(0,255,136,0.04); box-shadow:0 0 5px rgba(0,255,136,0.1); }
 
-  .data-table td {
-    padding: 0.5rem 0.8rem;
-    border-bottom: 1px solid rgba(26,37,53,0.5);
-    color: var(--text);
-    transition: background 0.1s;
+  /* WATCHLIST ITEMS */
+  .wi { display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border); font-family:var(--font-mono); font-size:0.75rem; }
+  .wi:last-child { border-bottom:none; }
+  .wi-name { color:var(--text); }
+  .wi-status { display:flex; align-items:center; gap:0.35rem; font-size:0.62rem; letter-spacing:0.1em; }
+  .wi-status.on  { color:var(--green); }
+  .wi-status.off { color:var(--text-dim); }
+
+  /* RESULT BLOCKS */
+  .res {
+    background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--gold-dim);
+    padding:0.9rem 1rem; margin-top:0.7rem; font-family:var(--font-mono); font-size:0.75rem; line-height:1.8;
+    animation:fadeIn 0.25s ease;
   }
+  .res.ok  { border-left-color:var(--green); }
+  .res.err { border-left-color:var(--red); }
+  .res.inf { border-left-color:var(--cyan); }
+  .res-title { font-size:0.6rem; color:var(--text-dim); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:0.5rem; padding-bottom:0.35rem; border-bottom:1px solid var(--border); }
 
-  .data-table tr:hover td { background: rgba(201,168,76,0.03); }
-  .data-table tr:last-child td { border-bottom: none; }
+  /* ALERT FEED */
+  .feed { max-height:380px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  .aitem { display:flex; align-items:flex-start; gap:0.6rem; padding:0.55rem 0; border-bottom:1px solid rgba(19,29,39,0.6); font-family:var(--font-mono); font-size:0.68rem; animation:slideIn 0.25s ease; }
+  .aitem:last-child { border-bottom:none; }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+  .adot { width:7px; height:7px; border-radius:50%; margin-top:3px; flex-shrink:0; }
+  .adot.g { background:var(--green); box-shadow:0 0 5px var(--green); }
+  .adot.r { background:var(--red);   box-shadow:0 0 5px var(--red); }
+  .atime { color:var(--text-dim); min-width:65px; }
+  .amsg  { color:var(--text); flex:1; }
+  .amsg span { color:var(--gold); }
+  .asrv  { color:var(--cyan); font-size:0.6rem; padding:0.08rem 0.3rem; border:1px solid var(--border); margin-left:0.3rem; }
 
-  /* ===== SERVER CARDS ===== */
-  .servers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.7rem;
-  }
+  /* PRONOSTIC */
+  .prow { display:flex; align-items:center; gap:0.8rem; padding:0.45rem 0; border-bottom:1px solid rgba(19,29,39,0.5); font-family:var(--font-mono); font-size:0.72rem; }
+  .prow:last-child { border-bottom:none; }
+  .pday { min-width:75px; color:var(--gold); letter-spacing:0.08em; }
+  .pbar-w { flex:1; height:5px; background:var(--border); }
+  .pbar-f { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright)); transition:width 0.8s ease; }
+  .ppct  { min-width:38px; color:var(--text-dim); text-align:right; font-size:0.65rem; }
+  .ptime { min-width:55px; color:var(--text); text-align:right; }
 
-  .server-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    padding: 0.9rem 1rem;
-    position: relative;
-    transition: all 0.2s;
-    cursor: pointer;
-  }
+  /* TABLE */
+  .tbl { width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.72rem; }
+  .tbl th { text-align:left; padding:0.45rem 0.7rem; color:var(--text-dim); border-bottom:1px solid var(--border); letter-spacing:0.1em; text-transform:uppercase; font-weight:normal; }
+  .tbl td { padding:0.45rem 0.7rem; border-bottom:1px solid rgba(19,29,39,0.5); color:var(--text); }
+  .tbl tr:hover td { background:rgba(201,168,76,0.02); }
+  .tbl tr:last-child td { border-bottom:none; }
 
-  .server-card:hover {
-    border-color: var(--gold-dim);
-    background: rgba(201,168,76,0.03);
-  }
+  /* EMPTY / LOADING */
+  .empty { padding:1.5rem; text-align:center; font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); letter-spacing:0.1em; }
+  .ld { display:inline-flex; align-items:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); padding:0.6rem 0; }
+  .ld-dots span { display:inline-block; animation:blink 1.2s infinite; color:var(--gold); }
+  .ld-dots span:nth-child(2){animation-delay:0.2s} .ld-dots span:nth-child(3){animation-delay:0.4s}
 
-  .server-card.active-server {
-    border-color: var(--gold);
-    background: rgba(201,168,76,0.05);
-  }
+  /* SUGGEST */
+  .suggest { display:flex; flex-wrap:wrap; gap:0.25rem; margin-top:0.4rem; }
 
-  .server-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
+  ::-webkit-scrollbar{width:3px;height:3px}
+  ::-webkit-scrollbar-thumb{background:var(--border)}
 
-  .server-name {
-    font-family: var(--font-display);
-    font-size: 1.1rem;
-    letter-spacing: 0.1em;
-    color: var(--gold-bright);
-  }
-
-  .server-count {
-    font-family: var(--font-mono);
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: var(--text);
-  }
-
-  .server-label {
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    letter-spacing: 0.15em;
-  }
-
-  .server-bar {
-    margin-top: 0.6rem;
-    height: 2px;
-    background: var(--border);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .server-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-    transition: width 0.5s ease;
-  }
-
-  /* ===== PLAYER LIST ===== */
-  .player-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0.8rem 0;
-  }
-
-  .player-tag {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    padding: 0.2rem 0.6rem;
-    background: rgba(26,37,53,0.8);
-    border: 1px solid var(--border);
-    color: var(--text);
-    letter-spacing: 0.05em;
-    transition: all 0.15s;
-  }
-
-  .player-tag:hover { border-color: var(--gold-dim); color: var(--gold); cursor: pointer; }
-  .player-tag.watched { border-color: var(--gold-dim); color: var(--gold); background: rgba(201,168,76,0.08); }
-  .player-tag.online-watch { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.06); box-shadow: 0 0 6px rgba(0,255,136,0.15); }
-
-  /* ===== WATCHLIST ===== */
-  .watchlist-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-  }
-
-  .watchlist-item:last-child { border-bottom: none; }
-
-  .watch-name { color: var(--text); letter-spacing: 0.05em; }
-
-  .watch-status {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-  }
-
-  .watch-status.online { color: var(--green); }
-  .watch-status.offline { color: var(--text-dim); }
-
-  .watch-server {
-    font-size: 0.65rem;
-    color: var(--gold);
-    letter-spacing: 0.1em;
-  }
-
-  /* ===== RESULT BLOCKS ===== */
-  .result-block {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--gold-dim);
-    padding: 1rem 1.2rem;
-    margin-top: 0.8rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    line-height: 1.8;
-    animation: fadeIn 0.3s ease;
-  }
-
-  .result-block.success { border-left-color: var(--green); }
-  .result-block.danger  { border-left-color: var(--red); }
-  .result-block.info    { border-left-color: var(--cyan); }
-
-  .result-title {
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 0.6rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* ===== STAT CARDS ===== */
-  .stat-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    padding: 1rem 1.2rem;
-    text-align: center;
-    position: relative;
-  }
-
-  .stat-value {
-    font-family: var(--font-display);
-    font-size: 2.2rem;
-    color: var(--gold-bright);
-    line-height: 1;
-    margin-bottom: 0.3rem;
-    text-shadow: 0 0 20px rgba(240,192,64,0.3);
-  }
-
-  .stat-label {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    color: var(--text-dim);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-  }
-
-  /* ===== ALERT FEED ===== */
-  .alert-feed {
-    max-height: 400px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-
-  .alert-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.7rem 0;
-    border-bottom: 1px solid rgba(26,37,53,0.5);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    animation: slideIn 0.3s ease;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  .alert-item:last-child { border-bottom: none; }
-
-  .alert-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-top: 3px;
-    flex-shrink: 0;
-  }
-
-  .alert-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .alert-dot.red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
-
-  .alert-time { color: var(--text-dim); min-width: 70px; }
-  .alert-msg  { color: var(--text); flex: 1; }
-  .alert-msg span { color: var(--gold); }
-  .alert-server { color: var(--cyan); }
-
-  /* ===== PRONOSTIC BARS ===== */
-  .prono-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.5rem 0;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    border-bottom: 1px solid rgba(26,37,53,0.4);
-  }
-
-  .prono-row:last-child { border-bottom: none; }
-
-  .prono-day {
-    min-width: 80px;
-    color: var(--gold);
-    letter-spacing: 0.1em;
-  }
-
-  .prono-bar-wrap {
-    flex: 1;
-    height: 6px;
-    background: var(--border);
-    position: relative;
-  }
-
-  .prono-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright));
-    transition: width 0.8s ease;
-  }
-
-  .prono-pct { min-width: 40px; color: var(--text-dim); text-align: right; }
-  .prono-time { min-width: 60px; color: var(--text); text-align: right; }
-
-  /* ===== LOADING ===== */
-  .loading {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    padding: 0.8rem 0;
-  }
-
-  .loading-dots span {
-    display: inline-block;
-    animation: blink 1.4s infinite;
-    color: var(--gold);
-  }
-
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
-
-  /* ===== SCAN ANIMATION ===== */
-  .scan-line {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    animation: scan 3s linear infinite;
-    opacity: 0.5;
-  }
-
-  @keyframes scan {
-    0%   { top: 0%; opacity: 0.5; }
-    50%  { opacity: 0.8; }
-    100% { top: 100%; opacity: 0.5; }
-  }
-
-  /* ===== EMPTY STATE ===== */
-  .empty {
-    padding: 2rem;
-    text-align: center;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-  }
-
-  /* ===== CORNER DECORATION ===== */
-  .corner-tl, .corner-br {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-color: var(--gold-dim);
-    border-style: solid;
-  }
-
-  .corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
-  .corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-
-  /* ===== SCROLLBAR ===== */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
-
-  /* ===== HEBREW ACCENT ===== */
-  .hebrew-accent {
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 0.05em;
-    direction: rtl;
-    opacity: 0.5;
-  }
-
-  /* ===== HEATMAP ===== */
-  .heatmap-wrap { overflow-x: auto; }
-  .heatmap { display: flex; flex-direction: column; gap: 3px; font-family: var(--font-mono); font-size: 0.6rem; }
-  .heatmap-row { display: flex; align-items: center; gap: 3px; }
-  .heatmap-label { width: 30px; color: var(--text-dim); text-align: right; flex-shrink: 0; }
-  .heatmap-cell {
-    width: 16px; height: 16px;
-    background: var(--border);
-    border-radius: 2px;
-    transition: background 0.2s;
-  }
-  .heatmap-hours { display: flex; gap: 3px; margin-left: 33px; margin-bottom: 2px; }
-  .heatmap-hlabel { width: 16px; text-align: center; color: var(--text-dim); font-size: 0.5rem; }
-
-  .tag-server {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    padding: 0.1rem 0.4rem;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-    margin-left: 0.3rem;
-  }
-
-  /* ===== DIVIDER ===== */
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 0.8rem 0;
-  }
-
+  .svr-tag { font-family:var(--font-mono); font-size:0.6rem; padding:0.08rem 0.3rem; border:1px solid var(--border); color:var(--text-dim); margin-left:0.2rem; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="header">
-  <div class="header-logo">
-    <svg class="star-of-david" viewBox="0 0 36 36">
-      <polygon points="18,2 22,11 32,11 24,17 27,27 18,21 9,27 12,17 4,11 14,11" fill="none" stroke="#c9a84c" stroke-width="1"/>
-      <polygon points="18,2 34,29 2,29" fill="none" stroke="#c9a84c" stroke-width="1" opacity="0.5"/>
-      <polygon points="18,34 2,7 34,7" fill="none" stroke="#c9a84c" stroke-width="1" opacity="0.5"/>
+  <div class="logo">
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <polygon points="16,1 20,10 30,10 22,16 25,26 16,20 7,26 10,16 2,10 12,10" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+      <polygon points="16,2 30,27 2,27" fill="none" stroke="#c9a84c" stroke-width="0.6" opacity="0.4"/>
+      <polygon points="16,30 2,5 30,5" fill="none" stroke="#c9a84c" stroke-width="0.6" opacity="0.4"/>
     </svg>
     <div class="logo-text">
       <span class="logo-main">MOSSAD GLORY</span>
-      <span class="logo-sub">Intelligence • NationsGlory • Operations</span>
+      <span class="logo-sub">Intelligence • NationsGlory • Surveillance</span>
     </div>
   </div>
-  <div class="header-status">
-    <div class="status-item"><div class="status-dot" id="api-dot"></div><span id="api-status">API</span></div>
-    <div class="status-item"><div class="status-dot" id="scan-dot"></div><span>SCAN ACTIF</span></div>
-    <div id="clock">--:--:--</div>
-    <span class="hebrew-accent">מוסד</span>
+  <div class="header-right">
+    <div class="status-pill"><div class="dot" id="api-dot"></div><span id="api-txt">CONNECTING</span></div>
+    <div class="status-pill"><div class="dot" id="scan-dot"></div><span>SCAN</span></div>
+    <span id="clock">--:--:--</span>
+    <span style="font-size:0.7rem;color:var(--text-dim);opacity:0.4">מוסד</span>
   </div>
 </header>
 
-<!-- NAV -->
 <nav class="nav">
-  <button class="nav-tab active" onclick="showSection('dashboard')">◈ DASHBOARD</button>
-  <button class="nav-tab" onclick="showSection('online')">◉ EN LIGNE</button>
-  <button class="nav-tab" onclick="showSection('checkall')">⊕ LOCALISER</button>
-  <button class="nav-tab" onclick="showSection('check')">◎ ESPIONNER</button>
-  <button class="nav-tab" onclick="showSection('watchlist')">◈ WATCHLIST</button>
-  <button class="nav-tab" onclick="showSection('stats')">◐ STATS</button>
+  <button class="tab active" onclick="nav('dashboard',this)">◈ DASHBOARD</button>
+  <button class="tab" onclick="nav('online',this)">◉ EN LIGNE</button>
+  <button class="tab" onclick="nav('checkall',this)">⊕ LOCALISER</button>
+  <button class="tab" onclick="nav('check',this)">◎ ESPIONNER</button>
+  <button class="tab" onclick="nav('watchlist',this)">◈ WATCHLIST</button>
+  <button class="tab" onclick="nav('stats',this)">◐ STATS</button>
 </nav>
 
-<!-- MAIN -->
 <main class="main">
 
-  <!-- ===== DASHBOARD ===== -->
-  <section class="section active" id="section-dashboard">
-    <!-- STATS ROW -->
-    <div class="grid-4 gap">
-      <div class="stat-card"><div class="corner-tl"></div><div class="corner-br"></div>
-        <div class="stat-value" id="stat-total">—</div>
-        <div class="stat-label">Joueurs en ligne</div>
-      </div>
-      <div class="stat-card"><div class="corner-tl"></div><div class="corner-br"></div>
-        <div class="stat-value" id="stat-servers">11</div>
-        <div class="stat-label">Serveurs actifs</div>
-      </div>
-      <div class="stat-card"><div class="corner-tl"></div><div class="corner-br"></div>
-        <div class="stat-value" id="stat-watched-online">—</div>
-        <div class="stat-label">Cibles en ligne</div>
-      </div>
-      <div class="stat-card"><div class="corner-tl"></div><div class="corner-br"></div>
-        <div class="stat-value" id="stat-watchcount">—</div>
-        <div class="stat-label">Cibles surveillées</div>
-      </div>
-    </div>
-
-    <div class="grid-2 gap">
-      <!-- SERVERS OVERVIEW -->
-      <div class="panel">
-        <div class="scan-line"></div>
-        <div class="panel-header">
-          <span class="panel-title">◉ Situation interserveur</span>
-          <button class="btn" onclick="refreshDashboard()">↺ Refresh</button>
-        </div>
-        <div class="panel-body">
-          <div class="servers-grid" id="servers-overview">
-            <div class="loading"><span>Chargement</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ALERT FEED -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">⚡ Flux d'alertes</span>
-          <span class="panel-badge" id="alert-count">0 évts</span>
-        </div>
-        <div class="panel-body" style="padding:0.5rem 1.2rem">
-          <div class="alert-feed" id="alert-feed">
-            <div class="empty">En attente d'activité...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- WATCHLIST QUICK VIEW -->
-    <div class="panel gap">
-      <div class="panel-header">
-        <span class="panel-title">👁 Surveillance — Cibles actives</span>
-        <span class="panel-badge" id="wl-quick-badge">LIME</span>
-      </div>
-      <div class="panel-body" style="padding:0.5rem 1.2rem">
-        <div id="wl-quick-list">
-          <div class="loading"><span>Chargement</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== EN LIGNE ===== -->
-  <section class="section" id="section-online">
-    <div class="panel gap">
-      <div class="panel-header">
-        <span class="panel-title">◉ Joueurs en ligne par serveur</span>
-        <div style="display:flex;gap:0.5rem;align-items:center">
-          <select class="input-field" id="online-server-select" style="width:140px">
-            <option value="">Tous les serveurs</option>
-          </select>
-          <button class="btn" onclick="fetchOnline()">↺ Actualiser</button>
-        </div>
-      </div>
-      <div class="panel-body" id="online-body">
-        <div class="loading"><span>Sélectionnez un serveur</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CHECKALL ===== -->
-  <section class="section" id="section-checkall">
-    <div class="panel gap">
-      <div class="panel-header">
-        <span class="panel-title">⊕ Localiser un joueur</span>
-      </div>
-      <div class="panel-body">
-        <div class="input-group">
-          <input class="input-field" id="checkall-input" placeholder="Nom du joueur..." onkeydown="if(event.key==='Enter')checkallPlayer()"/>
-          <button class="btn" onclick="checkallPlayer()">→ LOCALISER</button>
-        </div>
-        <div id="checkall-result"></div>
-      </div>
-    </div>
-
-    <!-- HISTORIQUE CHECKALL -->
+<!-- DASHBOARD -->
+<section class="section active" id="s-dashboard">
+  <div class="g4 mb">
+    <div class="stat"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Joueurs en ligne</div></div>
+    <div class="stat"><div class="stat-val">11</div><div class="stat-lbl">Serveurs actifs</div></div>
+    <div class="stat"><div class="stat-val" id="st-wonline">—</div><div class="stat-lbl">Cibles en ligne</div></div>
+    <div class="stat"><div class="stat-val" id="st-wcount">—</div><div class="stat-lbl">Cibles surveillées</div></div>
+  </div>
+  <div class="g2 mb">
     <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">◷ Dernières recherches</span>
-      </div>
-      <div class="panel-body" id="checkall-history">
-        <div class="empty">Aucune recherche récente</div>
+      <div class="scan"></div>
+      <div class="ph"><span class="pt">◉ Interserveur</span><button class="btn" onclick="loadDashboard()">↺ Refresh</button></div>
+      <div class="pb"><div class="sgrid" id="srv-overview"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0</span></div>
+      <div style="padding:0.4rem 1rem"><div class="feed" id="alert-feed"><div class="empty">En attente...</div></div></div>
+    </div>
+  </div>
+  <div class="panel mb">
+    <div class="ph"><span class="pt">👁 Watchlist — Statut live LIME</span><button class="btn" onclick="loadDashboard()">↺</button></div>
+    <div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
+  </div>
+</section>
+
+<!-- EN LIGNE -->
+<section class="section" id="s-online">
+  <div class="panel mb">
+    <div class="ph">
+      <span class="pt">◉ Joueurs en ligne</span>
+      <div class="row" style="flex-wrap:nowrap">
+        <select id="ol-srv" style="max-width:150px">
+          <option value="">Tous les serveurs</option>
+          <option value="blue">BLUE</option><option value="coral">CORAL</option>
+          <option value="orange">ORANGE</option><option value="red">RED</option>
+          <option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+          <option value="white">WHITE</option><option value="jade">JADE</option>
+          <option value="black">BLACK</option><option value="cyan">CYAN</option>
+          <option value="lime">LIME</option>
+        </select>
+        <button class="btn" onclick="loadOnline()">↺ Actualiser</button>
       </div>
     </div>
-  </section>
+    <div class="pb" id="ol-body"><div class="empty">Sélectionnez un serveur ou chargez tout</div></div>
+  </div>
+</section>
 
-  <!-- ===== CHECK (ESPIONNER PAYS) ===== -->
-  <section class="section" id="section-check">
-    <div class="panel gap">
-      <div class="panel-header">
-        <span class="panel-title">◎ Espionner un pays</span>
+<!-- CHECKALL -->
+<section class="section" id="s-checkall">
+  <div class="panel mb">
+    <div class="ph"><span class="pt">⊕ Localiser un joueur</span></div>
+    <div class="pb">
+      <div class="row">
+        <input id="ca-input" placeholder="Nom du joueur..." onkeydown="if(event.key==='Enter')doCheckall()"/>
+        <button class="btn" onclick="doCheckall()">→ LOCALISER</button>
       </div>
-      <div class="panel-body">
-        <div class="input-group" style="flex-wrap:wrap">
-          <select class="input-field" id="check-server" style="max-width:160px" onchange="loadCountries()">
-            <option value="">Serveur...</option>
-          </select>
-          <input class="input-field" id="check-country" placeholder="Nom du pays..." onkeydown="if(event.key==='Enter')checkCountry()"/>
-          <button class="btn" onclick="checkCountry()">→ ESPIONNER</button>
+      <div id="ca-result"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph"><span class="pt">◷ Historique recherches</span></div>
+    <div class="pb" id="ca-history"><div class="empty">Aucune recherche</div></div>
+  </div>
+</section>
+
+<!-- CHECK / ESPIONNER -->
+<section class="section" id="s-check">
+  <div class="panel mb">
+    <div class="ph"><span class="pt">◎ Espionner un pays</span></div>
+    <div class="pb">
+      <div class="row">
+        <select id="ck-srv" style="max-width:150px" onchange="loadCountrySuggest()">
+          <option value="">Serveur...</option>
+          <option value="blue">BLUE</option><option value="coral">CORAL</option>
+          <option value="orange">ORANGE</option><option value="red">RED</option>
+          <option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+          <option value="white">WHITE</option><option value="jade">JADE</option>
+          <option value="black">BLACK</option><option value="cyan">CYAN</option>
+          <option value="lime">LIME</option>
+        </select>
+        <input id="ck-country" placeholder="Nom du pays..." onkeydown="if(event.key==='Enter')doCheck()"/>
+        <button class="btn" onclick="doCheck()">→ ESPIONNER</button>
+      </div>
+      <div class="suggest" id="ck-suggest"></div>
+      <div id="ck-result"></div>
+    </div>
+  </div>
+</section>
+
+<!-- WATCHLIST -->
+<section class="section" id="s-watchlist">
+  <div class="g2">
+    <div class="panel">
+      <div class="ph"><span class="pt">◈ Gérer la watchlist</span></div>
+      <div class="pb">
+        <div class="row mb" style="margin-bottom:0.8rem">
+          <input id="wl-add-input" placeholder="Ajouter un joueur..." onkeydown="if(event.key==='Enter')wlAdd()"/>
+          <button class="btn btn-green" onclick="wlAdd()">+ Ajouter</button>
         </div>
-        <div id="country-suggestions" style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.5rem"></div>
-        <div id="check-result"></div>
+        <div id="wl-manage"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
       </div>
     </div>
-  </section>
+    <div class="panel">
+      <div class="ph"><span class="pt">⚡ Statut live — LIME</span><button class="btn" onclick="wlRefreshStatus()">↺</button></div>
+      <div class="pb" id="wl-status"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
+    </div>
+  </div>
+</section>
 
-  <!-- ===== WATCHLIST ===== -->
-  <section class="section" id="section-watchlist">
-    <div class="grid-2">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">◈ Gérer la Watchlist</span>
-        </div>
-        <div class="panel-body">
-          <div class="input-group" style="margin-bottom:1rem">
-            <input class="input-field" id="watch-add-input" placeholder="Ajouter un joueur..." onkeydown="if(event.key==='Enter')addToWatchlist()"/>
-            <button class="btn btn-success" onclick="addToWatchlist()">+ AJOUTER</button>
-          </div>
-          <div id="watchlist-manage">
-            <div class="loading"><span>Chargement</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">⚡ Statut en temps réel — LIME</span>
-          <button class="btn" onclick="refreshWatchStatus()">↺</button>
-        </div>
-        <div class="panel-body" id="watchlist-status">
-          <div class="loading"><span>Chargement</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>
-        </div>
+<!-- STATS -->
+<section class="section" id="s-stats">
+  <div class="panel mb">
+    <div class="ph"><span class="pt">◐ Analyse comportementale</span></div>
+    <div class="pb">
+      <div class="row">
+        <input id="st-input" placeholder="Nom du joueur..." onkeydown="if(event.key==='Enter')loadStats()"/>
+        <button class="btn" onclick="loadStats()">→ Analyser</button>
       </div>
     </div>
-  </section>
-
-  <!-- ===== STATS ===== -->
-  <section class="section" id="section-stats">
-    <div class="panel gap">
-      <div class="panel-header">
-        <span class="panel-title">◐ Analyse comportementale</span>
-      </div>
-      <div class="panel-body">
-        <div class="input-group">
-          <input class="input-field" id="stats-input" placeholder="Nom du joueur..." onkeydown="if(event.key==='Enter')fetchStats()"/>
-          <button class="btn" onclick="fetchStats()">→ ANALYSER</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="stats-result"></div>
-  </section>
+  </div>
+  <div id="st-result"></div>
+</section>
 
 </main>
 
 <script>
-// ===================== CONFIG =====================
+const API = 'https://nationsglory-spy.onrender.com';
 const SERVERS = ["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
-const SERVER_EMOJI = {blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
-const API_BASE = "https://publicapi.nationsglory.fr";
-const DYNMAP_BASE = (s) => `https://${s}.nationsglory.fr/standalone/dynmap_world.json`;
+const EMO = {blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
 
-// Local watchlist storage
-let WATCH_LIST = JSON.parse(localStorage.getItem('mossad_watchlist') || '["Canisi","Darkholess","UFO_Thespoot","Franky753","Blakonne","Farsgame","ClashKiller78","Olmat38","FLOTYR2","Raptor51"]');
-let alertEvents = [];
-let serverData  = {};
-let scanInterval = null;
-let checkallHistory = JSON.parse(localStorage.getItem('mossad_history') || '[]');
+let watchlist   = [];
+let alerts      = [];
+let prevOnline  = {};
+let caHistory   = JSON.parse(localStorage.getItem('mg_history') || '[]');
+let scanTimer   = null;
 
-// ===================== UTILS =====================
-function saveWatchlist() { localStorage.setItem('mossad_watchlist', JSON.stringify(WATCH_LIST)); }
-function saveHistory()   { localStorage.setItem('mossad_history',   JSON.stringify(checkallHistory.slice(0,20))); }
+// ---- UTILS ----
+const $ = id => document.getElementById(id);
+const ld = () => `<div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
 
-function now() {
-  return new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+async function api(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
 }
 
-function loading(html = '') {
-  return html || '<div class="loading"><span>Chargement</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>';
+async function apiPost(path, body) {
+  const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+// ---- CLOCK ----
+setInterval(() => {
+  $('clock').textContent = new Date().toLocaleTimeString('fr-FR');
+}, 1000);
+
+// ---- NAV ----
+function nav(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  $('s-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'watchlist') { wlRender(); wlRefreshStatus(); }
+  if (id === 'online')    { loadOnline(); }
+}
+
+// ---- CONNECTION CHECK ----
+async function checkApi() {
+  try {
+    const d = await api('/health');
+    $('api-dot').className = 'dot';
+    $('api-txt').textContent = 'API OK';
+    return true;
+  } catch {
+    $('api-dot').className = 'dot off';
+    $('api-txt').textContent = 'API DOWN';
+    return false;
+  }
+}
+
+// ---- WATCHLIST LOAD ----
+async function loadWatchlist() {
+  try {
+    const d = await api('/api/watchlist');
+    watchlist = d.players || [];
+    $('st-wcount').textContent = watchlist.length;
+  } catch { watchlist = []; }
+}
+
+// ---- DASHBOARD ----
+async function loadDashboard() {
+  $('srv-overview').innerHTML = ld();
+  try {
+    const all = await api('/api/online_all');
+    const lp  = all['lime'] || [];
+    let total = 0;
+    const max = Math.max(...SERVERS.map(s => (all[s]||[]).length), 1);
+
+    // Detect connect/disconnect for watchlist
+    watchlist.forEach(p => {
+      SERVERS.forEach(s => {
+        const online = (all[s]||[]).includes(p);
+        const key    = p+'@'+s;
+        if (online && !prevOnline[key])  pushAlert('connect',    p, s);
+        if (!online && prevOnline[key])  pushAlert('disconnect', p, s);
+        prevOnline[key] = online;
+      });
+    });
+
+    SERVERS.forEach(s => total += (all[s]||[]).length);
+    $('st-total').textContent  = total;
+    $('st-wonline').textContent = watchlist.filter(p => (all['lime']||[]).includes(p)).length;
+
+    $('srv-overview').innerHTML = SERVERS.map(s => {
+      const cnt = (all[s]||[]).length;
+      return `<div class="scard" onclick="goOnline('${s}')">
+        <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
+        <div class="scard-cnt">${cnt}</div>
+        <div class="scard-lbl">EN LIGNE</div>
+        <div class="sbar"><div class="sbar-fill" style="width:${Math.round(cnt/max*100)}%"></div></div>
+      </div>`;
+    }).join('');
+
+    // Watchlist quick
+    $('wl-quick').innerHTML = watchlist.length
+      ? `<div class="ptags">${watchlist.map(p => {
+          const on = lp.includes(p);
+          return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
+        }).join('')}</div>`
+      : '<div class="empty">Watchlist vide</div>';
+
+  } catch(e) {
+    $('srv-overview').innerHTML = `<div class="empty" style="color:var(--red)">Erreur : bot hors ligne ?<br/><span style="font-size:0.65rem">${e.message}</span></div>`;
+  }
 }
 
 function pushAlert(type, player, server) {
-  alertEvents.unshift({ type, player, server, time: now() });
-  if (alertEvents.length > 50) alertEvents.pop();
+  alerts.unshift({ type, player, server, time: new Date().toLocaleTimeString('fr-FR') });
+  if (alerts.length > 60) alerts.pop();
   renderAlerts();
 }
 
 function renderAlerts() {
-  const feed = document.getElementById('alert-feed');
-  document.getElementById('alert-count').textContent = alertEvents.length + ' évts';
-  if (!alertEvents.length) { feed.innerHTML = '<div class="empty">En attente d\'activité...</div>'; return; }
-  feed.innerHTML = alertEvents.map(a => `
-    <div class="alert-item">
-      <div class="alert-dot ${a.type === 'connect' ? 'green' : 'red'}"></div>
-      <span class="alert-time">${a.time}</span>
-      <span class="alert-msg">
-        ${a.type === 'connect' ? '🟢 Connexion' : '🔴 Déconnexion'} — <span>${a.player}</span>
-        <span class="tag-server">${a.server.toUpperCase()}</span>
-      </span>
-    </div>
-  `).join('');
+  $('alert-badge').textContent = alerts.length + ' évts';
+  $('alert-feed').innerHTML = alerts.length
+    ? alerts.map(a => `<div class="aitem">
+        <div class="adot ${a.type==='connect'?'g':'r'}"></div>
+        <span class="atime">${a.time}</span>
+        <span class="amsg">${a.type==='connect'?'🟢 Connexion':'🔴 Déco'} — <span>${a.player}</span><span class="asrv">${a.server.toUpperCase()}</span></span>
+      </div>`).join('')
+    : '<div class="empty">En attente...</div>';
 }
 
-// ===================== CLOCK =====================
-setInterval(() => {
-  document.getElementById('clock').textContent = now();
-}, 1000);
-
-// ===================== NAV =====================
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('section-' + id).classList.add('active');
-  event.target.classList.add('active');
-
-  if (id === 'watchlist') { renderWatchlistManage(); refreshWatchStatus(); }
-  if (id === 'online')    { populateServerSelects(); }
-  if (id === 'check')     { populateServerSelects(); }
+function goOnline(server) {
+  document.querySelectorAll('.tab')[1].click();
+  $('ol-srv').value = server;
+  loadOnline();
 }
 
-// ===================== FETCH HELPERS =====================
-async function fetchDynmap(server) {
+// ---- ONLINE ----
+async function loadOnline() {
+  const srv  = $('ol-srv').value;
+  const body = $('ol-body');
+  body.innerHTML = ld();
   try {
-    const r = await fetch(DYNMAP_BASE(server), { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) return [];
-    const d = await r.json();
-    return (d.players || []).map(p => p.name);
-  } catch { return []; }
-}
-
-async function fetchCountryList(server) {
-  try {
-    const r = await fetch(`${API_BASE}/country/list/${server}`, { signal: AbortSignal.timeout(8000) });
-    const d = await r.json();
-    return (d.claimed || []).map(c => c.name).filter(Boolean);
-  } catch { return []; }
-}
-
-async function fetchCountryMembers(server, country) {
-  try {
-    const r = await fetch(`${API_BASE}/country/${server}/${encodeURIComponent(country)}`, { signal: AbortSignal.timeout(8000) });
-    const d = await r.json();
-    if (d.members && d.members.length) {
-      return { members: d.members.map(m => m.replace(/^[*+\-]/, '')), name: d.name || country };
+    if (!srv) {
+      const all   = await api('/api/online_all');
+      let total   = 0;
+      SERVERS.forEach(s => total += (all[s]||[]).length);
+      body.innerHTML = `<div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);margin-bottom:0.8rem">
+        TOTAL <span style="color:var(--gold-bright)">${total}</span> joueurs</div>
+        <div class="sgrid">${SERVERS.map(s => {
+          const pl = all[s]||[];
+          return `<div class="scard">
+            <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
+            <div class="scard-cnt">${pl.length}</div>
+            <div class="ptags" style="max-height:100px;overflow-y:auto">${pl.slice(0,30).map(p =>
+              `<span class="ptag ${watchlist.includes(p)?'watched':''}" onclick="quickCA('${p}')">${p}</span>`
+            ).join('')}${pl.length>30?`<span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">+${pl.length-30}</span>`:''}</div>
+          </div>`;
+        }).join('')}</div>`;
+    } else {
+      const d  = await api('/api/online/' + srv);
+      const pl = d.players || [];
+      body.innerHTML = pl.length
+        ? `<div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);margin-bottom:0.6rem">
+            <span style="color:var(--gold-bright)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div>
+           <div class="ptags">${pl.map(p =>
+             `<span class="ptag ${watchlist.includes(p)?'online':''}" onclick="quickCA('${p}')">${p}</span>`
+           ).join('')}</div>`
+        : `<div class="empty">Aucun joueur sur ${srv.toUpperCase()}</div>`;
     }
-  } catch {}
-  return null;
-}
-
-// ===================== DASHBOARD =====================
-let prevStates = {};
-
-async function refreshDashboard() {
-  const overview = document.getElementById('servers-overview');
-  overview.innerHTML = loading();
-
-  const results = await Promise.all(SERVERS.map(s => fetchDynmap(s)));
-  const total   = results.reduce((a, r) => a + r.length, 0);
-
-  // Store
-  SERVERS.forEach((s, i) => { serverData[s] = results[i]; });
-
-  // Check watchlist alerts
-  WATCH_LIST.forEach(player => {
-    SERVERS.forEach((s, i) => {
-      const online = results[i].includes(player);
-      const key    = player + '@' + s;
-      if (online && !prevStates[key])  pushAlert('connect',    player, s);
-      if (!online && prevStates[key])  pushAlert('disconnect', player, s);
-      prevStates[key] = online;
-    });
-  });
-
-  // Stat total
-  document.getElementById('stat-total').textContent = total;
-
-  // Watched online
-  const limeOnline = serverData['lime'] || [];
-  const watchOnline = WATCH_LIST.filter(p => limeOnline.includes(p));
-  document.getElementById('stat-watched-online').textContent = watchOnline.length;
-  document.getElementById('stat-watchcount').textContent     = WATCH_LIST.length;
-
-  // Server cards
-  const max = Math.max(...results.map(r => r.length), 1);
-  overview.innerHTML = SERVERS.map((s, i) => `
-    <div class="server-card" onclick="showServerPlayers('${s}')">
-      <div class="server-card-header">
-        <span class="server-name">${s.toUpperCase()}</span>
-        <span>${SERVER_EMOJI[s]}</span>
-      </div>
-      <div class="server-count">${results[i].length}</div>
-      <div class="server-label">JOUEURS EN LIGNE</div>
-      <div class="server-bar"><div class="server-bar-fill" style="width:${Math.round(results[i].length/max*100)}%"></div></div>
-    </div>
-  `).join('');
-
-  // Quick watchlist
-  renderWatchQuick(limeOnline);
-}
-
-function renderWatchQuick(limeOnline) {
-  const el = document.getElementById('wl-quick-list');
-  if (!WATCH_LIST.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
-  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:0.4rem;padding:0.2rem 0">` +
-    WATCH_LIST.map(p => {
-      const online = limeOnline.includes(p);
-      return `<span class="player-tag ${online ? 'online-watch' : ''}">${online ? '🟢' : '⚫'} ${p}</span>`;
-    }).join('') + `</div>`;
-}
-
-function showServerPlayers(server) {
-  showSection('online');
-  document.querySelectorAll('.nav-tab')[1].classList.add('active');
-  document.querySelectorAll('.nav-tab')[0].classList.remove('active');
-  const sel = document.getElementById('online-server-select');
-  if (sel) { sel.value = server; fetchOnline(); }
-}
-
-// ===================== ONLINE =====================
-function populateServerSelects() {
-  ['online-server-select', 'check-server'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el || el.options.length > 1) return;
-    SERVERS.forEach(s => {
-      const o = document.createElement('option');
-      o.value = s; o.textContent = s.toUpperCase();
-      el.appendChild(o);
-    });
-  });
-}
-
-async function fetchOnline() {
-  const server = document.getElementById('online-server-select').value;
-  const body   = document.getElementById('online-body');
-
-  if (!server) {
-    // All servers
-    body.innerHTML = loading();
-    const results = await Promise.all(SERVERS.map(s => fetchDynmap(s)));
-    const total   = results.reduce((a, r) => a + r.length, 0);
-    body.innerHTML = `
-      <div style="margin-bottom:0.8rem;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
-        TOTAL : <span style="color:var(--gold-bright)">${total}</span> joueurs • ${SERVERS.length} serveurs
-      </div>
-      <div class="servers-grid">` +
-      SERVERS.map((s, i) => `
-        <div class="server-card">
-          <div class="server-card-header"><span class="server-name">${s.toUpperCase()}</span><span>${SERVER_EMOJI[s]}</span></div>
-          <div class="server-count">${results[i].length}</div>
-          <div class="player-list" style="max-height:120px;overflow-y:auto">
-            ${results[i].slice(0,30).map(p => `<span class="player-tag ${WATCH_LIST.includes(p)?'watched':''}">${p}</span>`).join('')}
-            ${results[i].length > 30 ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim)">+${results[i].length-30} de plus</span>` : ''}
-          </div>
-        </div>`).join('') + `</div>`;
-    return;
+  } catch(e) {
+    body.innerHTML = `<div class="empty" style="color:var(--red)">Erreur API : ${e.message}</div>`;
   }
+}
 
-  body.innerHTML = loading();
-  const players = await fetchDynmap(server);
-
-  if (!players.length) {
-    body.innerHTML = '<div class="empty">Aucun joueur connecté sur ' + server.toUpperCase() + '</div>';
-    return;
+// ---- CHECKALL ----
+async function doCheckall() {
+  const p   = $('ca-input').value.trim();
+  if (!p) return;
+  const res = $('ca-result');
+  res.innerHTML = ld();
+  try {
+    const d = await api('/api/checkall/' + encodeURIComponent(p));
+    res.innerHTML = d.servers.length
+      ? `<div class="res ok"><div class="res-title">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('')}</div>`
+      : `<div class="res err"><div class="res-title">Résultat</div><span style="color:var(--text-dim)">${p} n'est connecté nulle part</span></div>`;
+    caHistory = caHistory.filter(h=>h.p!==p);
+    caHistory.unshift({ p, servers: d.servers, t: new Date().toLocaleTimeString('fr-FR') });
+    if (caHistory.length > 15) caHistory.pop();
+    localStorage.setItem('mg_history', JSON.stringify(caHistory));
+    renderCAHistory();
+  } catch(e) {
+    res.innerHTML = `<div class="res err">Erreur : ${e.message}</div>`;
   }
-
-  body.innerHTML = `
-    <div style="margin-bottom:0.8rem;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
-      <span style="color:var(--gold-bright)">${players.length}</span> joueurs — ${server.toUpperCase()}
-    </div>
-    <div class="player-list">
-      ${players.map(p => `<span class="player-tag ${WATCH_LIST.includes(p)?'online-watch':''}" onclick="quickCheckall('${p}')">${p}</span>`).join('')}
-    </div>`;
 }
 
-// ===================== CHECKALL =====================
-async function checkallPlayer() {
-  const joueur = document.getElementById('checkall-input').value.trim();
-  if (!joueur) return;
-  const result = document.getElementById('checkall-result');
-  result.innerHTML = loading();
-
-  const results = await Promise.all(SERVERS.map(s => fetchDynmap(s)));
-  const found   = SERVERS.filter((s, i) => results[i].includes(joueur));
-
-  if (found.length) {
-    result.innerHTML = `
-      <div class="result-block success">
-        <div class="result-title">Joueur localisé — ${joueur}</div>
-        ${found.map(s => `<div>${SERVER_EMOJI[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('')}
-      </div>`;
-  } else {
-    result.innerHTML = `
-      <div class="result-block danger">
-        <div class="result-title">Résultat</div>
-        <span style="color:var(--text-dim)">${joueur} n'est connecté sur aucun serveur</span>
-      </div>`;
-  }
-
-  // History
-  checkallHistory = checkallHistory.filter(h => h.player !== joueur);
-  checkallHistory.unshift({ player: joueur, servers: found, time: now() });
-  saveHistory();
-  renderCheckallHistory();
+function quickCA(player) {
+  document.querySelectorAll('.tab')[2].click();
+  $('ca-input').value = player;
+  doCheckall();
 }
 
-function quickCheckall(player) {
-  showSection('checkall');
-  document.querySelectorAll('.nav-tab')[2].classList.add('active');
-  document.querySelectorAll('.nav-tab').forEach((t,i) => { if(i!==2) t.classList.remove('active'); });
-  document.getElementById('checkall-input').value = player;
-  checkallPlayer();
+function renderCAHistory() {
+  const el = $('ca-history');
+  if (!caHistory.length) { el.innerHTML = '<div class="empty">Aucune recherche</div>'; return; }
+  el.innerHTML = `<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>` +
+    caHistory.slice(0,12).map(h => `<tr>
+      <td style="color:var(--gold);cursor:pointer" onclick="quickCA('${h.p}')">${h.p}</td>
+      <td>${h.servers.length?h.servers.map(s=>`<span class="svr-tag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--text-dim)">Hors ligne</span>'}</td>
+      <td style="color:var(--text-dim)">${h.t}</td>
+    </tr>`).join('') + '</tbody></table>';
 }
 
-function renderCheckallHistory() {
-  const el = document.getElementById('checkall-history');
-  if (!checkallHistory.length) { el.innerHTML = '<div class="empty">Aucune recherche récente</div>'; return; }
-  el.innerHTML = `<table class="data-table">
-    <thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead>
-    <tbody>` +
-    checkallHistory.slice(0,10).map(h => `
-      <tr>
-        <td style="color:var(--gold);cursor:pointer" onclick="quickCheckall('${h.player}')">${h.player}</td>
-        <td>${h.servers.length ? h.servers.map(s => `<span class="tag-server">${s.toUpperCase()}</span>`).join(' ') : '<span style="color:var(--text-dim)">Hors ligne</span>'}</td>
-        <td style="color:var(--text-dim)">${h.time}</td>
-      </tr>`).join('') +
-    `</tbody></table>`;
-}
+// ---- CHECK COUNTRY ----
+let ctryCache = {};
 
-// ===================== CHECK COUNTRY =====================
-let countriesCache = {};
-
-async function loadCountries() {
-  const server = document.getElementById('check-server').value;
-  if (!server) return;
-  const sugg = document.getElementById('country-suggestions');
-  sugg.innerHTML = '<div class="loading" style="width:100%"><span>Chargement pays</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></div>';
-
-  if (!countriesCache[server]) {
-    countriesCache[server] = await fetchCountryList(server);
-  }
-  const countries = countriesCache[server];
-  sugg.innerHTML = countries.slice(0, 40).map(c =>
-    `<span class="player-tag" onclick="selectCountry('${c}')" style="cursor:pointer">${c}</span>`
-  ).join('');
+async function loadCountrySuggest() {
+  const srv = $('ck-srv').value;
+  if (!srv) return;
+  $('ck-suggest').innerHTML = ld();
+  try {
+    if (!ctryCache[srv]) {
+      const d = await api('/api/countries/' + srv);
+      ctryCache[srv] = d.countries || [];
+    }
+    $('ck-suggest').innerHTML = ctryCache[srv].slice(0,50).map(c =>
+      `<span class="ptag" onclick="selectCountry('${c}')" style="cursor:pointer">${c}</span>`
+    ).join('');
+  } catch { $('ck-suggest').innerHTML = ''; }
 }
 
 function selectCountry(c) {
-  document.getElementById('check-country').value = c;
-  checkCountry();
+  $('ck-country').value = c;
+  doCheck();
 }
 
-async function checkCountry() {
-  const server  = document.getElementById('check-server').value;
-  const country = document.getElementById('check-country').value.trim();
-  if (!server || !country) return;
-
-  const result = document.getElementById('check-result');
-  result.innerHTML = loading();
-
-  const data = await fetchCountryMembers(server, country);
-  if (!data) {
-    result.innerHTML = '<div class="result-block danger"><div class="result-title">Erreur</div>Pays introuvable ou API indisponible.</div>';
-    return;
+async function doCheck() {
+  const srv = $('ck-srv').value;
+  const c   = $('ck-country').value.trim();
+  if (!srv || !c) return;
+  const res = $('ck-result');
+  res.innerHTML = ld();
+  try {
+    const d = await api(`/api/check/${srv}/${encodeURIComponent(c)}`);
+    if (d.online_total === 0) {
+      res.innerHTML = `<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span></div>`;
+    } else {
+      res.innerHTML = `<div class="res err"><div class="res-title">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>` +
+        Object.entries(d.servers).sort((a,b)=>a[0]===srv?-1:1).map(([s,pl])=>
+          `<div style="margin:0.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${s===srv?'<span style="color:var(--red);font-size:0.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:0.4rem">${pl.join(', ')}</span></div>`
+        ).join('') + '</div>';
+    }
+  } catch(e) {
+    res.innerHTML = `<div class="res err"><div class="res-title">Erreur</div>${e.message}</div>`;
   }
-
-  const { members, name } = data;
-  const allOnline = await Promise.all(SERVERS.map(s => fetchDynmap(s)));
-  const onlineMap = {};
-  SERVERS.forEach((s, i) => { onlineMap[s] = allOnline[i]; });
-
-  const found = {};
-  let total = 0;
-  SERVERS.forEach(s => {
-    const f = members.filter(m => onlineMap[s].includes(m));
-    if (f.length) { found[s] = f; total += f.length; }
-  });
-
-  if (total === 0) {
-    result.innerHTML = `
-      <div class="result-block success">
-        <div class="result-title">Pays : ${name} — ${members.length} membres</div>
-        <span style="color:var(--green)">✓ Aucun membre connecté</span>
-      </div>`;
-    return;
-  }
-
-  result.innerHTML = `
-    <div class="result-block danger">
-      <div class="result-title">Pays : ${name} — ${total} connectés / ${members.length} membres</div>
-      ${Object.entries(found).sort((a,b) => (a[0]===server?-1:1)).map(([s, pl]) => `
-        <div style="margin:0.4rem 0">
-          ${SERVER_EMOJI[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>
-          ${s === server ? '<span style="color:var(--red);font-size:0.65rem"> ← CIBLE</span>' : ''}
-          <span style="color:var(--text-dim);margin-left:0.5rem">${pl.join(', ')}</span>
-        </div>`).join('')}
-    </div>`;
 }
 
-// ===================== WATCHLIST =====================
-function renderWatchlistManage() {
-  const el = document.getElementById('watchlist-manage');
-  document.getElementById('stat-watchcount').textContent = WATCH_LIST.length;
-  if (!WATCH_LIST.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
-  el.innerHTML = WATCH_LIST.map(p => `
-    <div class="watchlist-item">
-      <span class="watch-name">${p}</span>
-      <button class="btn btn-danger" style="padding:0.2rem 0.6rem;font-size:0.65rem" onclick="removeFromWatchlist('${p}')">✕ Retirer</button>
+// ---- WATCHLIST ----
+function wlRender() {
+  const el = $('wl-manage');
+  $('st-wcount').textContent = watchlist.length;
+  if (!watchlist.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
+  el.innerHTML = watchlist.map(p => `
+    <div class="wi">
+      <span class="wi-name">${p}</span>
+      <button class="btn btn-red" style="padding:0.15rem 0.5rem;font-size:0.62rem" onclick="wlRemove('${p}')">✕</button>
     </div>`).join('');
 }
 
-function addToWatchlist() {
-  const input = document.getElementById('watch-add-input');
-  const name  = input.value.trim();
-  if (!name || WATCH_LIST.includes(name)) return;
-  WATCH_LIST.push(name);
-  saveWatchlist();
-  input.value = '';
-  renderWatchlistManage();
-  refreshWatchStatus();
-}
-
-function removeFromWatchlist(name) {
-  WATCH_LIST = WATCH_LIST.filter(p => p !== name);
-  saveWatchlist();
-  renderWatchlistManage();
-  refreshWatchStatus();
-}
-
-async function refreshWatchStatus() {
-  const el = document.getElementById('watchlist-status');
-  el.innerHTML = loading();
-  const players = await fetchDynmap('lime');
-
-  if (!WATCH_LIST.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
-
-  const online  = WATCH_LIST.filter(p => players.includes(p));
-  const offline = WATCH_LIST.filter(p => !players.includes(p));
-
-  el.innerHTML = [...online.map(p => `
-    <div class="watchlist-item">
-      <span class="watch-name">${p}</span>
-      <div class="watch-status online"><div class="status-dot"></div> EN LIGNE <span class="watch-server">LIME</span></div>
-    </div>`),
-    ...offline.map(p => `
-    <div class="watchlist-item">
-      <span class="watch-name" style="opacity:0.5">${p}</span>
-      <div class="watch-status offline">◯ Hors ligne</div>
-    </div>`)].join('') || '<div class="empty">Aucun résultat</div>';
-}
-
-// ===================== STATS =====================
-async function fetchStats() {
-  const joueur = document.getElementById('stats-input').value.trim();
-  if (!joueur) return;
-  const result = document.getElementById('stats-result');
-  result.innerHTML = `
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">◐ Analyse — ${joueur}</span></div>
-      <div class="panel-body">${loading()}</div>
-    </div>`;
-
+async function wlAdd() {
+  const name = $('wl-add-input').value.trim();
+  if (!name) return;
   try {
-    const r = await fetch(`${API_BASE}/player/${joueur}`, { signal: AbortSignal.timeout(8000) });
-    const d = await r.json();
+    const d = await apiPost('/api/watchlist/add', { player: name });
+    watchlist = d.players;
+    $('wl-add-input').value = '';
+    wlRender();
+    wlRefreshStatus();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
 
-    // Also check current location
-    const allOnline = await Promise.all(SERVERS.map(s => fetchDynmap(s)));
-    const currentServer = SERVERS.find((s, i) => allOnline[i].includes(joueur));
+async function wlRemove(name) {
+  try {
+    const d = await apiPost('/api/watchlist/remove', { player: name });
+    watchlist = d.players;
+    wlRender();
+    wlRefreshStatus();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
 
-    result.innerHTML = `
-      <div class="panel gap">
-        <div class="panel-header">
-          <span class="panel-title">◐ Profil — ${joueur}</span>
-          ${currentServer ? `<span class="panel-badge" style="color:var(--green);border-color:var(--green)">🟢 EN LIGNE — ${currentServer.toUpperCase()}</span>` : '<span class="panel-badge">⚫ Hors ligne</span>'}
-        </div>
-        <div class="panel-body">
-          ${d && Object.keys(d).length ? `
-          <div class="grid-3" style="margin-bottom:1rem">
-            ${d.country ? `<div class="stat-card"><div class="stat-value" style="font-size:1.2rem">${d.country}</div><div class="stat-label">Pays</div></div>` : ''}
-            ${d.server  ? `<div class="stat-card"><div class="stat-value" style="font-size:1.2rem">${d.server}</div><div class="stat-label">Serveur principal</div></div>` : ''}
-            ${d.rank    ? `<div class="stat-card"><div class="stat-value" style="font-size:1.2rem">${d.rank}</div><div class="stat-label">Rang</div></div>` : ''}
-          </div>
-          <div class="result-block info">
-            <div class="result-title">Données brutes API</div>
-            <pre style="font-size:0.65rem;color:var(--text-dim);white-space:pre-wrap">${JSON.stringify(d, null, 2)}</pre>
-          </div>` : `
-          <div class="result-block">
-            <div class="result-title">Statut de connexion</div>
-            ${currentServer
-              ? `<span style="color:var(--green)">🟢 ${joueur} est actuellement en ligne sur <span style="color:var(--gold)">${currentServer.toUpperCase()}</span></span>`
-              : `<span style="color:var(--text-dim)">⚫ ${joueur} est actuellement hors ligne</span>`
-            }
-            <br/><br/><span style="color:var(--text-dim);font-size:0.65rem">L'API publique ne retourne pas de données supplémentaires pour ce joueur.</span>
-          </div>`}
-        </div>
-      </div>`;
+async function wlRefreshStatus() {
+  const el = $('wl-status');
+  el.innerHTML = ld();
+  try {
+    const d  = await api('/api/online/lime');
+    const lp = d.players || [];
+    if (!watchlist.length) { el.innerHTML = '<div class="empty">Watchlist vide</div>'; return; }
+    const on  = watchlist.filter(p => lp.includes(p));
+    const off = watchlist.filter(p => !lp.includes(p));
+    el.innerHTML = [
+      ...on.map(p  => `<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · LIME</div></div>`),
+      ...off.map(p => `<div class="wi"><span class="wi-name" style="opacity:0.45">${p}</span><div class="wi-status off">◯ Hors ligne</div></div>`)
+    ].join('');
   } catch(e) {
-    // Fallback: just show location
-    const allOnline = await Promise.all(SERVERS.map(s => fetchDynmap(s)));
-    const currentServer = SERVERS.find((s, i) => allOnline[i].includes(joueur));
-    result.innerHTML = `
-      <div class="panel">
-        <div class="panel-body">
-          <div class="result-block ${currentServer?'success':''}">
-            <div class="result-title">Localisation — ${joueur}</div>
-            ${currentServer
-              ? `<span style="color:var(--green)">🟢 En ligne sur ${SERVER_EMOJI[currentServer]} <span style="color:var(--gold)">${currentServer.toUpperCase()}</span></span>`
-              : `<span style="color:var(--text-dim)">⚫ Hors ligne (aucun serveur)</span>`
-            }
-          </div>
-        </div>
-      </div>`;
+    el.innerHTML = `<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
   }
 }
 
-// ===================== AUTO SCAN =====================
-async function startScan() {
-  document.getElementById('scan-dot').className = 'status-dot';
-  await refreshDashboard();
-  scanInterval = setInterval(async () => {
-    await refreshDashboard();
-  }, 30000); // refresh every 30s
+// ---- STATS ----
+async function loadStats() {
+  const p   = $('st-input').value.trim();
+  if (!p) return;
+  const res = $('st-result');
+  res.innerHTML = `<div class="panel"><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
+
+  // Run in parallel: checkall + pronostic + plages
+  const [locR, pronoR, plagesR] = await Promise.allSettled([
+    api('/api/checkall/' + encodeURIComponent(p)),
+    api('/api/pronostic/' + encodeURIComponent(p)),
+    api('/api/plages/' + encodeURIComponent(p))
+  ]);
+
+  const loc    = locR.status    === 'fulfilled' ? locR.value    : null;
+  const prono  = pronoR.status  === 'fulfilled' ? pronoR.value  : null;
+  const plages = plagesR.status === 'fulfilled' ? plagesR.value : null;
+
+  const servers = loc ? loc.servers : [];
+
+  let html = `<div class="g2 mb">`;
+
+  // Localisation
+  html += `<div class="panel">
+    <div class="ph"><span class="pt">Localisation</span>${servers.length?`<span class="badge" style="color:var(--green);border-color:var(--green)">🟢 EN LIGNE</span>`:'<span class="badge">⚫ Hors ligne</span>'}</div>
+    <div class="pb">`;
+  if (servers.length) {
+    html += servers.map(s => `<div style="margin:0.3rem 0;font-family:var(--font-mono);font-size:0.75rem">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('');
+  } else {
+    html += `<div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim)">Aucun serveur actif</div>`;
+  }
+  html += `</div></div>`;
+
+  // Pronostic
+  html += `<div class="panel"><div class="ph"><span class="pt">Pronostic connexion</span></div><div class="pb">`;
+  if (prono && prono.pronostic) {
+    html += `<div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:0.5rem">Basé sur ${prono.total} connexions</div>`;
+    html += prono.pronostic.map(r => `
+      <div class="prow">
+        <span class="pday">${r.day}</span>
+        <div class="pbar-w"><div class="pbar-f" style="width:${r.pct}%"></div></div>
+        <span class="ppct">${r.pct}%</span>
+        <span class="ptime">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span>
+      </div>`).join('');
+  } else {
+    html += `<div class="empty">Pas assez de données<br/><span style="font-size:0.6rem">(min. 3 connexions enregistrées)</span></div>`;
+  }
+  html += `</div></div></div>`;
+
+  // Plages horaires
+  if (plages && plages.heatmap) {
+    html += `<div class="panel mb"><div class="ph"><span class="pt">Plages horaires</span></div><div class="pb">`;
+    const heatmap = plages.heatmap;
+    const days    = plages.days;
+    const maxVal  = Math.max(...heatmap.flat(), 1);
+    html += `<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--font-mono);font-size:0.6rem">
+      <tr><td style="color:var(--text-dim);padding-right:0.5rem">Jour</td>${Array.from({length:24},(_,h)=>`<td style="color:var(--text-dim);text-align:center;padding:0 2px">${h}</td>`).join('')}</tr>`;
+    days.forEach((day, di) => {
+      html += `<tr><td style="color:var(--gold);padding-right:0.5rem;white-space:nowrap">${day}</td>`;
+      heatmap[di].forEach(v => {
+        const intensity = v ? Math.round(v/maxVal*100) : 0;
+        const bg = v ? `rgba(201,168,76,${0.08 + intensity/100*0.7})` : 'var(--border)';
+        html += `<td style="width:16px;height:16px;background:${bg};border-radius:2px;padding:0"></td>`;
+      });
+      html += '</tr>';
+    });
+    html += `</table></div></div></div>`;
+  }
+
+  res.innerHTML = html;
 }
 
-// ===================== INIT =====================
-window.addEventListener('DOMContentLoaded', async () => {
-  populateServerSelects();
-  renderCheckallHistory();
-  await startScan();
-  document.getElementById('api-dot').className = 'status-dot';
-});
+// ---- INIT ----
+async function init() {
+  renderCAHistory();
+  const ok = await checkApi();
+  $('scan-dot').className = ok ? 'dot' : 'dot off';
+  if (ok) {
+    await loadWatchlist();
+    await loadDashboard();
+    // Auto-refresh dashboard every 30s
+    scanTimer = setInterval(async () => {
+      await loadWatchlist();
+      await loadDashboard();
+    }, 30000);
+  }
+}
+
+init();
 </script>
 </body>
 </html>
