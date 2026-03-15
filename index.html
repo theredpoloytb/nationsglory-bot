@@ -281,6 +281,7 @@
         </div>
         <button class="btn" onclick="doCheck()">→ ESPIONNER</button>
       </div>
+      <div id="ck-suggest" style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.5rem"></div>
       <div id="ck-result"></div>
     </div>
   </div>
@@ -623,19 +624,44 @@ function renderCAHistory() {
 async function loadCountrySuggest() {
   const srv=$('ck-srv').value;
   if(!srv) return;
+  const sugg=$('ck-suggest');
+  sugg.innerHTML=`<span style="font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim)">Chargement des pays...</span>`;
   try {
     if(!ctryCache[srv]) {
       const d=await api('/api/countries/'+srv);
-      // Tri alphabétique
       ctryCache[srv]=(d.countries||[]).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
     }
-  } catch { ctryCache[srv]=[]; }
+    renderCountrySuggest(srv);
+  } catch { ctryCache[srv]=[]; sugg.innerHTML=''; }
+}
+
+function renderCountrySuggest(srv) {
+  const sugg=$('ck-suggest');
+  const pool=ctryCache[srv]||[];
+  if(!pool.length){sugg.innerHTML='';return;}
+  sugg.innerHTML=pool.map(c=>
+    `<span class="ptag" style="cursor:pointer" onclick="selectCountry('${c.replace(/'/g,"\'")}')"><span style="color:var(--text-dim);font-size:.6rem"></span>${c}</span>`
+  ).join('');
+}
+
+function selectCountry(c) {
+  $('ck-country').value=c;
+  $('ck-list').style.display='none';
+  doCheck();
 }
 
 function acFilterCountry() {
   const srv=$('ck-srv').value;
   if(!srv) return;
+  const val=$('ck-country').value.trim().toLowerCase();
   const pool=ctryCache[srv]||[];
+  // Filtre la liste en bas aussi
+  if($('ck-suggest').innerHTML) {
+    const filtered=val?pool.filter(c=>c.toLowerCase().includes(val)):pool;
+    $('ck-suggest').innerHTML=filtered.map(c=>
+      `<span class="ptag" style="cursor:pointer" onclick="selectCountry('${c.replace(/'/g,"\'")}')"><span style="color:var(--text-dim);font-size:.6rem"></span>${c}</span>`
+    ).join('');
+  }
   acFilter('ck-country','ck-list',pool);
 }
 
