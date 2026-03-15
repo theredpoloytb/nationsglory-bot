@@ -552,11 +552,26 @@ async def self_ping():
 async def main():
     print("🚀 Démarrage du bot...", flush=True)
     init_mongo()
-    asyncio.create_task(start_webserver())
-    if RENDER_URL:
-        asyncio.create_task(self_ping())
-    asyncio.create_task(scanner_loop())
-    await client.start(DISCORD_TOKEN)
+
+    # Délai initial pour éviter le rate limit Discord au redémarrage
+    await asyncio.sleep(5)
+
+    async with client:
+        asyncio.create_task(start_webserver())
+        if RENDER_URL:
+            asyncio.create_task(self_ping())
+        asyncio.create_task(scanner_loop())
+        try:
+            await client.start(DISCORD_TOKEN)
+        except discord.errors.HTTPException as e:
+            print(f"❌ Erreur connexion Discord (rate limit?) : {e}", flush=True)
+            # Attendre 60s avant que Render redémarre pour ne pas spammer Discord
+            await asyncio.sleep(60)
+            sys.exit(1)
+        except Exception as e:
+            print(f"❌ Erreur inattendue : {e}", flush=True)
+            await asyncio.sleep(30)
+            sys.exit(1)
 
 @client.event
 async def on_ready():
