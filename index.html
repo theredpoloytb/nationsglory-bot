@@ -427,7 +427,7 @@ function nav(id, btn) {
   $('s-'+id).classList.add('active');
   btn.classList.add('active');
   if (id==='watchlist') { wlRender(); wlRefreshStatus(); }
-  if (id==='online')    loadOnline();
+  if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
 }
 
 // ---- CHECK API ----
@@ -516,6 +516,7 @@ function renderAlerts() {
 function goOnline(server) {
   document.querySelectorAll('.tab')[1].click();
   $('ol-srv').value = server;
+  $('ol-body').innerHTML = ld();
   loadOnline();
 }
 // Filtre depuis la vue "Tous les serveurs" sans changer d'onglet
