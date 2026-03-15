@@ -16,9 +16,13 @@ NG_API_KEY    = os.getenv("NG_API_KEY")
 RENDER_URL    = os.getenv("RENDER_EXTERNAL_URL", "")
 MONGO_URL     = os.getenv("MONGO_URL")
 
-RAPPORT_CHANNEL_ID = 1459182029924073558
-ALERTE_CHANNEL_ID  = 1465309715230888090
-STORAGE_CHANNEL_ID = 1478831933017428070
+RAPPORT_CHANNEL_ID  = 1459182029924073558
+ALERTE_CHANNEL_ID   = 1465309715230888090
+STORAGE_CHANNEL_ID  = 1478831933017428070
+
+# Watchlist Mocha
+MOCHA_RAPPORT_ID    = 1482879184207347942
+MOCHA_ALERTE_ID     = 1482879242416029726
 
 WATCH_LIST_DEFAULT = [
     "Canisi", "Darkholess", "UFO_Thespoot", "Franky753",
@@ -26,8 +30,16 @@ WATCH_LIST_DEFAULT = [
     "FLOTYR2", "Raptor51"
 ]
 
+WATCH_LIST_MOCHA_DEFAULT = [
+    "Canisi", "Darkholess", "UFO_Thespoot", "Franky753",
+    "Blakonne", "Farsgame", "ClashKiller78", "Olmat38",
+    "FLOTYR2", "Raptor51"
+]
+
 WATCH_LIST       = list(WATCH_LIST_DEFAULT)
-watchlist_msg_id = None
+WATCH_LIST_MOCHA = list(WATCH_LIST_MOCHA_DEFAULT)
+watchlist_msg_id      = None
+watchlist_mocha_msg_id = None
 
 intents = discord.Intents.default()
 client  = discord.Client(intents=intents)
@@ -192,7 +204,7 @@ async def load_watchlist():
                 data             = json.loads(msg.content[len("WATCHLIST:"):])
                 WATCH_LIST       = data["players"]
                 watchlist_msg_id = msg.id
-                print(f"✅ Watchlist chargée : {WATCH_LIST}", flush=True)
+                print(f"✅ Watchlist LIME chargée : {WATCH_LIST}", flush=True)
                 return
             except:
                 pass
@@ -203,16 +215,49 @@ async def save_watchlist():
     channel = client.get_channel(STORAGE_CHANNEL_ID)
     if not channel:
         return
-    content = "WATCHLIST:" + json.dumps({"players": WATCH_LIST})
+    content_str = "WATCHLIST:" + json.dumps({"players": WATCH_LIST})
     if watchlist_msg_id:
         try:
             msg = await channel.fetch_message(watchlist_msg_id)
-            await msg.edit(content=content)
+            await msg.edit(content=content_str)
             return
         except discord.NotFound:
             pass
-    msg = await channel.send(content)
+    msg = await channel.send(content_str)
     watchlist_msg_id = msg.id
+
+async def load_watchlist_mocha():
+    global WATCH_LIST_MOCHA, watchlist_mocha_msg_id
+    channel = client.get_channel(MOCHA_RAPPORT_ID)
+    if not channel:
+        return
+    async for msg in channel.history(limit=50):
+        if msg.author == client.user and msg.content.startswith("WATCHLIST_MOCHA:"):
+            try:
+                data                  = json.loads(msg.content[len("WATCHLIST_MOCHA:"):])
+                WATCH_LIST_MOCHA      = data["players"]
+                watchlist_mocha_msg_id = msg.id
+                print(f"✅ Watchlist MOCHA chargée : {WATCH_LIST_MOCHA}", flush=True)
+                return
+            except:
+                pass
+    await save_watchlist_mocha()
+
+async def save_watchlist_mocha():
+    global watchlist_mocha_msg_id
+    channel = client.get_channel(MOCHA_RAPPORT_ID)
+    if not channel:
+        return
+    content_str = "WATCHLIST_MOCHA:" + json.dumps({"players": WATCH_LIST_MOCHA})
+    if watchlist_mocha_msg_id:
+        try:
+            msg = await channel.fetch_message(watchlist_mocha_msg_id)
+            await msg.edit(content=content_str)
+            return
+        except discord.NotFound:
+            pass
+    msg = await channel.send(content_str)
+    watchlist_mocha_msg_id = msg.id
 
 # ==================== FONCTIONS API ====================
 
@@ -524,6 +569,32 @@ async def watchlist_command(interaction: discord.Interaction):
     embed.set_footer(text=f"{len(WATCH_LIST)} joueurs surveillés")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
+@tree.command(name="addwatch_mocha", description="Ajouter un joueur à la surveillance MOCHA")
+async def addwatch_mocha_command(interaction: discord.Interaction, joueur: str):
+    if joueur in WATCH_LIST_MOCHA:
+        return await interaction.response.send_message(f"⚠️ **{joueur}** est déjà dans la watchlist MOCHA", ephemeral=True)
+    WATCH_LIST_MOCHA.append(joueur)
+    await save_watchlist_mocha()
+    await interaction.response.send_message(f"✅ **{joueur}** ajouté à la surveillance MOCHA", ephemeral=True)
+
+@tree.command(name="removewatch_mocha", description="Retirer un joueur de la surveillance MOCHA")
+async def removewatch_mocha_command(interaction: discord.Interaction, joueur: str):
+    if joueur not in WATCH_LIST_MOCHA:
+        return await interaction.response.send_message(f"❌ **{joueur}** n'est pas dans la watchlist MOCHA", ephemeral=True)
+    WATCH_LIST_MOCHA.remove(joueur)
+    await save_watchlist_mocha()
+    await interaction.response.send_message(f"🗑️ **{joueur}** retiré de la surveillance MOCHA", ephemeral=True)
+
+@tree.command(name="watchlist_mocha", description="Afficher la watchlist MOCHA")
+async def watchlist_mocha_command(interaction: discord.Interaction):
+    if not WATCH_LIST_MOCHA:
+        return await interaction.response.send_message("📋 La watchlist MOCHA est vide", ephemeral=True)
+    embed = discord.Embed(title="👁️ Watchlist — MOCHA", color=discord.Color.orange())
+    embed.description = "\n".join([f"• {p}" for p in WATCH_LIST_MOCHA])
+    embed.set_footer(text=f"{len(WATCH_LIST_MOCHA)} joueurs surveillés")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
 # ==================== SCANNER ====================
 
 last_states        = {s: {} for s in SERVERS}
@@ -533,9 +604,11 @@ async def scan_server(server: str, alerte_channel):
     players    = await get_online_players(server)
     player_set = set(players)
     prev       = last_states[server]
+    mocha_alerte_ch = client.get_channel(MOCHA_ALERTE_ID)
     for player in player_set:
         if not prev.get(player, False):
             record_connection(player, server)
+            # Alerte LIME watchlist
             if player in WATCH_LIST and alerte_channel:
                 embed = discord.Embed(
                     title="🟢 CONNEXION DÉTECTÉE",
@@ -544,6 +617,15 @@ async def scan_server(server: str, alerte_channel):
                     timestamp=discord.utils.utcnow()
                 )
                 await alerte_channel.send(embed=embed)
+            # Alerte MOCHA watchlist
+            if player in WATCH_LIST_MOCHA and server == "mocha" and mocha_alerte_ch:
+                embed = discord.Embed(
+                    title="🟢 CONNEXION DÉTECTÉE — MOCHA",
+                    description=f"**{player}** vient de se connecter sur **MOCHA**",
+                    color=discord.Color.orange(),
+                    timestamp=discord.utils.utcnow()
+                )
+                await mocha_alerte_ch.send(embed=embed)
     for player, was_online in prev.items():
         if was_online and player not in player_set:
             if player in WATCH_LIST and alerte_channel:
@@ -554,6 +636,14 @@ async def scan_server(server: str, alerte_channel):
                     timestamp=discord.utils.utcnow()
                 )
                 await alerte_channel.send(embed=embed)
+            if player in WATCH_LIST_MOCHA and server == "mocha" and mocha_alerte_ch:
+                embed = discord.Embed(
+                    title="🔴 DÉCONNEXION — MOCHA",
+                    description=f"**{player}** vient de se déconnecter de **MOCHA**",
+                    color=discord.Color.red(),
+                    timestamp=discord.utils.utcnow()
+                )
+                await mocha_alerte_ch.send(embed=embed)
     last_states[server] = {p: True for p in player_set}
     return players
 
@@ -561,6 +651,7 @@ async def scanner_loop():
     global rapport_message_id
     await client.wait_until_ready()
     await load_watchlist()
+    await load_watchlist_mocha()
     rapport_message_id = await asyncio.get_event_loop().run_in_executor(None, load_rapport_id)
     print(f"📋 Rapport message ID: {rapport_message_id}", flush=True)
     rapport_channel = client.get_channel(RAPPORT_CHANNEL_ID)
@@ -612,10 +703,80 @@ async def scanner_loop():
                         msg                = await rapport_channel.send(embed=rapport_embed)
                         rapport_message_id = msg.id
                         await asyncio.get_event_loop().run_in_executor(None, save_rapport_id, rapport_message_id)
+
+                # ── RAPPORT MOCHA ──
+                mocha_players = server_players.get("mocha", [])
+                if isinstance(mocha_players, Exception):
+                    mocha_players = []
+                mocha_online  = [p for p in WATCH_LIST_MOCHA if p in mocha_players]
+                mocha_offline = [p for p in WATCH_LIST_MOCHA if p not in mocha_players]
+                mocha_text = ""
+                if mocha_online:
+                    mocha_text += f"🟢 **En ligne ({len(mocha_online)}) :**
+"
+                    for p in mocha_online:
+                        mocha_text += f"• {p}
+"
+                if mocha_offline:
+                    if mocha_text:
+                        mocha_text += "
+"
+                    mocha_text += f"⚪ **Hors ligne ({len(mocha_offline)}) :**
+"
+                    for p in mocha_offline:
+                        mocha_text += f"• {p}
+"
+                mocha_embed = discord.Embed(
+                    title="🟤 RAPPORT TACTIQUE — MOCHA",
+                    color=discord.Color.orange() if mocha_online else discord.Color.greyple(),
+                    timestamp=now
+                )
+                mocha_embed.add_field(name="👥 Connectés Total", value=f"**{len(mocha_players)}**", inline=True)
+                mocha_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",           inline=True)
+                mocha_embed.add_field(name="👁️ Surveillance",    value=mocha_text or "Aucun joueur surveillé en ligne", inline=False)
+                mocha_embed.set_footer(text=f"Scanner interserveur • MongoDB {'✅' if mongo_ok else '❌'}")
+                mocha_rapport_ch = client.get_channel(MOCHA_RAPPORT_ID)
+                if mocha_rapport_ch:
+                    found = False
+                    async for old_msg in mocha_rapport_ch.history(limit=15):
+                        if old_msg.author == client.user and old_msg.embeds and "RAPPORT TACTIQUE — MOCHA" in old_msg.embeds[0].title:
+                            await old_msg.edit(embed=mocha_embed)
+                            found = True
+                            break
+                    if not found:
+                        await mocha_rapport_ch.send(embed=mocha_embed)
             scan_tick += 1
         except Exception as e:
             print(f"❌ Erreur scanner: {e}", flush=True)
         await asyncio.sleep(1)
+
+
+async def api_watchlist_mocha_get(request):
+    return cors({"players": WATCH_LIST_MOCHA})
+
+async def api_watchlist_mocha_add(request):
+    try:
+        body   = await request.json()
+        player = body.get("player", "").strip()
+        if not player:
+            return cors({"error": "Nom vide"}, 400)
+        if player not in WATCH_LIST_MOCHA:
+            WATCH_LIST_MOCHA.append(player)
+            await save_watchlist_mocha()
+        return cors({"players": WATCH_LIST_MOCHA})
+    except Exception as e:
+        return cors({"error": str(e)}, 400)
+
+async def api_watchlist_mocha_remove(request):
+    try:
+        body   = await request.json()
+        player = body.get("player", "").strip()
+        if player in WATCH_LIST_MOCHA:
+            WATCH_LIST_MOCHA.remove(player)
+            await save_watchlist_mocha()
+        return cors({"players": WATCH_LIST_MOCHA})
+    except Exception as e:
+        return cors({"error": str(e)}, 400)
 
 # ==================== SERVEUR WEB ====================
 
@@ -631,6 +792,9 @@ async def start_webserver():
     app.router.add_get('/api/watchlist',                api_watchlist_get)
     app.router.add_post('/api/watchlist/add',           api_watchlist_add)
     app.router.add_post('/api/watchlist/remove',        api_watchlist_remove)
+    app.router.add_get('/api/watchlist_mocha',              api_watchlist_mocha_get)
+    app.router.add_post('/api/watchlist_mocha/add',         api_watchlist_mocha_add)
+    app.router.add_post('/api/watchlist_mocha/remove',      api_watchlist_mocha_remove)
     app.router.add_get('/api/pronostic/{player}',       api_pronostic)
     app.router.add_get('/api/plages/{player}',          api_plages)
     app.router.add_route('OPTIONS', '/{path_info:.*}',  handle_options)
