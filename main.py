@@ -711,21 +711,17 @@ async def scanner_loop():
                 mocha_online  = [p for p in WATCH_LIST_MOCHA if p in mocha_players]
                 mocha_offline = [p for p in WATCH_LIST_MOCHA if p not in mocha_players]
                 mocha_text = ""
+                NL = "\n"
                 if mocha_online:
-                    mocha_text += f"🟢 **En ligne ({len(mocha_online)}) :**
-"
+                    mocha_text += f"🟢 **En ligne ({len(mocha_online)}) :**{NL}"
                     for p in mocha_online:
-                        mocha_text += f"• {p}
-"
+                        mocha_text += f"• {p}{NL}"
                 if mocha_offline:
                     if mocha_text:
-                        mocha_text += "
-"
-                    mocha_text += f"⚪ **Hors ligne ({len(mocha_offline)}) :**
-"
+                        mocha_text += NL
+                    mocha_text += f"⚪ **Hors ligne ({len(mocha_offline)}) :**{NL}"
                     for p in mocha_offline:
-                        mocha_text += f"• {p}
-"
+                        mocha_text += f"• {p}{NL}"
                 mocha_embed = discord.Embed(
                     title="🟤 RAPPORT TACTIQUE — MOCHA",
                     color=discord.Color.orange() if mocha_online else discord.Color.greyple(),
