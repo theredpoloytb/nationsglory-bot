@@ -47,9 +47,27 @@ SERVERS = {
     "lime":   {"url": "https://lime.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🟢"}
 }
 
-LIME_URL        = "https://lime.nationsglory.fr/standalone/dynmap_world.json"
 CACHE_TTL       = 900
 countries_cache = {}
+
+# ==================== CORS ====================
+
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin":  "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+}
+
+def cors(data, status=200):
+    return web.Response(
+        text=json.dumps(data, ensure_ascii=False),
+        status=status,
+        content_type="application/json",
+        headers=CORS_HEADERS
+    )
+
+async def handle_options(request):
+    return web.Response(status=204, headers=CORS_HEADERS)
 
 # ==================== MONGODB ====================
 
@@ -247,6 +265,105 @@ async def get_online_players(server: str):
             pass
     return []
 
+# ==================== API ROUTES ====================
+
+async def api_health(request):
+    return cors({"status": "ok", "mongo": mongo_ok})
+
+async def api_online(request):
+    server = request.match_info["server"].lower()
+    if server not in SERVERS:
+        return cors({"error": "Serveur invalide"}, 400)
+    players = await get_online_players(server)
+    return cors({"server": server, "players": players, "count": len(players)})
+
+async def api_online_all(request):
+    tasks   = {s: get_online_players(s) for s in SERVERS}
+    results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+    data    = {s: (r if isinstance(r, list) else []) for s, r in zip(tasks.keys(), results)}
+    return cors(data)
+
+async def api_checkall(request):
+    player  = request.match_info["player"]
+    tasks   = {s: get_online_players(s) for s in SERVERS}
+    results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+    found   = [s for s, r in zip(tasks.keys(), results) if isinstance(r, list) and player in r]
+    return cors({"player": player, "servers": found})
+
+async def api_countries(request):
+    server = request.match_info["server"].lower()
+    if server not in SERVERS:
+        return cors({"error": "Serveur invalide"}, 400)
+    countries = await get_countries_list(server)
+    return cors({"server": server, "countries": countries})
+
+async def api_check(request):
+    server  = request.match_info["server"].lower()
+    country = request.match_info["country"]
+    if server not in SERVERS:
+        return cors({"error": "Serveur invalide"}, 400)
+    members, name = await get_country_members(server, country)
+    if not members:
+        return cors({"error": "Pays introuvable"}, 404)
+    tasks   = {s: get_online_players(s) for s in SERVERS}
+    results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+    found   = {}
+    total   = 0
+    for s, r in zip(tasks.keys(), results):
+        if not isinstance(r, list):
+            continue
+        f = [m for m in members if m in r]
+        if f:
+            found[s] = f
+            total   += len(f)
+    return cors({"country": name, "members_total": len(members), "online_total": total, "servers": found})
+
+async def api_watchlist_get(request):
+    return cors({"players": WATCH_LIST})
+
+async def api_watchlist_add(request):
+    try:
+        body   = await request.json()
+        player = body.get("player", "").strip()
+        if not player:
+            return cors({"error": "Nom vide"}, 400)
+        if player not in WATCH_LIST:
+            WATCH_LIST.append(player)
+            await save_watchlist()
+        return cors({"players": WATCH_LIST})
+    except Exception as e:
+        return cors({"error": str(e)}, 400)
+
+async def api_watchlist_remove(request):
+    try:
+        body   = await request.json()
+        player = body.get("player", "").strip()
+        if player in WATCH_LIST:
+            WATCH_LIST.remove(player)
+            await save_watchlist()
+        return cors({"players": WATCH_LIST})
+    except Exception as e:
+        return cors({"error": str(e)}, 400)
+
+async def api_pronostic(request):
+    player = request.match_info["player"]
+    result = get_pronostic(player)
+    if not result:
+        return cors({"error": "Pas assez de données (min 3 connexions)"}, 404)
+    top, DAYS, total = result
+    return cors({
+        "player": player, "total": total,
+        "pronostic": [{"day": DAYS[d], "avg_h": h, "avg_m": m, "pct": pct} for d, h, m, pct in top]
+    })
+
+async def api_plages(request):
+    player = request.match_info["player"]
+    result = get_plages(player)
+    if not result:
+        return cors({"error": "Aucune donnée"}, 404)
+    heatmap, DAYS = result
+    return cors({"player": player, "days": DAYS, "heatmap": heatmap})
+
 # ==================== AUTOCOMPLETIONS ====================
 
 async def server_autocomplete(interaction: discord.Interaction, current: str):
@@ -416,7 +533,6 @@ async def scan_server(server: str, alerte_channel):
     players    = await get_online_players(server)
     player_set = set(players)
     prev       = last_states[server]
-
     for player in player_set:
         if not prev.get(player, False):
             record_connection(player, server)
@@ -428,7 +544,6 @@ async def scan_server(server: str, alerte_channel):
                     timestamp=discord.utils.utcnow()
                 )
                 await alerte_channel.send(embed=embed)
-
     for player, was_online in prev.items():
         if was_online and player not in player_set:
             if player in WATCH_LIST and alerte_channel:
@@ -439,42 +554,31 @@ async def scan_server(server: str, alerte_channel):
                     timestamp=discord.utils.utcnow()
                 )
                 await alerte_channel.send(embed=embed)
-
     last_states[server] = {p: True for p in player_set}
     return players
 
 async def scanner_loop():
     global rapport_message_id
-
     await client.wait_until_ready()
     await load_watchlist()
-
     rapport_message_id = await asyncio.get_event_loop().run_in_executor(None, load_rapport_id)
     print(f"📋 Rapport message ID: {rapport_message_id}", flush=True)
-
     rapport_channel = client.get_channel(RAPPORT_CHANNEL_ID)
     alerte_channel  = client.get_channel(ALERTE_CHANNEL_ID)
-
     scan_tick = 0
-
     while True:
         try:
             tasks          = {s: scan_server(s, alerte_channel) for s in SERVERS}
             results        = await asyncio.gather(*tasks.values(), return_exceptions=True)
             server_players = dict(zip(tasks.keys(), results))
-
-            # Rapport toutes les 5s
             if scan_tick % 5 == 0:
-                lime_players = server_players.get("lime", [])
+                lime_players    = server_players.get("lime", [])
                 if isinstance(lime_players, Exception):
                     lime_players = []
-
                 watched_online  = [p for p in WATCH_LIST if p in lime_players]
                 watched_offline = [p for p in WATCH_LIST if p not in lime_players]
-
                 now      = discord.utils.utcnow()
                 time_str = (now + timedelta(hours=1)).strftime("%H:%M:%S")
-
                 status_text = ""
                 if watched_online:
                     status_text += f"🟢 **En ligne ({len(watched_online)}) :**\n"
@@ -486,7 +590,6 @@ async def scanner_loop():
                     status_text += f"⚪ **Hors ligne ({len(watched_offline)}) :**\n"
                     for p in watched_offline:
                         status_text += f"• {p}\n"
-
                 rapport_embed = discord.Embed(
                     title="🟢 RAPPORT TACTIQUE — LIME",
                     color=discord.Color.green() if watched_online else discord.Color.greyple(),
@@ -496,7 +599,6 @@ async def scanner_loop():
                 rapport_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",          inline=True)
                 rapport_embed.add_field(name="👁️ Surveillance", value=status_text or "Aucun joueur surveillé en ligne", inline=False)
                 rapport_embed.set_footer(text=f"Scanner interserveur • MongoDB {'✅' if mongo_ok else '❌'}")
-
                 if rapport_channel:
                     if rapport_message_id:
                         try:
@@ -510,29 +612,34 @@ async def scanner_loop():
                         msg                = await rapport_channel.send(embed=rapport_embed)
                         rapport_message_id = msg.id
                         await asyncio.get_event_loop().run_in_executor(None, save_rapport_id, rapport_message_id)
-
             scan_tick += 1
-
         except Exception as e:
             print(f"❌ Erreur scanner: {e}", flush=True)
-
         await asyncio.sleep(1)
 
 # ==================== SERVEUR WEB ====================
 
-async def handle_health(request):
-    return web.Response(text=f"Bot actif ✅ | MongoDB {'✅' if mongo_ok else '❌'}")
-
 async def start_webserver():
     app = web.Application()
-    app.router.add_get('/', handle_health)
-    app.router.add_get('/health', handle_health)
+    app.router.add_get('/',       api_health)
+    app.router.add_get('/health', api_health)
+    app.router.add_get('/api/online/{server}',          api_online)
+    app.router.add_get('/api/online_all',               api_online_all)
+    app.router.add_get('/api/checkall/{player}',        api_checkall)
+    app.router.add_get('/api/countries/{server}',       api_countries)
+    app.router.add_get('/api/check/{server}/{country}', api_check)
+    app.router.add_get('/api/watchlist',                api_watchlist_get)
+    app.router.add_post('/api/watchlist/add',           api_watchlist_add)
+    app.router.add_post('/api/watchlist/remove',        api_watchlist_remove)
+    app.router.add_get('/api/pronostic/{player}',       api_pronostic)
+    app.router.add_get('/api/plages/{player}',          api_plages)
+    app.router.add_route('OPTIONS', '/{path_info:.*}',  handle_options)
     runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.getenv("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"🌐 Serveur HTTP démarré sur {port}", flush=True)
+    print(f"🌐 Serveur HTTP + API démarré sur port {port}", flush=True)
 
 async def self_ping():
     await asyncio.sleep(60)
@@ -552,10 +659,7 @@ async def self_ping():
 async def main():
     print("🚀 Démarrage du bot...", flush=True)
     init_mongo()
-
-    # Délai initial pour éviter le rate limit Discord au redémarrage
     await asyncio.sleep(5)
-
     async with client:
         asyncio.create_task(start_webserver())
         if RENDER_URL:
@@ -565,7 +669,6 @@ async def main():
             await client.start(DISCORD_TOKEN)
         except discord.errors.HTTPException as e:
             print(f"❌ Erreur connexion Discord (rate limit?) : {e}", flush=True)
-            # Attendre 60s avant que Render redémarre pour ne pas spammer Discord
             await asyncio.sleep(60)
             sys.exit(1)
         except Exception as e:
