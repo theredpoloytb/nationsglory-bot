@@ -518,6 +518,11 @@ function goOnline(server) {
   $('ol-srv').value = server;
   loadOnline();
 }
+// Filtre depuis la vue "Tous les serveurs" sans changer d'onglet
+function filterOnline(server) {
+  $('ol-srv').value = server;
+  loadOnline();
+}
 
 // ---- ONLINE ----
 async function loadOnline() {
@@ -531,12 +536,14 @@ async function loadOnline() {
       body.innerHTML=`<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.8rem">TOTAL <span style="color:var(--gold-bright)">${total}</span> joueurs</div>
         <div class="sgrid">${SERVERS.map(s=>{
           const pl=all[s]||[];
-          return `<div class="scard">
+          return `<div class="scard" onclick="filterOnline('${s}')" style="cursor:pointer">
             <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
             <div class="scard-cnt">${pl.length}</div>
-            <div class="ptags" style="max-height:100px;overflow-y:auto">${pl.slice(0,30).map(p=>
-              `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="quickCA('${p}')">${p}</span>`
-            ).join('')}${pl.length>30?`<span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">+${pl.length-30}</span>`:''}</div>
+            <div class="scard-lbl">CLIQUER POUR FILTRER</div>
+            <div class="ptags" style="max-height:80px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,20).map(p=>
+              `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="event.stopPropagation();quickCA('${p}')">${p}</span>`
+            ).join('')}${pl.length>20?`<span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">+${pl.length-20}</span>`:''}</div>
+            <div class="sbar"><div class="sbar-fill" style="width:${Math.round(pl.length/Math.max(...SERVERS.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div>
           </div>`;
         }).join('')}</div>`;
     } else {
