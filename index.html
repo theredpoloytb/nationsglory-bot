@@ -248,6 +248,7 @@
         </div>
         <button class="btn" onclick="doCheckall()">→ LOCALISER</button>
       </div>
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-top:.35rem;letter-spacing:.05em">⚠ Pseudo exact requis — respectez les majuscules (ex: <span style='color:var(--gold)'>Kyzzer_</span> ≠ <span style='color:var(--red)'>kyzzer_</span>)</div>
       <div id="ca-result"></div>
     </div>
   </div>
@@ -293,7 +294,8 @@
       <div class="pb">
         <div class="row mb" style="margin-bottom:.8rem">
           <div class="ac-wrap">
-            <input id="wl-add-input" placeholder="Ajouter un joueur..." autocomplete="off"
+            <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-bottom:.3rem;letter-spacing:.05em">⚠ Pseudo exact — majuscules importantes</div>
+          <input id="wl-add-input" placeholder="Ajouter un joueur..." autocomplete="off"
               oninput="acFilter('wl-add-input','wl-add-list',onlinePlayers)"
               onkeydown="acKey(event,'wl-add-list',()=>wlAdd())"/>
             <div class="ac-list" id="wl-add-list"></div>
@@ -326,6 +328,7 @@
       </div>
     </div>
   </div>
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-bottom:.5rem;letter-spacing:.05em">⚠ Pseudo exact requis — respectez les majuscules (ex: <span style='color:var(--gold)'>Kyzzer_</span> ≠ <span style='color:var(--red)'>kyzzer_</span>)</div>
   <div id="st-result"></div>
 </section>
 
@@ -477,12 +480,14 @@ async function loadDashboard() {
 
     $('srv-overview').innerHTML = SERVERS.map(s => {
       const cnt = (all[s]||[]).length;
-      return `<div class="scard" onclick="goOnline('${s}')" style="${s==='red'?'border-color:rgba(255,153,51,.25)':''}">
+      const redBorder = s==='red' ? 'border-color:rgba(255,153,51,.35);' : '';
+      const redLbl = s==='red'
+        ? '<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.08em">⚠ données instables</div>'
+        : '<div class="scard-lbl">EN LIGNE</div>';
+      return `<div class="scard" onclick="goOnline('${s}')" style="${redBorder}">
         <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
         <div class="scard-cnt">${cnt}</div>
-        ${s==='red'
-          ? '<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.08em">⚠ données instables</div>'
-          : '<div class="scard-lbl">EN LIGNE</div>'}
+        ${redLbl}
         <div class="sbar"><div class="sbar-fill" style="width:${Math.round(cnt/max*100)}%"></div></div>
       </div>`;
     }).join('');
