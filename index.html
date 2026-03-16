@@ -434,7 +434,7 @@ async function nav(id, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   $('s-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id==='watchlist') { await switchWl(currentWl); }
+  if (id==='watchlist') { await switchWl('lime'); }
   if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
 }
 
