@@ -177,12 +177,12 @@
 </header>
 
 <nav class="nav">
-  <button class="tab active" onclick="nav('dashboard',this)">◈ DASHBOARD</button>
-  <button class="tab" onclick="nav('online',this)">◉ EN LIGNE</button>
-  <button class="tab" onclick="nav('checkall',this)">⊕ LOCALISER</button>
-  <button class="tab" onclick="nav('check',this)">◎ ESPIONNER</button>
-  <button class="tab" onclick="nav('watchlist',this)">◈ WATCHLIST</button>
-  <button class="tab" onclick="nav('stats',this)">◐ STATS</button>
+  <button class="tab active" onclick="nav('dashboard',this)" title="Vue globale : joueurs en ligne sur tous les serveurs, alertes watchlist, statut de surveillance">◈ DASHBOARD</button>
+  <button class="tab" onclick="nav('online',this)" title="Voir tous les joueurs connectés — cliquez sur un serveur pour filtrer">◉ EN LIGNE</button>
+  <button class="tab" onclick="nav('checkall',this)" title="Chercher sur quel serveur est connecté un joueur en ce moment">⊕ LOCALISER</button>
+  <button class="tab" onclick="nav('check',this)" title="Voir quels membres d'un pays sont connectés et sur quel serveur">◎ ESPIONNER</button>
+  <button class="tab" onclick="nav('watchlist',this)" title="Surveiller des joueurs ciblés — statut live LIME et MOCHA, alertes Discord automatiques">◈ WATCHLIST</button>
+  <button class="tab" onclick="nav('stats',this)" title="Analyser un joueur : localisation actuelle, pronostic de connexion, heatmap horaire">◐ STATS</button>
 </nav>
 
 <main class="main">
@@ -237,7 +237,7 @@
 <!-- CHECKALL -->
 <section class="section" id="s-checkall">
   <div class="panel mb">
-    <div class="ph"><span class="pt">⊕ Localiser un joueur</span></div>
+    <div class="ph"><span class="pt">⊕ Localiser un joueur</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">Tapez un pseudo ou cliquez dans la liste</span></div>
     <div class="pb">
       <div class="row">
         <div class="ac-wrap">
@@ -262,7 +262,7 @@
 <!-- ESPIONNER -->
 <section class="section" id="s-check">
   <div class="panel mb">
-    <div class="ph"><span class="pt">◎ Espionner un pays</span></div>
+    <div class="ph"><span class="pt">◎ Espionner un pays</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">Choisissez un serveur puis un pays</span></div>
     <div class="pb">
       <div class="row">
         <select id="ck-srv" style="max-width:150px" onchange="loadCountrySuggest()">
@@ -322,7 +322,7 @@
 <!-- STATS -->
 <section class="section" id="s-stats">
   <div class="panel mb">
-    <div class="ph"><span class="pt">◐ Analyse comportementale</span></div>
+    <div class="ph"><span class="pt">◐ Analyse comportementale</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">Localisation, pronostic & heatmap d'un joueur</span></div>
     <div class="pb">
       <div class="row">
         <div class="ac-wrap">
@@ -668,10 +668,11 @@ async function loadOnline() {
       body.innerHTML=`<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.8rem">TOTAL <span style="color:var(--gold-bright)">${total}</span> joueurs</div>
         <div class="sgrid">${SERVERS.map(s=>{
           const pl=all[s]||[];
-          return `<div class="scard" onclick="filterOnline('${s}')" style="cursor:pointer${s==='red'?' border-color:rgba(255,153,51,.2)':''}">
+          const isBug = s==='red'||s==='mocha';
+          return `<div class="scard" onclick="filterOnline('${s}')" style="cursor:pointer${isBug?' border-color:rgba(255,153,51,.35)':''}">
             <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
             <div class="scard-cnt">${pl.length}</div>
-            ${s==='red'?'<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.1em">⚠ DONNÉES INSTABLES</div>':`<div class="scard-lbl">CLIQUER POUR FILTRER</div>`}
+            ${isBug?'<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.1em">⚠ DONNÉES INSTABLES</div>':`<div class="scard-lbl">CLIQUER POUR FILTRER</div>`}
             <div class="ptags" style="max-height:80px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,20).map(p=>
               `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="event.stopPropagation();quickCA('${p}')">${p}</span>`
             ).join('')}${pl.length>20?`<span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">+${pl.length-20}</span>`:''}</div>
