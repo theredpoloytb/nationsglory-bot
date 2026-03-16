@@ -217,6 +217,7 @@ select option{background:var(--s1)}
     <div class="pill"><div class="dot" id="scan-dot"></div><span>SCAN</span></div>
     <span class="hbr">|</span>
     <span id="clock">--:--:--</span>
+    <button id="sound-btn" onclick="toggleSound()" style="background:transparent;border:1px solid var(--b1);border-radius:20px;padding:.2rem .6rem;font-family:var(--fm);font-size:.6rem;cursor:pointer;transition:all .15s;color:var(--g);letter-spacing:.05em">🔊 SON</button>
     <span style="font-family:var(--fm);font-size:.65rem;color:var(--txd);opacity:.3">מוסד</span>
   </div>
 </header>
@@ -401,6 +402,7 @@ const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha
 const BUGGY=s=>s==='red'||s==='mocha';
 
 let watchlist=[],watchlistMocha=[],currentWl='lime';
+let soundEnabled=localStorage.getItem('mg_sound')!=='off';
 let alerts=[],prevOnline={};
 let caHistory=JSON.parse(localStorage.getItem('mg_history')||'[]');
 let ctryCache={},onlinePlayers=[];
@@ -758,7 +760,19 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('mg_sound', soundEnabled ? 'on' : 'off');
+  const btn = $('sound-btn');
+  if (btn) {
+    btn.textContent = soundEnabled ? '🔊 SON' : '🔇 SON';
+    btn.style.color = soundEnabled ? 'var(--g)' : 'var(--txd)';
+    btn.style.borderColor = soundEnabled ? 'var(--b1)' : 'var(--b0)';
+  }
+}
+
 function playTone(freq, type='sine', duration=0.08, vol=0.08, delay=0) {
+  if (!soundEnabled) return;
   try {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
@@ -803,6 +817,7 @@ function soundAlert(isConnect) {
 
 // Synthèse vocale
 function speak(text) {
+  if (!soundEnabled) return;
   try {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
@@ -860,6 +875,13 @@ if (window.speechSynthesis) {
 }
 
 async function init(){
+  // Init bouton son
+  const btn = $('sound-btn');
+  if (btn && !soundEnabled) {
+    btn.textContent = '🔇 SON';
+    btn.style.color = 'var(--txd)';
+    btn.style.borderColor = 'var(--b0)';
+  }
   renderCAHistory();
   const ok=await checkApi();
   $('scan-dot').className=ok?'dot':'dot off';
