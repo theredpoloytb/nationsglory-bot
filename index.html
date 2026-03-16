@@ -2,225 +2,254 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>MOSSAD GLORY — Intelligence Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MOSSAD GLORY</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --gold:#c9a84c;--gold-bright:#f0c040;--gold-dim:#3a2e10;
-    --bg:#030507;--bg2:#070b0f;--panel:#080d13;
-    --border:#131d27;--border-gold:#2a2010;
-    --green:#00ff88;--red:#ff3355;--cyan:#00ccff;
-    --text:#b8c8d8;--text-dim:#3a4a5a;
-    --font-mono:'Share Tech Mono',monospace;
-    --font-display:'Bebas Neue',sans-serif;
-    --font-body:'Rajdhani',sans-serif;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden}
-  body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:9999}
+:root{
+  --g:#c9a84c;--gb:#f0c040;--gd:#2a1f08;--gd2:#1a1408;
+  --bg:#02040a;--s1:#060910;--s2:#090e18;--s3:#0c1220;
+  --b0:#0f1825;--b1:#182336;--b2:#1e2d42;
+  --grn:#00e57a;--red:#ff2d55;--blu:#00b8ff;--org:#ff9500;
+  --tx:#a8bcd0;--txd:#3a4e62;--txb:#d0e0f0;
+  --fm:'Share Tech Mono',monospace;--fd:'Bebas Neue',sans-serif;--fb:'DM Sans',sans-serif;
+  --r:4px;--r2:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);min-height:100vh;overflow-x:hidden;font-size:14px}
 
-  .header{position:sticky;top:0;z-index:200;background:rgba(3,5,7,0.97);border-bottom:1px solid var(--border-gold);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;backdrop-filter:blur(16px)}
-  .logo{display:flex;align-items:center;gap:.9rem}
-  .logo-text{display:flex;flex-direction:column;line-height:1}
-  .logo-main{font-family:var(--font-display);font-size:1.5rem;letter-spacing:.2em;color:var(--gold-bright);text-shadow:0 0 20px rgba(240,192,64,.35)}
-  .logo-sub{font-family:var(--font-mono);font-size:.55rem;color:var(--text-dim);letter-spacing:.3em}
-  .header-right{display:flex;align-items:center;gap:1.2rem;font-family:var(--font-mono);font-size:.68rem}
-  .status-pill{display:flex;align-items:center;gap:.35rem;color:var(--text-dim)}
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
-  .dot.off{background:var(--red);box-shadow:0 0 6px var(--red)}
-  #clock{color:var(--gold);letter-spacing:.1em}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+/* SCANLINES */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:9999}
 
-  .nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;overflow-x:auto}
-  .tab{padding:.7rem 1.2rem;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;transition:all .15s}
-  .tab:hover{color:var(--gold)}
-  .tab.active{color:var(--gold-bright);border-bottom-color:var(--gold-bright);text-shadow:0 0 10px rgba(240,192,64,.4)}
+/* AMBIENT GLOW */
+body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(201,168,76,.04) 0%,transparent 70%);pointer-events:none;z-index:0}
 
-  .main{padding:1.2rem 1.5rem;max-width:1600px;margin:0 auto}
-  .section{display:none}
-  .section.active{display:block;animation:fadeIn .25s ease}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* ── HEADER ── */
+.hdr{position:sticky;top:0;z-index:100;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(2,4,10,.95);border-bottom:1px solid var(--gd);backdrop-filter:blur(20px)}
+.hdr-logo{display:flex;align-items:center;gap:.75rem}
+.hdr-logo svg{flex-shrink:0;filter:drop-shadow(0 0 6px rgba(201,168,76,.3))}
+.hdr-brand{display:flex;flex-direction:column;line-height:1}
+.hdr-title{font-family:var(--fd);font-size:1.45rem;letter-spacing:.25em;color:var(--gb);text-shadow:0 0 30px rgba(240,192,64,.25)}
+.hdr-sub{font-family:var(--fm);font-size:.5rem;color:var(--txd);letter-spacing:.35em;margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:1rem;font-family:var(--fm);font-size:.65rem}
+.pill{display:flex;align-items:center;gap:.3rem;color:var(--txd);padding:.2rem .5rem;border:1px solid var(--b1);border-radius:20px;background:var(--s1)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--grn);box-shadow:0 0 5px var(--grn);animation:blink 2s infinite}
+.dot.off{background:var(--red);box-shadow:0 0 5px var(--red)}
+#clock{color:var(--g);letter-spacing:.1em;font-size:.7rem}
+.hbr{color:var(--txd);opacity:.3;font-size:1rem}
 
-  .g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-  .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-  .mb{margin-bottom:1rem}
-  @media(max-width:800px){.g2,.g3,.g4{grid-template-columns:1fr}.main{padding:.8rem}}
+/* ── NAV ── */
+.nav{display:flex;background:var(--s1);border-bottom:1px solid var(--b0);padding:0 1.5rem;overflow-x:auto;gap:0;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.tab{padding:.65rem 1.1rem;font-family:var(--fm);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--txd);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;transition:color .15s,border-color .15s;position:relative}
+.tab::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:2px;background:var(--gb);transition:left .2s,right .2s;box-shadow:0 0 8px var(--g)}
+.tab:hover{color:var(--g)}
+.tab.active{color:var(--gb)}
+.tab.active::after{left:0;right:0}
 
-  .panel{background:var(--panel);border:1px solid var(--border);position:relative;overflow:hidden}
-  .panel::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
-  .ph{padding:.65rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
-  .pt{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
-  .pb{padding:1rem}
-  .badge{font-family:var(--font-mono);font-size:.62rem;padding:.12rem .45rem;background:rgba(201,168,76,.08);border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px}
+/* ── SECTION DESC ── */
+.sec-desc{font-family:var(--fm);font-size:.6rem;color:var(--txd);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--b0);background:var(--s1)}
 
-  .scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);animation:scanMove 4s linear infinite}
-  @keyframes scanMove{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+/* ── LAYOUT ── */
+.main{padding:1rem 1.5rem;max-width:1600px;margin:0 auto}
+.sec{display:none}.sec.active{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
+.mb{margin-bottom:.8rem}
+@media(max-width:900px){.g2,.g4{grid-template-columns:1fr}.main{padding:.8rem 1rem}}
 
-  .row{display:flex;gap:.5rem;align-items:stretch;flex-wrap:wrap}
-  input,select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:.55rem .8rem;font-family:var(--font-mono);font-size:.75rem;outline:none;transition:border-color .15s;letter-spacing:.05em;flex:1;min-width:100px}
-  input:focus,select:focus{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.02)}
-  input::placeholder{color:var(--text-dim)}
-  select option{background:var(--bg2)}
+/* ── PANEL ── */
+.panel{background:var(--s2);border:1px solid var(--b0);border-radius:var(--r2);position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;inset:0;border-radius:var(--r2);background:linear-gradient(135deg,rgba(201,168,76,.03) 0%,transparent 50%);pointer-events:none}
+.ph{padding:.6rem 1rem;border-bottom:1px solid var(--b0);display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;min-height:40px}
+.pt{font-family:var(--fm);font-size:.6rem;letter-spacing:.2em;color:var(--g);text-transform:uppercase}
+.pt-sub{font-family:var(--fm);font-size:.55rem;color:var(--txd);letter-spacing:.05em}
+.pb{padding:.9rem 1rem}
+.badge{font-family:var(--fm);font-size:.6rem;padding:.1rem .45rem;background:rgba(201,168,76,.08);border:1px solid var(--gd);color:var(--g);border-radius:var(--r)}
+.scan-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.3),transparent);animation:scan 4s linear infinite}
+@keyframes scan{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
 
-  .btn{padding:.55rem 1rem;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;white-space:nowrap}
-  .btn:hover{border-color:var(--gold-bright);color:var(--gold-bright);box-shadow:0 0 10px rgba(201,168,76,.15)}
-  .btn:active{transform:scale(.97)}
-  .btn:disabled{opacity:.35;cursor:not-allowed}
-  .btn-red{border-color:rgba(255,51,85,.3);color:var(--red)}
-  .btn-red:hover{border-color:var(--red)}
-  .btn-green{border-color:rgba(0,255,136,.3);color:var(--green)}
-  .btn-green:hover{border-color:var(--green)}
+/* ── STAT CARDS ── */
+.stat{background:linear-gradient(135deg,var(--s2),var(--s1));border:1px solid var(--b1);border-radius:var(--r2);padding:.9rem 1rem;text-align:center;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.3),transparent)}
+.stat-v{font-family:var(--fd);font-size:2.2rem;color:var(--gb);line-height:1;text-shadow:0 0 20px rgba(240,192,64,.2)}
+.stat-l{font-family:var(--fm);font-size:.55rem;color:var(--txd);letter-spacing:.2em;text-transform:uppercase;margin-top:.3rem}
 
-  /* AUTOCOMPLETE */
-  .ac-wrap{position:relative;flex:1}
-  .ac-list{position:absolute;top:100%;left:0;right:0;background:#0a0f18;border:1px solid var(--border);border-top:none;max-height:220px;overflow-y:auto;z-index:50;display:none}
-  .ac-item{padding:.4rem .8rem;font-family:var(--font-mono);font-size:.72rem;color:var(--text);cursor:pointer;border-bottom:1px solid rgba(19,29,39,.5)}
-  .ac-item:hover,.ac-item.selected{background:rgba(201,168,76,.06);color:var(--gold)}
-  .ac-item:last-child{border-bottom:none}
+/* ── INPUTS ── */
+input,select{background:var(--s1);border:1px solid var(--b1);color:var(--txb);padding:.5rem .75rem;font-family:var(--fm);font-size:.72rem;outline:none;border-radius:var(--r);transition:border-color .15s,background .15s;flex:1;min-width:100px;letter-spacing:.04em}
+input:focus,select:focus{border-color:var(--gd);background:var(--s2)}
+input::placeholder{color:var(--txd)}
+select option{background:var(--s1)}
+.row{display:flex;gap:.5rem;align-items:stretch;flex-wrap:wrap}
+.ac-wrap{position:relative;flex:1}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--s2);border:1px solid var(--b1);border-top:none;max-height:200px;overflow-y:auto;z-index:50;display:none;border-radius:0 0 var(--r) var(--r)}
+.ac-item{padding:.35rem .75rem;font-family:var(--fm);font-size:.7rem;color:var(--tx);cursor:pointer;transition:background .1s}
+.ac-item:hover,.ac-item.selected{background:rgba(201,168,76,.08);color:var(--g)}
 
-  .stat{background:var(--bg2);border:1px solid var(--border);padding:.9rem 1rem;text-align:center;position:relative}
-  .stat-val{font-family:var(--font-display);font-size:2rem;color:var(--gold-bright);line-height:1;margin-bottom:.25rem;text-shadow:0 0 18px rgba(240,192,64,.25)}
-  .stat-lbl{font-family:var(--font-mono);font-size:.58rem;color:var(--text-dim);letter-spacing:.2em;text-transform:uppercase}
+/* ── BUTTONS ── */
+.btn{padding:.5rem .9rem;background:transparent;border:1px solid var(--gd);color:var(--g);font-family:var(--fm);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s;white-space:nowrap;border-radius:var(--r);position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;inset:0;background:rgba(201,168,76,0);transition:background .15s}
+.btn:hover{border-color:var(--gb);color:var(--gb);box-shadow:0 0 12px rgba(201,168,76,.15)}
+.btn:hover::before{background:rgba(201,168,76,.05)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-red{border-color:rgba(255,45,85,.3);color:var(--red)}.btn-red:hover{border-color:var(--red);box-shadow:0 0 10px rgba(255,45,85,.15)}
+.btn-grn{border-color:rgba(0,229,122,.3);color:var(--grn)}.btn-grn:hover{border-color:var(--grn);box-shadow:0 0 10px rgba(0,229,122,.15)}
 
-  .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.6rem}
-  .scard{background:var(--bg2);border:1px solid var(--border);padding:.8rem;cursor:pointer;transition:all .15s}
-  .scard:hover{border-color:var(--gold-dim);background:rgba(201,168,76,.02)}
-  .scard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
-  .scard-name{font-family:var(--font-display);font-size:1rem;letter-spacing:.1em;color:var(--gold-bright)}
-  .scard-cnt{font-family:var(--font-display);font-size:1.6rem;color:var(--text)}
-  .scard-lbl{font-family:var(--font-mono);font-size:.55rem;color:var(--text-dim);letter-spacing:.15em}
-  .sbar{margin-top:.5rem;height:2px;background:var(--border)}
-  .sbar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .6s ease}
+/* ── SERVER GRID ── */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.6rem}
+.scard{background:linear-gradient(160deg,var(--s2),var(--s1));border:1px solid var(--b1);border-radius:var(--r2);padding:.75rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent)}
+.scard:hover{border-color:var(--gd);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.scard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+.scard-name{font-family:var(--fd);font-size:.95rem;letter-spacing:.12em;color:var(--gb)}
+.scard-n{font-family:var(--fd);font-size:1.8rem;color:var(--txb);line-height:1}
+.scard-l{font-family:var(--fm);font-size:.52rem;color:var(--txd);letter-spacing:.15em;margin:.15rem 0}
+.sbar{margin-top:.5rem;height:2px;background:var(--b0);border-radius:1px;overflow:hidden}
+.sbar-f{height:100%;background:linear-gradient(90deg,var(--gd),var(--g));transition:width .7s cubic-bezier(.4,0,.2,1)}
 
-  .ptags{display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem 0}
-  .ptag{font-family:var(--font-mono);font-size:.68rem;padding:.18rem .5rem;background:rgba(19,29,39,.8);border:1px solid var(--border);color:var(--text);transition:all .12s;cursor:pointer}
-  .ptag:hover{border-color:var(--gold-dim);color:var(--gold)}
-  .ptag.watched{border-color:rgba(201,168,76,.4);color:var(--gold);background:rgba(201,168,76,.05)}
-  .ptag.online{border-color:rgba(0,255,136,.5);color:var(--green);background:rgba(0,255,136,.04);box-shadow:0 0 5px rgba(0,255,136,.1)}
+/* ── PLAYER TAGS ── */
+.ptags{display:flex;flex-wrap:wrap;gap:.25rem;padding:.4rem 0}
+.ptag{font-family:var(--fm);font-size:.65rem;padding:.15rem .45rem;background:var(--b0);border:1px solid var(--b1);color:var(--tx);border-radius:var(--r);transition:all .12s;cursor:pointer}
+.ptag:hover{border-color:var(--gd);color:var(--g);background:rgba(201,168,76,.06)}
+.ptag.watched{border-color:rgba(201,168,76,.35);color:var(--g);background:rgba(201,168,76,.06)}
+.ptag.online{border-color:rgba(0,229,122,.4);color:var(--grn);background:rgba(0,229,122,.05);box-shadow:0 0 6px rgba(0,229,122,.08)}
 
-  .wi{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:.75rem}
-  .wi:last-child{border-bottom:none}
-  .wi-status{display:flex;align-items:center;gap:.35rem;font-size:.62rem;letter-spacing:.1em}
-  .wi-status.on{color:var(--green)}.wi-status.off{color:var(--text-dim)}
+/* ── WATCHLIST ITEMS ── */
+.wi{display:flex;align-items:center;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid var(--b0);font-family:var(--fm);font-size:.72rem}
+.wi:last-child{border-bottom:none}
+.wi-s{display:flex;align-items:center;gap:.3rem;font-size:.6rem;letter-spacing:.1em}
+.wi-s.on{color:var(--grn)}.wi-s.off{color:var(--txd)}
 
-  .res{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold-dim);padding:.9rem 1rem;margin-top:.7rem;font-family:var(--font-mono);font-size:.75rem;line-height:1.8;animation:fadeIn .25s ease}
-  .res.ok{border-left-color:var(--green)}.res.err{border-left-color:var(--red)}.res.inf{border-left-color:var(--cyan)}
-  .res-title{font-size:.6rem;color:var(--text-dim);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+/* ── RESULT BLOCKS ── */
+.res{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--gd);padding:.8rem 1rem;margin-top:.6rem;font-family:var(--fm);font-size:.72rem;line-height:1.9;animation:fi .2s ease;border-radius:0 var(--r) var(--r) 0}
+.res.ok{border-left-color:var(--grn)}.res.err{border-left-color:var(--red)}.res.inf{border-left-color:var(--blu)}
+.res-t{font-size:.57rem;color:var(--txd);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.45rem;padding-bottom:.3rem;border-bottom:1px solid var(--b0)}
 
-  .feed{max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-  .aitem{display:flex;align-items:flex-start;gap:.6rem;padding:.55rem 0;border-bottom:1px solid rgba(19,29,39,.6);font-family:var(--font-mono);font-size:.68rem;animation:slideIn .25s ease}
-  .aitem:last-child{border-bottom:none}
-  @keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
-  .adot{width:7px;height:7px;border-radius:50%;margin-top:3px;flex-shrink:0}
-  .adot.g{background:var(--green);box-shadow:0 0 5px var(--green)}.adot.r{background:var(--red);box-shadow:0 0 5px var(--red)}
-  .atime{color:var(--text-dim);min-width:65px}.amsg{color:var(--text);flex:1}
-  .amsg span{color:var(--gold)}.asrv{color:var(--cyan);font-size:.6rem;padding:.08rem .3rem;border:1px solid var(--border);margin-left:.3rem}
+/* ── ALERT FEED ── */
+.feed{max-height:340px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--b1) transparent}
+.aitem{display:flex;align-items:flex-start;gap:.55rem;padding:.5rem 0;border-bottom:1px solid rgba(15,24,37,.8);font-family:var(--fm);font-size:.65rem;animation:fi .2s ease}
+.aitem:last-child{border-bottom:none}
+.adot{width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.adot.g{background:var(--grn);box-shadow:0 0 5px var(--grn)}.adot.r{background:var(--red);box-shadow:0 0 5px var(--red)}
+.at{color:var(--txd);min-width:62px}.am{color:var(--tx);flex:1}.am b{color:var(--g);font-weight:normal}
+.asrv{color:var(--blu);font-size:.58rem;padding:.05rem .3rem;border:1px solid var(--b1);border-radius:3px;margin-left:.3rem}
 
-  .prow{display:flex;align-items:center;gap:.8rem;padding:.45rem 0;border-bottom:1px solid rgba(19,29,39,.5);font-family:var(--font-mono);font-size:.72rem}
-  .prow:last-child{border-bottom:none}
-  .pday{min-width:75px;color:var(--gold);letter-spacing:.08em}
-  .pbar-w{flex:1;height:5px;background:var(--border)}
-  .pbar-f{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright));transition:width .8s ease}
-  .ppct{min-width:38px;color:var(--text-dim);text-align:right;font-size:.65rem}
-  .ptime{min-width:55px;color:var(--text);text-align:right}
+/* ── PRONO ── */
+.prow{display:flex;align-items:center;gap:.7rem;padding:.4rem 0;border-bottom:1px solid rgba(15,24,37,.6);font-family:var(--fm);font-size:.7rem}
+.prow:last-child{border-bottom:none}
+.pd{min-width:70px;color:var(--g);letter-spacing:.06em}
+.pb2{flex:1;height:4px;background:var(--b0);border-radius:2px;overflow:hidden}
+.pbf{height:100%;background:linear-gradient(90deg,var(--gd),var(--gb));transition:width .9s cubic-bezier(.4,0,.2,1)}
+.pp{min-width:35px;color:var(--txd);text-align:right;font-size:.62rem}.pt2{min-width:50px;color:var(--txb);text-align:right}
 
-  .tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:.72rem}
-  .tbl th{text-align:left;padding:.45rem .7rem;color:var(--text-dim);border-bottom:1px solid var(--border);letter-spacing:.1em;text-transform:uppercase;font-weight:normal}
-  .tbl td{padding:.45rem .7rem;border-bottom:1px solid rgba(19,29,39,.5);color:var(--text)}
-  .tbl tr:hover td{background:rgba(201,168,76,.02)}
-  .tbl tr:last-child td{border-bottom:none}
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-family:var(--fm);font-size:.68rem}
+.tbl th{text-align:left;padding:.4rem .65rem;color:var(--txd);border-bottom:1px solid var(--b0);letter-spacing:.1em;text-transform:uppercase;font-weight:normal}
+.tbl td{padding:.4rem .65rem;border-bottom:1px solid rgba(15,24,37,.5);color:var(--tx)}
+.tbl tr:hover td{background:rgba(201,168,76,.02)}
+.tbl tr:last-child td{border-bottom:none}
 
-  .empty{padding:1.5rem;text-align:center;font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.1em}
-  .ld{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);padding:.6rem 0}
-  .ld-dots span{display:inline-block;animation:blink 1.2s infinite;color:var(--gold)}
-  .ld-dots span:nth-child(2){animation-delay:.2s}.ld-dots span:nth-child(3){animation-delay:.4s}
+/* ── STAT BLOCKS (stats page) ── */
+.sb{background:var(--s2);border:1px solid var(--b0);border-radius:var(--r2);padding:.8rem 1rem;margin-bottom:.7rem}
+.sb-t{font-family:var(--fm);font-size:.58rem;letter-spacing:.2em;color:var(--g);text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.35rem;border-bottom:1px solid var(--b0)}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid rgba(15,24,37,.5);font-family:var(--fm);font-size:.7rem}
+.ir:last-child{border-bottom:none}
+.ik{color:var(--txd)}.iv{color:var(--tx)}.iv.hl{color:var(--gb)}.iv.og{color:var(--grn)}
 
-  .svr-tag{font-family:var(--font-mono);font-size:.6rem;padding:.08rem .3rem;border:1px solid var(--border);color:var(--text-dim);margin-left:.2rem}
+/* ── WARN STRIP ── */
+.warn{font-family:var(--fm);font-size:.6rem;color:var(--org);border:1px solid rgba(255,149,0,.2);border-left:3px solid var(--org);padding:.35rem .65rem;margin-bottom:.6rem;border-radius:0 var(--r) var(--r) 0}
 
-  /* STATS LAYOUT */
-  .stat-block{background:var(--bg2);border:1px solid var(--border);padding:.9rem 1rem;margin-bottom:.8rem}
-  .stat-block-title{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:.7rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
-  .info-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(19,29,39,.5);font-family:var(--font-mono);font-size:.75rem}
-  .info-row:last-child{border-bottom:none}
-  .info-key{color:var(--text-dim);letter-spacing:.08em}
-  .info-val{color:var(--text)}
-  .info-val.hl{color:var(--gold-bright)}
-  .info-val.online-green{color:var(--green)}
+/* ── EMPTY / LOADING ── */
+.empty{padding:1.2rem;text-align:center;font-family:var(--fm);font-size:.65rem;color:var(--txd);letter-spacing:.1em}
+.ld{display:inline-flex;align-items:center;gap:.35rem;font-family:var(--fm);font-size:.65rem;color:var(--txd);padding:.5rem 0}
+.ld-d span{display:inline-block;animation:blink 1.2s infinite;color:var(--g)}
+.ld-d span:nth-child(2){animation-delay:.2s}.ld-d span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:0}40%{opacity:1}}
 
-  ::-webkit-scrollbar{width:3px;height:3px}
-  ::-webkit-scrollbar-thumb{background:var(--border)}
+/* ── WL TABS ── */
+.wl-tabs{display:flex;gap:.4rem;align-items:center;padding:.5rem 1.5rem .3rem;font-family:var(--fm);font-size:.62rem}
+.wl-tab{padding:.25rem .65rem;border:1px solid var(--b1);border-radius:20px;cursor:pointer;color:var(--txd);transition:all .15s;background:var(--s1)}
+.wl-tab:hover{color:var(--g);border-color:var(--gd)}
+.wl-tab.act{border-color:var(--g);color:var(--gb);background:rgba(201,168,76,.06)}
+
+/* ── SVR TAG ── */
+.stag{font-family:var(--fm);font-size:.58rem;padding:.07rem .28rem;border:1px solid var(--b1);color:var(--txd);border-radius:3px;margin-left:.2rem}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
 </style>
 </head>
 <body>
 
-<header class="header">
-  <div class="logo">
-    <svg width="32" height="32" viewBox="0 0 32 32">
-      <polygon points="16,1 20,10 30,10 22,16 25,26 16,20 7,26 10,16 2,10 12,10" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
-      <polygon points="16,2 30,27 2,27" fill="none" stroke="#c9a84c" stroke-width="0.6" opacity="0.4"/>
-      <polygon points="16,30 2,5 30,5" fill="none" stroke="#c9a84c" stroke-width="0.6" opacity="0.4"/>
+<header class="hdr">
+  <div class="hdr-logo">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+      <polygon points="15,1 18.5,9 28,9 21,15 23.5,24 15,18.5 6.5,24 9,15 2,9 11.5,9" stroke="#c9a84c" stroke-width=".8" fill="none"/>
+      <polygon points="15,2 28,26 2,26" stroke="#c9a84c" stroke-width=".5" fill="none" opacity=".35"/>
+      <polygon points="15,28 2,4 28,4" stroke="#c9a84c" stroke-width=".5" fill="none" opacity=".35"/>
     </svg>
-    <div class="logo-text">
-      <span class="logo-main">MOSSAD GLORY</span>
-      <span class="logo-sub">Intelligence • NationsGlory • Surveillance</span>
+    <div class="hdr-brand">
+      <span class="hdr-title">MOSSAD GLORY</span>
+      <span class="hdr-sub">Intelligence · NationsGlory · Surveillance</span>
     </div>
   </div>
-  <div class="header-right">
-    <div class="status-pill"><div class="dot" id="api-dot"></div><span id="api-txt">CONNECTING</span></div>
-    <div class="status-pill"><div class="dot" id="scan-dot"></div><span>SCAN</span></div>
+  <div class="hdr-right">
+    <div class="pill"><div class="dot" id="api-dot"></div><span id="api-txt">API</span></div>
+    <div class="pill"><div class="dot" id="scan-dot"></div><span>SCAN</span></div>
+    <span class="hbr">|</span>
     <span id="clock">--:--:--</span>
-    <span style="font-size:.7rem;color:var(--text-dim);opacity:.4">מוסד</span>
+    <span style="font-family:var(--fm);font-size:.65rem;color:var(--txd);opacity:.3">מוסד</span>
   </div>
 </header>
 
 <nav class="nav">
-  <button class="tab active" onclick="nav('dashboard',this)" title="Vue globale : joueurs en ligne sur tous les serveurs, alertes watchlist, statut de surveillance">◈ DASHBOARD</button>
-  <button class="tab" onclick="nav('online',this)" title="Voir tous les joueurs connectés — cliquez sur un serveur pour filtrer">◉ EN LIGNE</button>
-  <button class="tab" onclick="nav('checkall',this)" title="Chercher sur quel serveur est connecté un joueur en ce moment">⊕ LOCALISER</button>
-  <button class="tab" onclick="nav('check',this)" title="Voir quels membres d'un pays sont connectés et sur quel serveur">◎ ESPIONNER</button>
-  <button class="tab" onclick="nav('watchlist',this)" title="Surveiller des joueurs ciblés — statut live LIME et MOCHA, alertes Discord automatiques">◈ WATCHLIST</button>
-  <button class="tab" onclick="nav('stats',this)" title="Analyser un joueur : localisation actuelle, pronostic de connexion, heatmap horaire">◐ STATS</button>
+  <button class="tab active" onclick="nav('dashboard',this)" title="Vue globale — joueurs en ligne, alertes, watchlist">◈ DASHBOARD</button>
+  <button class="tab" onclick="nav('online',this)" title="Tous les joueurs connectés par serveur">◉ EN LIGNE</button>
+  <button class="tab" onclick="nav('checkall',this)" title="Trouver sur quel serveur est un joueur">⊕ LOCALISER</button>
+  <button class="tab" onclick="nav('check',this)" title="Voir les membres d'un pays connectés">◎ ESPIONNER</button>
+  <button class="tab" onclick="nav('watchlist',this)" title="Gérer et surveiller vos cibles">◈ WATCHLIST</button>
+  <button class="tab" onclick="nav('stats',this)" title="Analyser les habitudes d'un joueur">◐ STATS</button>
 </nav>
 
 <main class="main">
 
 <!-- DASHBOARD -->
-<section class="section active" id="s-dashboard">
-  <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--border);background:rgba(201,168,76,.02)">Vue globale — joueurs connectés sur tous les serveurs, flux d'alertes watchlist en temps réel, statut de surveillance LIME &amp; MOCHA</div>
+<section class="sec active" id="s-dashboard">
+  <div class="sec-desc">Vue globale — joueurs connectés sur tous les serveurs, flux d'alertes watchlist en temps réel, statut de surveillance LIME &amp; MOCHA</div>
   <div class="g4 mb">
-    <div class="stat"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Joueurs en ligne</div></div>
-    <div class="stat"><div class="stat-val">11</div><div class="stat-lbl">Serveurs actifs</div></div>
-    <div class="stat"><div class="stat-val" id="st-wonline">—</div><div class="stat-lbl">Cibles en ligne</div></div>
-    <div class="stat"><div class="stat-val" id="st-wcount">—</div><div class="stat-lbl">Cibles surveillées</div></div>
+    <div class="stat"><div class="stat-v" id="st-total">—</div><div class="stat-l">Joueurs en ligne</div></div>
+    <div class="stat"><div class="stat-v">11</div><div class="stat-l">Serveurs actifs</div></div>
+    <div class="stat"><div class="stat-v" id="st-wonline">—</div><div class="stat-l">Cibles en ligne</div></div>
+    <div class="stat"><div class="stat-v" id="st-wcount">—</div><div class="stat-l">Cibles surveillées</div></div>
   </div>
   <div class="g2 mb">
     <div class="panel">
-      <div class="scan"></div>
+      <div class="scan-line"></div>
       <div class="ph"><span class="pt">◉ Interserveur</span><button class="btn" onclick="loadDashboard()">↺ Refresh</button></div>
-      <div class="pb"><div class="sgrid" id="srv-overview"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div></div>
+      <div class="pb"><div class="sgrid" id="srv-overview"><div class="ld">Chargement<span class="ld-d"><span>.</span><span>.</span><span>.</span></span></div></div></div>
     </div>
     <div class="panel">
       <div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0</span></div>
-      <div style="padding:.4rem 1rem"><div class="feed" id="alert-feed"><div class="empty">En attente...</div></div></div>
+      <div style="padding:.3rem 1rem"><div class="feed" id="alert-feed"><div class="empty">En attente...</div></div></div>
     </div>
   </div>
   <div class="panel mb">
     <div class="ph"><span class="pt">👁 Watchlist — Statut live</span><button class="btn" onclick="loadDashboard()">↺</button></div>
-    <div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
+    <div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ld-d"><span>.</span><span>.</span><span>.</span></span></div></div>
   </div>
 </section>
 
 <!-- EN LIGNE -->
-<section class="section" id="s-online">
-  <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--border);background:rgba(201,168,76,.02)">Tous les joueurs connectés par serveur — cliquez sur une carte pour filtrer, cliquez sur un pseudo pour le localiser</div>
+<section class="sec" id="s-online">
+  <div class="sec-desc">Tous les joueurs connectés par serveur — cliquez sur une carte pour filtrer, cliquez sur un pseudo pour le localiser</div>
   <div class="panel mb">
     <div class="ph">
       <span class="pt">◉ Joueurs en ligne</span>
       <div class="row" style="flex-wrap:nowrap">
-        <select id="ol-srv" style="max-width:150px" onchange="$('ol-body').innerHTML=ld();loadOnline()">
+        <select id="ol-srv" style="max-width:145px" onchange="$('ol-body').innerHTML=ld();loadOnline()">
           <option value="">Tous les serveurs</option>
           <option value="blue">BLUE</option><option value="coral">CORAL</option>
           <option value="orange">ORANGE</option><option value="red">RED</option>
@@ -236,11 +265,11 @@
   </div>
 </section>
 
-<!-- CHECKALL -->
-<section class="section" id="s-checkall">
-  <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--border);background:rgba(201,168,76,.02)">Localisez un joueur sur tous les serveurs en temps réel — tapez son pseudo ou cliquez dans la liste</div>
+<!-- LOCALISER -->
+<section class="sec" id="s-checkall">
+  <div class="sec-desc">Localisez un joueur sur tous les serveurs en temps réel — tapez son pseudo ou cliquez dans la liste</div>
   <div class="panel mb">
-    <div class="ph"><span class="pt">⊕ Localiser un joueur</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">Tapez un pseudo ou cliquez dans la liste</span></div>
+    <div class="ph"><span class="pt">⊕ Localiser un joueur</span><span class="pt-sub">Tapez un pseudo ou cliquez dans la liste</span></div>
     <div class="pb">
       <div class="row">
         <div class="ac-wrap">
@@ -249,27 +278,27 @@
             onkeydown="acKey(event,'ca-list',()=>doCheckall())"/>
           <div class="ac-list" id="ca-list"></div>
         </div>
-        <button class="btn" onclick="doCheckall()">→ LOCALISER</button>
+        <button class="btn" onclick="doCheckall()">→ Localiser</button>
       </div>
-      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-top:.35rem;letter-spacing:.05em">⚠ Pseudo exact requis — respectez les majuscules (ex: <span style='color:var(--gold)'>Kyzzer_</span> ≠ <span style='color:var(--red)'>kyzzer_</span>)</div>
-      <div id="ca-player-list" class="ptags" style="margin-top:.5rem;max-height:120px;overflow-y:auto"></div>
+      <div style="font-family:var(--fm);font-size:.58rem;color:var(--txd);margin-top:.3rem">⚠ Pseudo exact — majuscules importantes (ex: <span style="color:var(--g)">Kyzzer_</span> ≠ <span style="color:var(--red)">kyzzer_</span>)</div>
+      <div id="ca-player-list" class="ptags" style="margin-top:.4rem;max-height:110px;overflow-y:auto"></div>
       <div id="ca-result"></div>
     </div>
   </div>
   <div class="panel">
-    <div class="ph"><span class="pt">◷ Historique recherches</span></div>
+    <div class="ph"><span class="pt">◷ Historique</span></div>
     <div class="pb" id="ca-history"><div class="empty">Aucune recherche</div></div>
   </div>
 </section>
 
 <!-- ESPIONNER -->
-<section class="section" id="s-check">
-  <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--border);background:rgba(201,168,76,.02)">Espionnez un pays — voyez quels membres sont connectés et sur quel serveur, avec la liste alphabétique des pays disponibles</div>
+<section class="sec" id="s-check">
+  <div class="sec-desc">Espionnez un pays — voyez quels membres sont connectés et sur quel serveur, avec la liste alphabétique des pays disponibles</div>
   <div class="panel mb">
-    <div class="ph"><span class="pt">◎ Espionner un pays</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">Choisissez un serveur puis un pays</span></div>
+    <div class="ph"><span class="pt">◎ Espionner un pays</span><span class="pt-sub">Choisissez un serveur puis un pays</span></div>
     <div class="pb">
       <div class="row">
-        <select id="ck-srv" style="max-width:150px" onchange="loadCountrySuggest()">
+        <select id="ck-srv" style="max-width:145px" onchange="loadCountrySuggest()">
           <option value="">Serveur...</option>
           <option value="blue">BLUE</option><option value="coral">CORAL</option>
           <option value="orange">ORANGE</option><option value="red">RED</option>
@@ -284,35 +313,36 @@
             onkeydown="acKey(event,'ck-list',()=>doCheck())"/>
           <div class="ac-list" id="ck-list"></div>
         </div>
-        <button class="btn" onclick="doCheck()">→ ESPIONNER</button>
+        <button class="btn" onclick="doCheck()">→ Espionner</button>
       </div>
-      <div id="ck-suggest" style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.5rem"></div>
+      <div id="ck-suggest" class="ptags" style="margin-top:.4rem;max-height:110px;overflow-y:auto"></div>
       <div id="ck-result"></div>
     </div>
   </div>
 </section>
 
 <!-- WATCHLIST -->
-<section class="section" id="s-watchlist">
-  <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--border);background:rgba(201,168,76,.02)">Gérez vos cibles surveillées — les alertes Discord se déclenchent automatiquement à chaque connexion / déconnexion</div>
-  <div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.6rem;letter-spacing:.15em">
-    <span style="color:var(--gold)">◈ LIME</span> &nbsp;|&nbsp; <span style="cursor:pointer;padding:.2rem .5rem;border:1px solid var(--border)" onclick="switchWl('lime')" id="wl-tab-lime" class="wl-tab-active">LIME</span>
-    <span style="cursor:pointer;padding:.2rem .5rem;border:1px solid var(--border);margin-left:.3rem" onclick="switchWl('mocha')" id="wl-tab-mocha">MOCHA 🟤</span>
+<section class="sec" id="s-watchlist">
+  <div class="sec-desc">Gérez vos cibles surveillées — les alertes Discord se déclenchent automatiquement à chaque connexion / déconnexion</div>
+  <div class="wl-tabs">
+    <span style="font-family:var(--fm);font-size:.58rem;color:var(--txd);letter-spacing:.15em">SERVEUR :</span>
+    <span class="wl-tab act" id="wl-tab-lime" onclick="switchWl('lime')">🟢 LIME</span>
+    <span class="wl-tab" id="wl-tab-mocha" onclick="switchWl('mocha')">🟤 MOCHA</span>
   </div>
   <div class="g2">
     <div class="panel">
-      <div class="ph"><span class="pt" id="wl-panel-title">◈ Gérer la watchlist — LIME</span></div>
+      <div class="ph"><span class="pt" id="wl-panel-title">◈ Watchlist — LIME</span></div>
       <div class="pb">
-        <div class="row mb" style="margin-bottom:.8rem">
+        <div style="font-family:var(--fm);font-size:.58rem;color:var(--txd);margin-bottom:.5rem">⚠ Pseudo exact — majuscules importantes</div>
+        <div id="wl-add-player-list" class="ptags" style="max-height:80px;overflow-y:auto;margin-bottom:.4rem"></div>
+        <div class="row mb" style="margin-bottom:.7rem">
           <div class="ac-wrap">
-            <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-bottom:.3rem;letter-spacing:.05em">⚠ Pseudo exact — majuscules importantes</div>
-        <div id="wl-add-player-list" class="ptags" style="max-height:120px;overflow-y:auto;margin-bottom:.5rem"></div>
-          <input id="wl-add-input" placeholder="Ajouter un joueur..." autocomplete="off"
+            <input id="wl-add-input" placeholder="Ajouter un joueur..." autocomplete="off"
               oninput="acFilter('wl-add-input','wl-add-list',onlinePlayers);filterPlayerTags('wl-add-input','wl-add-player-list')"
               onkeydown="acKey(event,'wl-add-list',()=>wlAdd())"/>
             <div class="ac-list" id="wl-add-list"></div>
           </div>
-          <button class="btn btn-green" onclick="wlAdd()">+ Ajouter</button>
+          <button class="btn btn-grn" onclick="wlAdd()">+ Ajouter</button>
         </div>
         <div id="wl-manage"></div>
       </div>
@@ -325,10 +355,10 @@
 </section>
 
 <!-- STATS -->
-<section class="section" id="s-stats">
-  <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);padding:.4rem 1.5rem;letter-spacing:.08em;border-bottom:1px solid var(--border);background:rgba(201,168,76,.02)">Analyse comportementale d'un joueur — localisation actuelle, pronostic des jours &amp; heures de connexion, heatmap horaire</div>
+<section class="sec" id="s-stats">
+  <div class="sec-desc">Analyse comportementale d'un joueur — localisation actuelle, pronostic des jours &amp; heures de connexion, heatmap horaire</div>
   <div class="panel mb">
-    <div class="ph"><span class="pt">◐ Analyse comportementale</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">Localisation, pronostic & heatmap d'un joueur</span></div>
+    <div class="ph"><span class="pt">◐ Analyse comportementale</span><span class="pt-sub">Localisation, pronostic &amp; heatmap d'un joueur</span></div>
     <div class="pb">
       <div class="row">
         <div class="ac-wrap">
@@ -339,687 +369,340 @@
         </div>
         <button class="btn" onclick="loadStats()">→ Analyser</button>
       </div>
+      <div style="font-family:var(--fm);font-size:.58rem;color:var(--txd);margin-top:.3rem">⚠ Pseudo exact — majuscules importantes (ex: <span style="color:var(--g)">Kyzzer_</span> ≠ <span style="color:var(--red)">kyzzer_</span>)</div>
+      <div id="st-player-list" class="ptags" style="margin-top:.4rem;max-height:110px;overflow-y:auto"></div>
     </div>
   </div>
-      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-bottom:.5rem;letter-spacing:.05em">⚠ Pseudo exact requis — respectez les majuscules (ex: <span style='color:var(--gold)'>Kyzzer_</span> ≠ <span style='color:var(--red)'>kyzzer_</span>)</div>
-      <div id="st-player-list" class="ptags" style="margin-top:.5rem;max-height:120px;overflow-y:auto"></div>
   <div id="st-result"></div>
 </section>
 
 </main>
 
 <script>
-const API = 'https://nationsglory-spy.onrender.com';
-const SERVERS = ["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
-const EMO = {blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
+const API='https://nationsglory-spy.onrender.com';
+const SERVERS=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
+const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
+const BUGGY=s=>s==='red'||s==='mocha';
 
-let watchlist  = [];
-let alerts     = [];
-let prevOnline = {};
-let caHistory  = JSON.parse(localStorage.getItem('mg_history')||'[]');
-let ctryCache  = {};
-let onlinePlayers = []; // pool de pseudos connus pour l'autocomplete
+let watchlist=[],watchlistMocha=[],currentWl='lime';
+let alerts=[],prevOnline={};
+let caHistory=JSON.parse(localStorage.getItem('mg_history')||'[]');
+let ctryCache={},onlinePlayers=[];
 
-const $ = id => document.getElementById(id);
-const ld = () => `<div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+const $=id=>document.getElementById(id);
+const ld=()=>`<div class="ld">Chargement<span class="ld-d"><span>.</span><span>.</span><span>.</span></span></div>`;
+const warnStrip=`<div class="warn">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>`;
 
-// ---- CASE-INSENSITIVE MATCH ----
-// Retrouve le vrai nom (avec la bonne casse) depuis un pool
-function resolvePlayer(input, pool) {
-  const low = input.toLowerCase();
-  return pool.find(p => p.toLowerCase() === low) || input;
+// ── CASE RESOLVE ──
+function resolvePlayer(input,pool){const l=input.toLowerCase();return pool.find(p=>p.toLowerCase()===l)||input;}
+
+// ── AUTOCOMPLETE ──
+function renderAllPlayerTags(divId,fn){
+  const el=$(divId);if(!el||!onlinePlayers.length)return;
+  el.innerHTML=onlinePlayers.map(p=>`<span class="ptag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');
+}
+function filterPlayerTags(inputId,divId){
+  const el=$(divId);if(!el)return;
+  const val=$(inputId).value.trim().toLowerCase();
+  const filtered=val?onlinePlayers.filter(p=>p.toLowerCase().includes(val)):onlinePlayers;
+  if(!filtered.length){el.innerHTML='<div class="empty" style="font-size:.62rem">Aucun résultat</div>';return;}
+  const fnMap={'ca-player-list':'pickPlayer_ca','st-player-list':'pickPlayer_st','wl-add-player-list':'pickPlayer_wl'};
+  const fn=fnMap[divId]||'quickCA';
+  el.innerHTML=filtered.slice(0,80).map(p=>`<span class="ptag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');
+}
+function pickPlayer_ca(p){$('ca-input').value=p;$('ca-player-list').innerHTML='';$('ca-list').style.display='none';doCheckall();}
+function pickPlayer_st(p){$('st-input').value=p;$('st-player-list').innerHTML='';$('st-list').style.display='none';loadStats();}
+function pickPlayer_wl(p){$('wl-add-input').value=p;$('wl-add-player-list').innerHTML='';$('wl-add-list').style.display='none';}
+
+function acFilter(iid,lid,pool){
+  const val=$(iid).value.trim().toLowerCase(),list=$(lid);
+  if(!val||!pool.length){list.style.display='none';return;}
+  const m=pool.filter(p=>p.toLowerCase().includes(val)).slice(0,10);
+  if(!m.length){list.style.display='none';return;}
+  list.innerHTML=m.map(p=>`<div class="ac-item" onmousedown="acPick('${iid}','${lid}','${p.replace(/'/g,"\\'")}')">${p}</div>`).join('');
+  list.style.display='block';
+}
+function acFilterCountry(){const srv=$('ck-srv').value;if(!srv)return;acFilter('ck-country','ck-list',ctryCache[srv]||[]);}
+function acPick(iid,lid,v){$(iid).value=v;$(lid).style.display='none';}
+function acKey(e,lid,onEnter){
+  const list=$(lid),items=list.querySelectorAll('.ac-item'),cur=list.querySelector('.selected');
+  if(e.key==='ArrowDown'){e.preventDefault();const n=cur?cur.nextElementSibling:items[0];if(cur)cur.classList.remove('selected');if(n)n.classList.add('selected');}
+  else if(e.key==='ArrowUp'){e.preventDefault();const p=cur?cur.previousElementSibling:items[items.length-1];if(cur)cur.classList.remove('selected');if(p)p.classList.add('selected');}
+  else if(e.key==='Enter'){if(cur){cur.onmousedown();return;}list.style.display='none';onEnter();}
+  else if(e.key==='Escape')list.style.display='none';
+}
+document.addEventListener('click',e=>{document.querySelectorAll('.ac-list').forEach(l=>{if(!l.parentElement.contains(e.target))l.style.display='none';});});
+
+// ── CLOCK ──
+setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('fr-FR');},1000);
+
+// ── API ──
+async function api(path){const r=await fetch(API+path);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function apiPost(path,body){const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+
+// ── NAV ──
+async function nav(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  $('s-'+id).classList.add('active');btn.classList.add('active');
+  if(id==='watchlist'){await switchWl('lime');}
+  if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}
+  if(id==='checkall'){renderAllPlayerTags('ca-player-list','pickPlayer_ca');}
+  if(id==='stats'){renderAllPlayerTags('st-player-list','pickPlayer_st');}
 }
 
-// ---- AUTOCOMPLETE ENGINE ----
-function renderAllPlayerTags(divId, fn) {
-  const el = $(divId);
-  if(!el || !onlinePlayers.length) return;
-  el.innerHTML = onlinePlayers.map(p =>
-    `<span class="ptag" style="cursor:pointer" onclick="${fn}('${p.replace(/'/g,"\'")}')">${p}</span>`
-  ).join('');
+// ── API CHECK ──
+async function checkApi(){
+  try{await api('/health');$('api-dot').className='dot';$('api-txt').textContent='API OK';return true;}
+  catch{$('api-dot').className='dot off';$('api-txt').textContent='API DOWN';return false;}
 }
 
-function renderPlayerTags(divId, onClickFn) {
-  const el = $(divId);
-  if(!el) return;
-  el.innerHTML = onlinePlayers.slice(0,80).map(p =>
-    `<span class="ptag" onclick="${onClickFn}('${p.replace(/'/g,"\'")}');$('"+ divId +"').innerHTML=''">${p}</span>`
-  ).join('');
+// ── LOAD WATCHLISTS ──
+async function loadWatchlist(){
+  try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist',{signal:c.signal});clearTimeout(t);const d=await r.json();watchlist=d.players||[];$('st-wcount').textContent=watchlist.length;}catch{}
 }
-
-function filterPlayerTags(inputId, divId) {
-  const el = $(divId);
-  if(!el) return;
-  const val = $(inputId).value.trim().toLowerCase();
-  const pool = onlinePlayers;
-  const filtered = val ? pool.filter(p => p.toLowerCase().includes(val)) : pool;
-  if(!filtered.length){ el.innerHTML='<div class="empty" style="font-size:.65rem">Aucun résultat</div>'; return; }
-  // Déterminer la fonction onclick selon le contexte
-  const fnMap = {
-    'ca-player-list':      "pickPlayer_ca",
-    'st-player-list':      "pickPlayer_st",
-    'wl-add-player-list':  "pickPlayer_wl"
-  };
-  const fn = fnMap[divId] || 'quickCA';
-  el.innerHTML = filtered.slice(0,60).map(p =>
-    `<span class="ptag" style="cursor:pointer" onclick="${fn}('${p.replace(/'/g,"\'")}')">${p}</span>`
-  ).join('');
+async function loadMochaWatchlist(){
+  try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist_mocha',{signal:c.signal});clearTimeout(t);const d=await r.json();watchlistMocha=d.players||[];}catch{}
 }
-
-function pickPlayer_ca(p) {
-  $('ca-input').value = p;
-  $('ca-player-list').innerHTML = '';
-  $('ca-list').style.display = 'none';
-  doCheckall();
-}
-function pickPlayer_st(p) {
-  $('st-input').value = p;
-  $('st-player-list').innerHTML = '';
-  $('st-list').style.display = 'none';
-  loadStats();
-}
-function pickPlayer_wl(p) {
-  $('wl-add-input').value = p;
-  $('wl-add-player-list').innerHTML = '';
-  $('wl-add-list').style.display = 'none';
-}
-
-function acFilter(inputId, listId, pool) {
-  const val  = $(inputId).value.trim().toLowerCase();
-  const list = $(listId);
-  if (!val || !pool.length) { list.style.display='none'; return; }
-  const matches = pool.filter(p => p.toLowerCase().includes(val)).slice(0,12);
-  if (!matches.length) { list.style.display='none'; return; }
-  list.innerHTML = matches.map(p => `<div class="ac-item" onmousedown="acPick('${inputId}','${listId}','${p.replace(/'/g,"\\'")}')">${p}</div>`).join('');
-  list.style.display = 'block';
-}
-
-function acFilterCountry() {
-  const srv = $('ck-srv').value;
-  if (!srv) return;
-  const pool = (ctryCache[srv]||[]);
-  acFilter('ck-country','ck-list',pool);
-}
-
-function acPick(inputId, listId, value) {
-  $(inputId).value = value;
-  $(listId).style.display = 'none';
-}
-
-function acKey(e, listId, onEnter) {
-  const list  = $(listId);
-  const items = list.querySelectorAll('.ac-item');
-  const cur   = list.querySelector('.selected');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    const next = cur ? cur.nextElementSibling : items[0];
-    if (cur) cur.classList.remove('selected');
-    if (next) next.classList.add('selected');
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    const prev = cur ? cur.previousElementSibling : items[items.length-1];
-    if (cur) cur.classList.remove('selected');
-    if (prev) prev.classList.add('selected');
-  } else if (e.key === 'Enter') {
-    if (cur) { cur.onmousedown(); return; }
-    list.style.display = 'none';
-    onEnter();
-  } else if (e.key === 'Escape') {
-    list.style.display = 'none';
-  }
-}
-
-document.addEventListener('click', e => {
-  document.querySelectorAll('.ac-list').forEach(l => {
-    if (!l.parentElement.contains(e.target)) l.style.display='none';
-  });
-});
-
-// ---- CLOCK ----
-setInterval(() => { $('clock').textContent = new Date().toLocaleTimeString('fr-FR'); }, 1000);
-
-// ---- API ----
-async function api(path) {
-  const r = await fetch(API + path);
-  if (!r.ok) throw new Error('HTTP '+r.status);
-  return r.json();
-}
-async function apiPost(path, body) {
-  const r = await fetch(API+path, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if (!r.ok) throw new Error('HTTP '+r.status);
-  return r.json();
-}
-
-// ---- NAV ----
-async function nav(id, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  $('s-'+id).classList.add('active');
-  btn.classList.add('active');
-  if (id==='watchlist') { await switchWl('lime'); }
-  if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
-  if (id==='checkall')  { renderAllPlayerTags('ca-player-list','pickPlayer_ca'); }
-  if (id==='stats')     { renderAllPlayerTags('st-player-list','pickPlayer_st'); }
-}
-
-// ---- CHECK API ----
-async function checkApi() {
-  try {
-    await api('/health');
-    $('api-dot').className='dot'; $('api-txt').textContent='API OK'; return true;
-  } catch {
-    $('api-dot').className='dot off'; $('api-txt').textContent='API DOWN'; return false;
-  }
-}
-
-// ---- LOAD WATCHLIST ----
-async function loadKnownPlayers() {
-  try {
-    const d = await fetch(API+'/api/known_players').then(r=>r.json());
-    const known = d.players || [];
-    // Merge avec les joueurs en ligne sans doublons
-    const merged = [...new Set([...known, ...onlinePlayers])];
-    merged.sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-    onlinePlayers = merged;
-    console.log(`✅ ${known.length} pseudos connus chargés`);
-    // Init les listes de tags si les sections sont visibles
+async function loadKnownPlayers(){
+  try{
+    const d=await fetch(API+'/api/known_players').then(r=>r.json());
+    const known=d.players||[];
+    onlinePlayers=[...new Set([...known,...onlinePlayers])].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
     renderAllPlayerTags('ca-player-list','pickPlayer_ca');
     renderAllPlayerTags('st-player-list','pickPlayer_st');
     renderAllPlayerTags('wl-add-player-list','pickPlayer_wl');
-  } catch { /* silencieux */ }
+  }catch{}
 }
 
-async function loadWatchlist() {
-  try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(()=>ctrl.abort(), 6000);
-    const r = await fetch(API+'/api/watchlist', {signal:ctrl.signal});
-    clearTimeout(tid);
-    const d = await r.json();
-    watchlist = d.players||[];
-    $('st-wcount').textContent=watchlist.length;
-  } catch { /* garde l'ancienne valeur */ }
-}
-async function loadMochaWatchlist() {
-  try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(()=>ctrl.abort(), 6000);
-    const r = await fetch(API+'/api/watchlist_mocha', {signal:ctrl.signal});
-    clearTimeout(tid);
-    const d = await r.json();
-    watchlistMocha = d.players||[];
-  } catch { /* garde l'ancienne valeur */ }
-}
-
-// ---- DASHBOARD ----
-async function loadDashboard() {
-  $('srv-overview').innerHTML = ld();
-  try {
-    const all = await api('/api/online_all');
-    const lp  = all['lime']||[];
-    let total = 0;
-    const max = Math.max(...SERVERS.map(s=>(all[s]||[]).length),1);
-
-    // Update global player pool for autocomplete
-    const pool = new Set(onlinePlayers);
-    SERVERS.forEach(s => (all[s]||[]).forEach(p => pool.add(p)));
-    onlinePlayers = [...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-
-    // Alerts
-    watchlist.forEach(p => {
-      SERVERS.forEach(s => {
-        const online = (all[s]||[]).includes(p);
-        const key = p+'@'+s;
-        if (online && !prevOnline[key]) pushAlert('connect',p,s);
-        if (!online && prevOnline[key]) pushAlert('disconnect',p,s);
-        prevOnline[key] = online;
-      });
-    });
-
-    SERVERS.forEach(s => total += (all[s]||[]).length);
-    $('st-total').textContent  = total;
-    $('st-wonline').textContent = watchlist.filter(p => lp.includes(p)).length;
-
-    $('srv-overview').innerHTML = SERVERS.map(s => {
-      const cnt = (all[s]||[]).length;
-      const isBuggy = s==='red' || s==='mocha';
-      const redBorder = isBuggy ? 'border-color:rgba(255,153,51,.35);' : '';
-      const redLbl = isBuggy
-        ? '<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.08em">⚠ données instables</div>'
-        : '<div class="scard-lbl">EN LIGNE</div>';
-      return `<div class="scard" onclick="goOnline('${s}')" style="${redBorder}">
+// ── DASHBOARD ──
+async function loadDashboard(){
+  $('srv-overview').innerHTML=ld();
+  try{
+    const all=await api('/api/online_all');
+    const lp=all['lime']||[];
+    const pool=new Set(onlinePlayers);
+    SERVERS.forEach(s=>(all[s]||[]).forEach(p=>pool.add(p)));
+    onlinePlayers=[...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+    watchlist.forEach(p=>{SERVERS.forEach(s=>{const on=(all[s]||[]).includes(p),k=p+'@'+s;if(on&&!prevOnline[k])pushAlert('connect',p,s);if(!on&&prevOnline[k])pushAlert('disconnect',p,s);prevOnline[k]=on;});});
+    let total=0;SERVERS.forEach(s=>total+=(all[s]||[]).length);
+    $('st-total').textContent=total;
+    $('st-wonline').textContent=watchlist.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase())).length;
+    const max=Math.max(...SERVERS.map(s=>(all[s]||[]).length),1);
+    $('srv-overview').innerHTML=SERVERS.map(s=>{
+      const cnt=(all[s]||[]).length,bug=BUGGY(s);
+      return `<div class="scard" onclick="goOnline('${s}')" style="${bug?'border-color:rgba(255,149,0,.3);':''}">
         <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
-        <div class="scard-cnt">${cnt}</div>
-        ${redLbl}
-        <div class="sbar"><div class="sbar-fill" style="width:${Math.round(cnt/max*100)}%"></div></div>
+        <div class="scard-n">${cnt}</div>
+        ${bug?'<div class="scard-l" style="color:var(--org)">⚠ données instables</div>':'<div class="scard-l">EN LIGNE</div>'}
+        <div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/max*100)}%"></div></div>
       </div>`;
     }).join('');
-
-    // LIME section
-    const limeSection = watchlist.length
-      ? `<div style="font-family:var(--font-mono);font-size:.6rem;color:var(--gold);letter-spacing:.15em;margin-bottom:.3rem">🟢 LIME</div>
-         <div class="ptags" style="margin-bottom:.6rem">${watchlist.map(p=>{
-           const on=lp.map(x=>x.toLowerCase()).includes(p.toLowerCase());
-           return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
-         }).join('')}</div>`
-      : '';
-    // MOCHA section
-    const mochaOnline = await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
-    const mochaSection = watchlistMocha.length
-      ? `<div style="font-family:var(--font-mono);font-size:.6rem;color:#c9844c;letter-spacing:.15em;margin-bottom:.3rem">🟤 MOCHA</div>
-         <div class="ptags">${watchlistMocha.map(p=>{
-           const on=mochaOnline.map(x=>x.toLowerCase()).includes(p.toLowerCase());
-           return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
-         }).join('')}</div>`
-      : '';
-    $('wl-quick').innerHTML = (limeSection || mochaSection)
-      ? limeSection + mochaSection
-      : '<div class="empty">Watchlists vides</div>';
-
-  } catch(e) {
-    $('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Erreur : bot hors ligne ?<br/><span style="font-size:.65rem">${e.message}</span></div>`;
-  }
+    const limeS=watchlist.length?`<div style="font-family:var(--fm);font-size:.58rem;color:var(--grn);letter-spacing:.15em;margin-bottom:.25rem">🟢 LIME</div><div class="ptags" style="margin-bottom:.5rem">${watchlist.map(p=>{const on=lp.map(x=>x.toLowerCase()).includes(p.toLowerCase());return`<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;}).join('')}</div>`:'' ;
+    const mp=await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
+    const mochaS=watchlistMocha.length?`<div style="font-family:var(--fm);font-size:.58rem;color:var(--org);letter-spacing:.15em;margin-bottom:.25rem">🟤 MOCHA</div><div class="ptags">${watchlistMocha.map(p=>{const on=mp.map(x=>x.toLowerCase()).includes(p.toLowerCase());return`<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;}).join('')}</div>`:'' ;
+    $('wl-quick').innerHTML=(limeS||mochaS)?limeS+mochaS:'<div class="empty">Watchlists vides</div>';
+  }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne ?<br/><span style="font-size:.62rem">${e.message}</span></div>`;}
 }
 
-function pushAlert(type,player,server) {
-  alerts.unshift({type,player,server,time:new Date().toLocaleTimeString('fr-FR')});
-  if(alerts.length>60) alerts.pop();
-  renderAlerts();
-}
-function renderAlerts() {
-  $('alert-badge').textContent = alerts.length+' évts';
-  $('alert-feed').innerHTML = alerts.length
-    ? alerts.map(a=>`<div class="aitem">
-        <div class="adot ${a.type==='connect'?'g':'r'}"></div>
-        <span class="atime">${a.time}</span>
-        <span class="amsg">${a.type==='connect'?'🟢 Connexion':'🔴 Déco'} — <span>${a.player}</span><span class="asrv">${a.server.toUpperCase()}</span></span>
-      </div>`).join('')
-    : '<div class="empty">En attente...</div>';
+function pushAlert(type,player,server){alerts.unshift({type,player,server,time:new Date().toLocaleTimeString('fr-FR')});if(alerts.length>60)alerts.pop();renderAlerts();}
+function renderAlerts(){
+  $('alert-badge').textContent=alerts.length+' évts';
+  $('alert-feed').innerHTML=alerts.length?alerts.map(a=>`<div class="aitem"><div class="adot ${a.type==='connect'?'g':'r'}"></div><span class="at">${a.time}</span><span class="am">${a.type==='connect'?'🟢 Co':'🔴 Déco'} — <b>${a.player}</b><span class="asrv">${a.server.toUpperCase()}</span></span></div>`).join(''):'<div class="empty">En attente...</div>';
 }
 
-function goOnline(server) {
-  document.querySelectorAll('.tab')[1].click();
-  $('ol-srv').value = server;
-  $('ol-body').innerHTML = ld();
-  loadOnlineSingle(server);
+// ── ONLINE ──
+function goOnline(server){document.querySelectorAll('.tab')[1].click();$('ol-srv').value=server;$('ol-body').innerHTML=ld();loadOnlineSingle(server);}
+function filterOnline(server){$('ol-srv').value=server;$('ol-body').innerHTML=ld();loadOnlineSingle(server);}
+async function loadOnlineSingle(srv){
+  const body=$('ol-body');
+  const w=BUGGY(srv)?warnStrip:'';
+  try{
+    const d=await api('/api/online/'+srv),pl=d.players||[];
+    body.innerHTML=w+(pl.length?`<div style="font-family:var(--fm);font-size:.65rem;color:var(--txd);margin-bottom:.5rem"><span style="color:var(--gb)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div><div class="ptags">${pl.map(p=>`<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'online':''}" onclick="quickCA('${p}')">${p}</span>`).join('')}</div>`:`<div class="empty">${BUGGY(srv)?'0 joueur détecté (dynmap limité)':'Aucun joueur sur '+srv.toUpperCase()}</div>`);
+  }catch(e){body.innerHTML=w+`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
 }
-function filterOnline(server) {
-  $('ol-srv').value = server;
-  $('ol-body').innerHTML = ld();
-  loadOnlineSingle(server);
-}
-async function loadOnlineSingle(srv) {
-  const body = $('ol-body');
-  const redWarning = (srv === 'red' || srv === 'mocha') ? `<div style="font-family:var(--font-mono);font-size:.65rem;color:#ff9933;border:1px solid rgba(255,153,51,.25);padding:.4rem .7rem;margin-bottom:.7rem;border-left:3px solid #ff9933">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>` : '';
-  try {
-    const d  = await api('/api/online/' + srv);
-    const pl = d.players || [];
-    body.innerHTML = redWarning + (pl.length
-      ? `<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.6rem"><span style="color:var(--gold-bright)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div><div class="ptags">${pl.map(p => `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'online':''}" onclick="quickCA('${p}')">${p}</span>`).join('')}</div>`
-      : `<div class="empty">${(srv === 'red' || srv === 'mocha') ? '0 joueur détecté (dynmap hors service ou limité)' : 'Aucun joueur sur ' + srv.toUpperCase()}</div>`);
-  } catch(e) {
-    body.innerHTML = redWarning + `<div class="empty" style="color:var(--red)">Erreur API : ${e.message}</div>`;
-  }
-}
-
-// ---- ONLINE ----
-async function loadOnline() {
-  const srv  = $('ol-srv').value;
-  const body = $('ol-body');
-  body.innerHTML = ld();
-  try {
-    if (!srv) {
-      const all = await api('/api/online_all');
-      let total = 0; SERVERS.forEach(s=>total+=(all[s]||[]).length);
-      body.innerHTML=`<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.8rem">TOTAL <span style="color:var(--gold-bright)">${total}</span> joueurs</div>
-        <div class="sgrid">${SERVERS.map(s=>{
-          const pl=all[s]||[];
-          const isBug = s==='red'||s==='mocha';
-          return `<div class="scard" onclick="filterOnline('${s}')" style="cursor:pointer${isBug?' border-color:rgba(255,153,51,.35)':''}">
-            <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
-            <div class="scard-cnt">${pl.length}</div>
-            ${isBug?'<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.1em">⚠ DONNÉES INSTABLES</div>':`<div class="scard-lbl">CLIQUER POUR FILTRER</div>`}
-            <div class="ptags" style="max-height:80px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,20).map(p=>
-              `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="event.stopPropagation();quickCA('${p}')">${p}</span>`
-            ).join('')}${pl.length>20?`<span style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim)">+${pl.length-20}</span>`:''}</div>
-            <div class="sbar"><div class="sbar-fill" style="width:${Math.round(pl.length/Math.max(...SERVERS.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div>
-          </div>`;
-        }).join('')}</div>`;
-    } else {
-      const d=await api('/api/online/'+srv);
-      const pl=d.players||[];
-      body.innerHTML=pl.length
-        ?`<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.6rem"><span style="color:var(--gold-bright)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div>
-           <div class="ptags">${pl.map(p=>
-             `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'online':''}" onclick="quickCA('${p}')">${p}</span>`
-           ).join('')}</div>`
-        :`<div class="empty">Aucun joueur sur ${srv.toUpperCase()}</div>`;
+async function loadOnline(){
+  const srv=$('ol-srv').value,body=$('ol-body');
+  body.innerHTML=ld();
+  try{
+    if(!srv){
+      const all=await api('/api/online_all');let total=0;SERVERS.forEach(s=>total+=(all[s]||[]).length);
+      body.innerHTML=`<div style="font-family:var(--fm);font-size:.65rem;color:var(--txd);margin-bottom:.7rem">TOTAL <span style="color:var(--gb)">${total}</span> joueurs</div><div class="sgrid">${SERVERS.map(s=>{const pl=all[s]||[],bug=BUGGY(s);return`<div class="scard" onclick="filterOnline('${s}')" style="cursor:pointer${bug?';border-color:rgba(255,149,0,.3)':''}"><div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div><div class="scard-n">${pl.length}</div>${bug?'<div class="scard-l" style="color:var(--org)">⚠ DONNÉES INSTABLES</div>':'<div class="scard-l">CLIQUER POUR FILTRER</div>'}<div class="ptags" style="max-height:75px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,18).map(p=>`<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="event.stopPropagation();quickCA('${p}')">${p}</span>`).join('')}${pl.length>18?`<span style="font-family:var(--fm);font-size:.58rem;color:var(--txd)">+${pl.length-18}</span>`:''}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(pl.length/Math.max(...SERVERS.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div></div>`;}).join('')}</div>`;
+    }else{
+      await loadOnlineSingle(srv);
     }
-  } catch(e) { body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur API : ${e.message}</div>`; }
+  }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
 }
 
-// ---- CHECKALL ----
-async function doCheckall() {
-  const raw = $('ca-input').value.trim();
-  if (!raw) return;
-  // Résolution de la casse
-  const p   = resolvePlayer(raw, onlinePlayers);
-  $('ca-input').value = p;
-  const res = $('ca-result');
-  res.innerHTML = ld();
-  try {
-    const d = await api('/api/checkall/'+encodeURIComponent(p));
-    // Si pas trouvé, retry insensible à la casse côté serveur via le nom résolu
-    res.innerHTML = d.servers.length
-      ?`<div class="res ok"><div class="res-title">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('')}</div>`
-      :`<div class="res err"><div class="res-title">Résultat</div><span style="color:var(--text-dim)">${p} n'est connecté nulle part</span></div>`;
-    caHistory = caHistory.filter(h=>h.p.toLowerCase()!==p.toLowerCase());
-    caHistory.unshift({p, servers:d.servers, t:new Date().toLocaleTimeString('fr-FR')});
-    if(caHistory.length>15) caHistory.pop();
+// ── CHECKALL ──
+async function doCheckall(){
+  const raw=$('ca-input').value.trim();if(!raw)return;
+  const p=resolvePlayer(raw,onlinePlayers);$('ca-input').value=p;
+  const res=$('ca-result');res.innerHTML=ld();
+  try{
+    const d=await api('/api/checkall/'+encodeURIComponent(p));
+    res.innerHTML=d.servers.length?`<div class="res ok"><div class="res-t">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--g)">${s.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="res err"><div class="res-t">Résultat</div><span style="color:var(--txd)">${p} n'est connecté nulle part</span></div>`;
+    caHistory=caHistory.filter(h=>h.p.toLowerCase()!==p.toLowerCase());
+    caHistory.unshift({p,servers:d.servers,t:new Date().toLocaleTimeString('fr-FR')});
+    if(caHistory.length>15)caHistory.pop();
     localStorage.setItem('mg_history',JSON.stringify(caHistory));
     renderCAHistory();
-  // Init watchlist tab style
-  if($('wl-tab-lime')) { $('wl-tab-lime').style.borderColor='var(--gold)'; $('wl-tab-lime').style.color='var(--gold-bright)'; }
-  } catch(e) { res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`; }
+  }catch(e){res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`;}
+}
+function quickCA(player){document.querySelectorAll('.tab')[2].click();$('ca-input').value=player;doCheckall();}
+function renderCAHistory(){
+  const el=$('ca-history');if(!caHistory.length){el.innerHTML='<div class="empty">Aucune recherche</div>';return;}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>`+caHistory.slice(0,12).map(h=>`<tr><td style="color:var(--g);cursor:pointer" onclick="quickCA('${h.p}')">${h.p}</td><td>${h.servers.length?h.servers.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--txd)">Hors ligne</span>'}</td><td style="color:var(--txd)">${h.t}</td></tr>`).join('')+'</tbody></table>';
 }
 
-function quickCA(player) {
-  document.querySelectorAll('.tab')[2].click();
-  $('ca-input').value = player;
-  doCheckall();
+// ── CHECK COUNTRY ──
+async function loadCountrySuggest(){
+  const srv=$('ck-srv').value;if(!srv)return;
+  $('ck-suggest').innerHTML=`<span style="font-family:var(--fm);font-size:.6rem;color:var(--txd)">Chargement...</span>`;
+  try{if(!ctryCache[srv]){const d=await api('/api/countries/'+srv);ctryCache[srv]=(d.countries||[]).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));}renderCountrySuggest(srv);}
+  catch{ctryCache[srv]=[];$('ck-suggest').innerHTML='';}
 }
-function renderCAHistory() {
-  const el=$('ca-history');
-  if(!caHistory.length){el.innerHTML='<div class="empty">Aucune recherche</div>';return;}
-  el.innerHTML=`<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>`+
-    caHistory.slice(0,12).map(h=>`<tr>
-      <td style="color:var(--gold);cursor:pointer" onclick="quickCA('${h.p}')">${h.p}</td>
-      <td>${h.servers.length?h.servers.map(s=>`<span class="svr-tag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--text-dim)">Hors ligne</span>'}</td>
-      <td style="color:var(--text-dim)">${h.t}</td>
-    </tr>`).join('')+'</tbody></table>';
+function renderCountrySuggest(srv){
+  const el=$('ck-suggest'),pool=ctryCache[srv]||[];
+  if(!pool.length){el.innerHTML='';return;}
+  el.innerHTML=pool.map(c=>`<span class="ptag" onclick="selectCountry('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
 }
-
-// ---- CHECK COUNTRY ----
-async function loadCountrySuggest() {
-  const srv=$('ck-srv').value;
-  if(!srv) return;
-  const sugg=$('ck-suggest');
-  sugg.innerHTML=`<span style="font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim)">Chargement des pays...</span>`;
-  try {
-    if(!ctryCache[srv]) {
-      const d=await api('/api/countries/'+srv);
-      ctryCache[srv]=(d.countries||[]).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-    }
-    renderCountrySuggest(srv);
-  } catch { ctryCache[srv]=[]; sugg.innerHTML=''; }
-}
-
-function renderCountrySuggest(srv) {
-  const sugg=$('ck-suggest');
-  const pool=ctryCache[srv]||[];
-  if(!pool.length){sugg.innerHTML='';return;}
-  sugg.innerHTML=pool.map(c=>
-    `<span class="ptag" style="cursor:pointer" onclick="selectCountry('${c.replace(/'/g,"\'")}')"><span style="color:var(--text-dim);font-size:.6rem"></span>${c}</span>`
-  ).join('');
-}
-
-function selectCountry(c) {
-  $('ck-country').value=c;
-  $('ck-list').style.display='none';
-  doCheck();
-}
-
-function acFilterCountry() {
-  const srv=$('ck-srv').value;
-  if(!srv) return;
-  const val=$('ck-country').value.trim().toLowerCase();
-  const pool=ctryCache[srv]||[];
-  // Filtre la liste en bas aussi
-  if($('ck-suggest').innerHTML) {
-    const filtered=val?pool.filter(c=>c.toLowerCase().includes(val)):pool;
-    $('ck-suggest').innerHTML=filtered.map(c=>
-      `<span class="ptag" style="cursor:pointer" onclick="selectCountry('${c.replace(/'/g,"\'")}')"><span style="color:var(--text-dim);font-size:.6rem"></span>${c}</span>`
-    ).join('');
-  }
+function selectCountry(c){$('ck-country').value=c;$('ck-list').style.display='none';doCheck();}
+function acFilterCountry(){
+  const srv=$('ck-srv').value;if(!srv)return;
+  const val=$('ck-country').value.trim().toLowerCase(),pool=ctryCache[srv]||[];
+  const filtered=val?pool.filter(c=>c.toLowerCase().includes(val)):pool;
+  $('ck-suggest').innerHTML=filtered.map(c=>`<span class="ptag" onclick="selectCountry('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
   acFilter('ck-country','ck-list',pool);
 }
-
-async function doCheck() {
-  const srv=$('ck-srv').value;
-  const raw=$('ck-country').value.trim();
-  if(!srv||!raw) return;
-  // Résolution casse pays
-  const pool=ctryCache[srv]||[];
-  const c=resolvePlayer(raw,pool);
-  $('ck-country').value=c;
-  const res=$('ck-result');
-  res.innerHTML=ld();
-  try {
+async function doCheck(){
+  const srv=$('ck-srv').value,raw=$('ck-country').value.trim();if(!srv||!raw)return;
+  const c=resolvePlayer(raw,ctryCache[srv]||[]);$('ck-country').value=c;
+  const res=$('ck-result');res.innerHTML=ld();
+  try{
     const d=await api(`/api/check/${srv}/${encodeURIComponent(c)}`);
-    const redNote = `<div style="font-family:var(--font-mono);font-size:.62rem;color:#ff9933;margin-top:.5rem;padding:.3rem .6rem;border-left:2px solid #ff9933">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>`;
+    const note=`<div class="warn" style="margin-top:.5rem">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>`;
     if(d.online_total===0){
-      res.innerHTML=`<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span>${(srv==='red'||srv==='mocha')?redNote:''}</div>`;
-    } else {
-      const hasRed = Object.keys(d.servers).includes('red');
-      res.innerHTML=`<div class="res err"><div class="res-title">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>`+
-        Object.entries(d.servers).sort((a,b)=>a[0]===srv?-1:1).map(([s,pl])=>
-          `<div style="margin:.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${(s==='red'||s==='mocha')?'<span style="color:#ff9933;font-size:.6rem"> ⚠ limité</span>':''}${s===srv?'<span style="color:var(--red);font-size:.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:.4rem">${pl.join(', ')}</span></div>`
-        ).join('')+(hasRed||srv==='red'||srv==='mocha'?redNote:'')+'</div>';
+      res.innerHTML=`<div class="res ok"><div class="res-t">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUGGY(srv)?note:''}</div>`;
+    }else{
+      const hasB=Object.keys(d.servers).some(s=>BUGGY(s));
+      res.innerHTML=`<div class="res err"><div class="res-t">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>`+Object.entries(d.servers).sort((a,b)=>a[0]===srv?-1:1).map(([s,pl])=>`<div style="margin:.3rem 0">${EMO[s]} <span style="color:var(--g)">${s.toUpperCase()}</span>${BUGGY(s)?'<span style="color:var(--org);font-size:.58rem"> ⚠ limité</span>':''}${s===srv?'<span style="color:var(--red);font-size:.6rem"> ← CIBLE</span>':''} <span style="color:var(--txd);margin-left:.35rem">${pl.join(', ')}</span></div>`).join('')+(hasB||BUGGY(srv)?note:'')+'</div>';
     }
-  } catch(e){ res.innerHTML=`<div class="res err"><div class="res-title">Erreur</div>${e.message}</div>`; }
+  }catch(e){res.innerHTML=`<div class="res err"><div class="res-t">Erreur</div>${e.message}</div>`;}
 }
 
-// ---- WATCHLIST ----
-function wlRender() {
-  const el=$('wl-manage');
-  const wl = currentWl==='mocha' ? watchlistMocha : watchlist;
+// ── WATCHLIST ──
+function wlRender(){
+  const el=$('wl-manage'),wl=currentWl==='mocha'?watchlistMocha:watchlist;
   $('st-wcount').textContent=watchlist.length;
   if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
-  el.innerHTML=wl.map(p=>`
-    <div class="wi">
-      <span class="wi-name">${p}</span>
-      <button class="btn btn-red" style="padding:.15rem .5rem;font-size:.62rem" onclick="wlRemove('${p}')">✕</button>
-    </div>`).join('');
+  el.innerHTML=wl.map(p=>`<div class="wi"><span style="font-family:var(--fm);font-size:.72rem">${p}</span><button class="btn btn-red" style="padding:.12rem .45rem;font-size:.6rem" onclick="wlRemove('${p}')">✕</button></div>`).join('');
 }
-async function wlAdd() {
-  const raw=$('wl-add-input').value.trim();
-  if(!raw) return;
-  const name=resolvePlayer(raw,onlinePlayers);
-  $('wl-add-input').value='';
-  const endpoint = currentWl==='mocha' ? '/api/watchlist_mocha/add' : '/api/watchlist/add';
-  try {
-    const d=await apiPost(endpoint,{player:name});
-    if(currentWl==='mocha') watchlistMocha=d.players;
-    else watchlist=d.players;
-    wlRender(); wlRefreshStatus();
-  } catch(e){ alert('Erreur : '+e.message); }
+async function wlAdd(){
+  const raw=$('wl-add-input').value.trim();if(!raw)return;
+  const name=resolvePlayer(raw,onlinePlayers);$('wl-add-input').value='';
+  try{const d=await apiPost(currentWl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(currentWl==='mocha')watchlistMocha=d.players;else watchlist=d.players;wlRender();wlRefreshStatus();}
+  catch(e){alert('Erreur : '+e.message);}
 }
-async function wlRemove(name) {
-  const endpoint = currentWl==='mocha' ? '/api/watchlist_mocha/remove' : '/api/watchlist/remove';
-  try {
-    const d=await apiPost(endpoint,{player:name});
-    if(currentWl==='mocha') watchlistMocha=d.players;
-    else watchlist=d.players;
-    wlRender(); wlRefreshStatus();
-  } catch(e){ alert('Erreur : '+e.message); }
+async function wlRemove(name){
+  try{const d=await apiPost(currentWl==='mocha'?'/api/watchlist_mocha/remove':'/api/watchlist/remove',{player:name});if(currentWl==='mocha')watchlistMocha=d.players;else watchlist=d.players;wlRender();wlRefreshStatus();}
+  catch(e){alert('Erreur : '+e.message);}
 }
-async function switchWl(srv) {
-  currentWl = srv;
-  document.querySelectorAll('#wl-tab-lime,#wl-tab-mocha').forEach(el => {
-    el.style.borderColor = 'var(--border)';
-    el.style.color = 'var(--text-dim)';
-  });
-  const active = $('wl-tab-' + srv);
-  if(active){ active.style.borderColor='var(--gold)'; active.style.color='var(--gold-bright)'; }
-  if($('wl-panel-title')) $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
-  if($('wl-status-title')) $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
-
-  // Montrer état intermédiaire pendant le chargement
-  $('wl-manage').innerHTML = '<div class="empty" style="color:var(--gold)">↻ Chargement...</div>';
-  $('wl-status').innerHTML = '';
-  // Charge les données PUIS affiche
-  if(srv === 'lime') await loadWatchlist();
-  else await loadMochaWatchlist();
-  wlRender();
-  wlRefreshStatus();
+async function switchWl(srv){
+  currentWl=srv;
+  document.querySelectorAll('.wl-tab').forEach(el=>{el.classList.remove('act');});
+  const active=$('wl-tab-'+srv);if(active)active.classList.add('act');
+  if($('wl-panel-title'))$('wl-panel-title').textContent='◈ Watchlist — '+srv.toUpperCase();
+  if($('wl-status-title'))$('wl-status-title').textContent='⚡ Statut live — '+srv.toUpperCase();
+  $('wl-manage').innerHTML='<div class="empty" style="color:var(--g)">↻ Chargement...</div>';
+  $('wl-status').innerHTML='';
+  if(srv==='lime')await loadWatchlist();else await loadMochaWatchlist();
+  wlRender();wlRefreshStatus();
 }
-
-async function wlRefreshStatus() {
-  const el=$('wl-status');
-  if(!el) return;
+async function wlRefreshStatus(){
+  const el=$('wl-status');if(!el)return;
   el.innerHTML=ld();
-  const srv = currentWl==='mocha' ? 'mocha' : 'lime';
-  const wl  = currentWl==='mocha' ? watchlistMocha : watchlist;
-  if(!wl.length){
-    el.innerHTML='<div class="empty">Watchlist vide — ajoutez des joueurs</div>';
-    return;
-  }
-  try {
-    const controller = new AbortController();
-    const tid = setTimeout(()=>controller.abort(), 8000);
-    const r = await fetch(API+'/api/online/'+srv, {signal:controller.signal});
-    clearTimeout(tid);
-    const d = await r.json();
-    const lp=d.players||[];
+  const srv=currentWl==='mocha'?'mocha':'lime',wl=currentWl==='mocha'?watchlistMocha:watchlist;
+  if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide — ajoutez des joueurs</div>';return;}
+  try{
+    const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);
+    const r=await fetch(API+'/api/online/'+srv,{signal:c.signal});clearTimeout(t);
+    const d=await r.json(),lp=d.players||[];
     const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
     const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
-    el.innerHTML=[
-      ...on.map(p=>`<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · ${srv.toUpperCase()}</div></div>`),
-      ...off.map(p=>`<div class="wi"><span class="wi-name" style="opacity:.45">${p}</span><div class="wi-status off">◯ Hors ligne</div></div>`)
-    ].join('') || '<div class="empty">Aucune donnée</div>';
-  } catch(e){
-    el.innerHTML=`<div class="empty" style="color:var(--red)">${e.name==='AbortError'?'Timeout — bot trop lent à répondre':'Erreur : '+e.message}</div>`;
-  }
+    el.innerHTML=[...on.map(p=>`<div class="wi"><span style="font-family:var(--fm);font-size:.72rem">${p}</span><div class="wi-s on"><div class="dot"></div>EN LIGNE · ${srv.toUpperCase()}</div></div>`),
+      ...off.map(p=>`<div class="wi"><span style="font-family:var(--fm);font-size:.72rem;opacity:.4">${p}</span><div class="wi-s off">◯ Hors ligne</div></div>`)].join('')||'<div class="empty">Aucune donnée</div>';
+  }catch(e){el.innerHTML=`<div class="empty" style="color:var(--red)">${e.name==='AbortError'?'Timeout — bot lent':'Erreur : '+e.message}</div>`;}
 }
 
-// ---- STATS ----
-async function loadStats() {
-  const raw=$('st-input').value.trim();
-  if(!raw) return;
-  const p=resolvePlayer(raw,onlinePlayers);
-  $('st-input').value=p;
-  const res=$('st-result');
-  res.innerHTML=`<div class="panel"><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
-
-  const [locR,pronoR,plagesR]=await Promise.allSettled([
-    api('/api/checkall/'+encodeURIComponent(p)),
-    api('/api/pronostic/'+encodeURIComponent(p)),
-    api('/api/plages/'+encodeURIComponent(p))
-  ]);
-
-  const loc    = locR.status   ==='fulfilled'?locR.value   :null;
-  const prono  = pronoR.status ==='fulfilled'?pronoR.value :null;
-  const plages = plagesR.status==='fulfilled'?plagesR.value:null;
-  const servers = loc?loc.servers:[];
-
+// ── STATS ──
+async function loadStats(){
+  const raw=$('st-input').value.trim();if(!raw)return;
+  const p=resolvePlayer(raw,onlinePlayers);$('st-input').value=p;
+  const res=$('st-result');res.innerHTML=`<div class="panel"><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
+  const[locR,pronoR,plagesR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/pronostic/'+encodeURIComponent(p)),api('/api/plages/'+encodeURIComponent(p))]);
+  const loc=locR.status==='fulfilled'?locR.value:null;
+  const prono=pronoR.status==='fulfilled'?pronoR.value:null;
+  const plages=plagesR.status==='fulfilled'?plagesR.value:null;
+  const servers=loc?loc.servers:[];
   let html='';
 
-  // ── BLOC 1 : Localisation ──
-  html+=`<div class="stat-block">
-    <div class="stat-block-title">◉ Localisation actuelle</div>`;
-  if(servers.length){
-    html+=servers.map(s=>`
-      <div class="info-row">
-        <span class="info-key">${EMO[s]} Serveur</span>
-        <span class="info-val online-green">${s.toUpperCase()}</span>
-      </div>`).join('');
-  } else {
-    html+=`<div class="info-row"><span class="info-key">Statut</span><span class="info-val" style="color:var(--text-dim)">Hors ligne</span></div>`;
-  }
+  // Localisation
+  html+=`<div class="sb"><div class="sb-t">◉ Localisation actuelle</div>`;
+  if(servers.length)html+=servers.map(s=>`<div class="ir"><span class="ik">${EMO[s]} Serveur</span><span class="iv og">${s.toUpperCase()}</span></div>`).join('');
+  else html+=`<div class="ir"><span class="ik">Statut</span><span class="iv" style="color:var(--txd)">Hors ligne</span></div>`;
   html+='</div>';
 
-  // ── BLOC 2 : Pronostic ──
-  html+=`<div class="stat-block">
-    <div class="stat-block-title">◐ Pronostic de connexion</div>`;
+  // Pronostic
+  html+=`<div class="sb"><div class="sb-t">◐ Pronostic de connexion</div>`;
   if(prono&&prono.pronostic&&prono.pronostic.length){
-    html+=`<div style="font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim);margin-bottom:.6rem">Basé sur ${prono.total} connexions enregistrées</div>`;
-    html+=prono.pronostic.map(r=>`
-      <div class="prow">
-        <span class="pday">${r.day}</span>
-        <div class="pbar-w"><div class="pbar-f" style="width:${r.pct}%"></div></div>
-        <span class="ppct">${r.pct}%</span>
-        <span class="ptime">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span>
-      </div>`).join('');
-  } else {
-    html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Pas assez de connexions enregistrées (min. 3)</span></div>`;
-  }
+    html+=`<div style="font-family:var(--fm);font-size:.6rem;color:var(--txd);margin-bottom:.5rem">Basé sur ${prono.total} connexions</div>`;
+    html+=prono.pronostic.map(r=>`<div class="prow"><span class="pd">${r.day}</span><div class="pb2"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp">${r.pct}%</span><span class="pt2">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');
+  }else html+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--txd)">Pas assez de connexions (min. 3)</span></div>`;
   html+='</div>';
 
-  // ── BLOC 3 : Plages horaires heatmap ──
-  html+=`<div class="stat-block">
-    <div class="stat-block-title">🕐 Plages horaires</div>`;
+  // Heatmap
+  html+=`<div class="sb"><div class="sb-t">🕐 Plages horaires</div>`;
   if(plages&&plages.heatmap){
-    const hm=plages.heatmap;
-    const days=plages.days;
-    const maxV=Math.max(...hm.flat(),1);
-    // En-têtes heures
-    html+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--font-mono);font-size:.6rem;width:100%">
-      <tr><td style="color:var(--text-dim);padding-right:.5rem;white-space:nowrap">Heure →</td>`;
-    for(let h=0;h<24;h++) html+=`<td style="color:var(--text-dim);text-align:center;padding:0 2px;font-size:.55rem">${h}</td>`;
+    const hm=plages.heatmap,days=plages.days,maxV=Math.max(...hm.flat(),1);
+    html+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--fm);font-size:.58rem;width:100%"><tr><td style="color:var(--txd);padding-right:.5rem;white-space:nowrap">Heure →</td>`;
+    for(let h=0;h<24;h++)html+=`<td style="color:var(--txd);text-align:center;padding:0 2px;font-size:.52rem">${h}</td>`;
     html+='</tr>';
     days.forEach((day,di)=>{
-      html+=`<tr><td style="color:var(--gold);padding-right:.5rem;white-space:nowrap;padding-top:2px">${day}</td>`;
-      hm[di].forEach(v=>{
-        const intensity=v?Math.round(v/maxV*100):0;
-        const bg=v?`rgba(201,168,76,${(0.08+intensity/100*0.75).toFixed(2)})`:'var(--border)';
-        html+=`<td style="width:16px;height:16px;background:${bg};border-radius:2px;padding:0;font-size:.55rem;text-align:center;color:rgba(240,192,64,.7)">${v||''}</td>`;
-      });
+      html+=`<tr><td style="color:var(--g);padding-right:.5rem;white-space:nowrap;padding-top:2px">${day}</td>`;
+      hm[di].forEach(v=>{const i=v?Math.round(v/maxV*100):0,bg=v?`rgba(201,168,76,${(0.08+i/100*.75).toFixed(2)})`:'var(--b0)';html+=`<td style="width:16px;height:16px;background:${bg};border-radius:2px;padding:0;font-size:.52rem;text-align:center;color:rgba(240,192,64,.7)">${v||''}</td>`;});
       html+='</tr>';
     });
     html+='</table></div>';
-  } else {
-    html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Aucune donnée disponible</span></div>`;
-  }
+  }else html+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--txd)">Aucune donnée disponible</span></div>`;
   html+='</div>';
 
-  // ── BLOC 4 : Historique des connexions ──
-  html+=`<div class="stat-block">
-    <div class="stat-block-title">◷ Historique des connexions</div>`;
-  // On récupère les sessions depuis l'API plages (on a déjà les données agrégées)
-  // On affiche un résumé par jour/heure
+  // Historique
+  html+=`<div class="sb"><div class="sb-t">◷ Historique des connexions</div>`;
   if(plages&&plages.heatmap){
-    const hm=plages.heatmap;
-    const days=plages.days;
-    const rows=[];
-    days.forEach((day,di)=>{
-      const total=hm[di].reduce((a,v)=>a+v,0);
-      if(!total) return;
-      const peakH=hm[di].indexOf(Math.max(...hm[di]));
-      rows.push({day,total,peakH});
-    });
+    const hm=plages.heatmap,days=plages.days,rows=[];
+    days.forEach((day,di)=>{const tot=hm[di].reduce((a,v)=>a+v,0);if(!tot)return;rows.push({day,total:tot,peakH:hm[di].indexOf(Math.max(...hm[di]))});});
     rows.sort((a,b)=>b.total-a.total);
-    if(rows.length){
-      html+=`<table class="tbl"><thead><tr><th>Jour</th><th>Connexions</th><th>Pic d'activité</th></tr></thead><tbody>`;
-      html+=rows.map(r=>`<tr>
-        <td style="color:var(--gold)">${r.day}</td>
-        <td class="info-val hl">${r.total}</td>
-        <td style="color:var(--text-dim)">${r.peakH}h00 – ${r.peakH+1}h00</td>
-      </tr>`).join('');
-      html+='</tbody></table>';
-    } else {
-      html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Aucune connexion enregistrée</span></div>`;
-    }
-  } else {
-    html+=`<div class="info-row"><span class="info-key">Données</span><span class="info-val" style="color:var(--text-dim)">Aucune donnée disponible</span></div>`;
-  }
+    if(rows.length){html+=`<table class="tbl"><thead><tr><th>Jour</th><th>Connexions</th><th>Pic</th></tr></thead><tbody>`;html+=rows.map(r=>`<tr><td style="color:var(--g)">${r.day}</td><td class="iv hl">${r.total}</td><td style="color:var(--txd)">${r.peakH}h–${r.peakH+1}h</td></tr>`).join('');html+='</tbody></table>';}
+    else html+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--txd)">Aucune connexion</span></div>`;
+  }else html+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--txd)">Aucune donnée</span></div>`;
   html+='</div>';
 
   res.innerHTML=html;
 }
 
-// ---- INIT ----
-async function init() {
+// ── INIT ──
+async function init(){
   renderCAHistory();
-  // Init watchlist tab style
-  if($('wl-tab-lime')) { $('wl-tab-lime').style.borderColor='var(--gold)'; $('wl-tab-lime').style.color='var(--gold-bright)'; }
   const ok=await checkApi();
   $('scan-dot').className=ok?'dot':'dot off';
   if(ok){
     await loadWatchlist();
     await loadMochaWatchlist();
-    loadKnownPlayers(); // arrière-plan, pas de await
+    loadKnownPlayers();
     await loadDashboard();
-    setInterval(async()=>{ await loadWatchlist(); await loadDashboard(); },30000);
+    setInterval(async()=>{await loadWatchlist();await loadDashboard();},30000);
   }
 }
 init();
