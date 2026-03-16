@@ -401,6 +401,16 @@ async def api_pronostic(request):
         "pronostic": [{"day": DAYS[d], "avg_h": h, "avg_m": m, "pct": pct} for d, h, m, pct in top]
     })
 
+async def api_known_players(request):
+    if not mongo_ok or sessions_col is None:
+        return cors({"players": []})
+    try:
+        players = sessions_col.distinct("player")
+        players.sort(key=lambda x: x.lower())
+        return cors({"players": players})
+    except Exception as e:
+        return cors({"players": [], "error": str(e)})
+
 async def api_plages(request):
     player = request.match_info["player"]
     result = get_plages(player)
@@ -793,6 +803,7 @@ async def start_webserver():
     app.router.add_post('/api/watchlist_mocha/remove',      api_watchlist_mocha_remove)
     app.router.add_get('/api/pronostic/{player}',       api_pronostic)
     app.router.add_get('/api/plages/{player}',          api_plages)
+    app.router.add_get('/api/known_players',            api_known_players)
     app.router.add_route('OPTIONS', '/{path_info:.*}',  handle_options)
     runner = web.AppRunner(app)
     await runner.setup()
