@@ -643,13 +643,13 @@ function filterOnline(server) {
 }
 async function loadOnlineSingle(srv) {
   const body = $('ol-body');
-  const redWarning = srv === 'red' ? `<div style="font-family:var(--font-mono);font-size:.65rem;color:#ff9933;border:1px solid rgba(255,153,51,.25);padding:.4rem .7rem;margin-bottom:.7rem;border-left:3px solid #ff9933">⚠ Dynmap RED souvent hors service — données possiblement incomplètes</div>` : '';
+  const redWarning = (srv === 'red' || srv === 'mocha') ? `<div style="font-family:var(--font-mono);font-size:.65rem;color:#ff9933;border:1px solid rgba(255,153,51,.25);padding:.4rem .7rem;margin-bottom:.7rem;border-left:3px solid #ff9933">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>` : '';
   try {
     const d  = await api('/api/online/' + srv);
     const pl = d.players || [];
     body.innerHTML = redWarning + (pl.length
       ? `<div style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-bottom:.6rem"><span style="color:var(--gold-bright)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div><div class="ptags">${pl.map(p => `<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'online':''}" onclick="quickCA('${p}')">${p}</span>`).join('')}</div>`
-      : `<div class="empty">${srv === 'red' ? '0 joueur détecté (dynmap RED souvent indisponible)' : 'Aucun joueur sur ' + srv.toUpperCase()}</div>`);
+      : `<div class="empty">${(srv === 'red' || srv === 'mocha') ? '0 joueur détecté (dynmap hors service ou limité)' : 'Aucun joueur sur ' + srv.toUpperCase()}</div>`);
   } catch(e) {
     body.innerHTML = redWarning + `<div class="empty" style="color:var(--red)">Erreur API : ${e.message}</div>`;
   }
@@ -788,14 +788,14 @@ async function doCheck() {
   res.innerHTML=ld();
   try {
     const d=await api(`/api/check/${srv}/${encodeURIComponent(c)}`);
-    const redNote = `<div style="font-family:var(--font-mono);font-size:.62rem;color:#ff9933;margin-top:.5rem;padding:.3rem .6rem;border-left:2px solid #ff9933">⚠ RED — dynmap souvent hors service, données possiblement incomplètes</div>`;
+    const redNote = `<div style="font-family:var(--font-mono);font-size:.62rem;color:#ff9933;margin-top:.5rem;padding:.3rem .6rem;border-left:2px solid #ff9933">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>`;
     if(d.online_total===0){
       res.innerHTML=`<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span>${srv==='red'?redNote:''}</div>`;
     } else {
       const hasRed = Object.keys(d.servers).includes('red');
       res.innerHTML=`<div class="res err"><div class="res-title">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>`+
         Object.entries(d.servers).sort((a,b)=>a[0]===srv?-1:1).map(([s,pl])=>
-          `<div style="margin:.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${s==='red'?'<span style="color:#ff9933;font-size:.6rem"> ⚠ instable</span>':''}${s===srv?'<span style="color:var(--red);font-size:.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:.4rem">${pl.join(', ')}</span></div>`
+          `<div style="margin:.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${s==='red'?'<span style="color:#ff9933;font-size:.6rem"> ⚠ limité</span>':''}${s===srv?'<span style="color:var(--red);font-size:.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:.4rem">${pl.join(', ')}</span></div>`
         ).join('')+(hasRed||srv==='red'?redNote:'')+'</div>';
     }
   } catch(e){ res.innerHTML=`<div class="res err"><div class="res-title">Erreur</div>${e.message}</div>`; }
