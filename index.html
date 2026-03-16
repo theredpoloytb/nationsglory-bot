@@ -450,12 +450,25 @@ async function checkApi() {
 
 // ---- LOAD WATCHLIST ----
 async function loadWatchlist() {
-  try { const d = await api('/api/watchlist'); watchlist = d.players||[]; $('st-wcount').textContent=watchlist.length; }
-  catch { watchlist=[]; }
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 6000);
+    const r = await fetch(API+'/api/watchlist', {signal:ctrl.signal});
+    clearTimeout(tid);
+    const d = await r.json();
+    watchlist = d.players||[];
+    $('st-wcount').textContent=watchlist.length;
+  } catch { /* garde l'ancienne valeur */ }
 }
 async function loadMochaWatchlist() {
-  try { const d = await api('/api/watchlist_mocha'); watchlistMocha = d.players||[]; }
-  catch { watchlistMocha=[]; }
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 6000);
+    const r = await fetch(API+'/api/watchlist_mocha', {signal:ctrl.signal});
+    clearTimeout(tid);
+    const d = await r.json();
+    watchlistMocha = d.players||[];
+  } catch { /* garde l'ancienne valeur */ }
 }
 
 // ---- DASHBOARD ----
@@ -757,13 +770,14 @@ async function switchWl(srv) {
   });
   const active = $('wl-tab-' + srv);
   if(active){ active.style.borderColor = 'var(--gold)'; active.style.color = 'var(--gold-bright)'; }
-  // Titles
   if($('wl-panel-title')) $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
   if($('wl-status-title')) $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
-  // Toujours recharger la watchlist depuis l'API avant d'afficher
-  if(srv === 'lime') await loadWatchlist();
-  else await loadMochaWatchlist();
+  // Affiche ce qu'on a déjà immédiatement
   wlRender();
+  // Recharge en parallèle sans bloquer
+  const loadFn = srv === 'lime' ? loadWatchlist : loadMochaWatchlist;
+  loadFn().then(() => { wlRender(); });
+  // Lance le statut live sans attendre le reload
   await wlRefreshStatus();
 }
 
