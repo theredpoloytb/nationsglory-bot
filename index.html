@@ -784,16 +784,38 @@ function soundHover() {
   playTone(660, 'sine', 0.04, 0.03);
 }
 
-// Son d'alerte watchlist connexion
+// Son d'alerte watchlist connexion — fort et impossible à louper
 function soundAlert(isConnect) {
   if (isConnect) {
-    playTone(440, 'sine', 0.1, 0.12);
-    playTone(550, 'sine', 0.1, 0.12, 0.1);
-    playTone(660, 'sine', 0.15, 0.15, 0.2);
+    // Connexion — montée rapide, 3 bips forts
+    playTone(440, 'square', 0.08, 0.25);
+    playTone(550, 'square', 0.08, 0.25, 0.09);
+    playTone(880, 'sine',   0.2,  0.3,  0.18);
+    playTone(880, 'sine',   0.15, 0.25, 0.4);
   } else {
-    playTone(440, 'sine', 0.1, 0.08);
-    playTone(330, 'sine', 0.12, 0.08, 0.1);
+    // Déconnexion — descente grave, alarme
+    playTone(660, 'square', 0.08, 0.25);
+    playTone(440, 'square', 0.08, 0.25, 0.09);
+    playTone(220, 'sawtooth',0.2, 0.3,  0.18);
+    playTone(180, 'sawtooth',0.15,0.25, 0.4);
   }
+}
+
+// Synthèse vocale
+function speak(text) {
+  try {
+    window.speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'fr-FR';
+    msg.rate = 1.1;
+    msg.pitch = 1.0;
+    msg.volume = 1.0;
+    // Chercher une voix française
+    const voices = window.speechSynthesis.getVoices();
+    const frVoice = voices.find(v => v.lang.startsWith('fr'));
+    if (frVoice) msg.voice = frVoice;
+    window.speechSynthesis.speak(msg);
+  } catch(e) {}
 }
 
 // Son de résultat trouvé
@@ -807,6 +829,11 @@ function soundFound() {
 // ══════════════════════════════════════
 function showAlertPopup(type, player, server) {
   soundAlert(type === 'connect');
+  // Voix après le son (petit délai)
+  setTimeout(() => {
+    if (type === 'connect') speak(`${player} vient de se connecter sur ${server}`);
+    else speak(`${player} vient de se déconnecter`);
+  }, 500);
   const popup = $('alert-popup');
   const notif = document.createElement('div');
   notif.className = 'alert-notif' + (type === 'disconnect' ? ' dc' : '');
@@ -826,6 +853,12 @@ function showAlertPopup(type, player, server) {
 }
 
 // ── INIT ──
+// Précharge les voix (Chrome les charge en async)
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
 async function init(){
   renderCAHistory();
   const ok=await checkApi();
