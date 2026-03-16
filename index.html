@@ -434,7 +434,7 @@ function nav(id, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   $('s-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id==='watchlist') { wlRender(); wlRefreshStatus(); switchWl(currentWl); }
+  if (id==='watchlist') { switchWl(currentWl); }
   if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
 }
 
@@ -764,25 +764,35 @@ async function switchWl(srv) {
   if(srv === 'lime' && watchlist.length === 0) await loadWatchlist();
   if(srv === 'mocha' && watchlistMocha.length === 0) await loadMochaWatchlist();
   wlRender();
-  wlRefreshStatus();
+  await wlRefreshStatus();
 }
 
 async function wlRefreshStatus() {
   const el=$('wl-status');
+  if(!el) return;
   el.innerHTML=ld();
   const srv = currentWl==='mocha' ? 'mocha' : 'lime';
   const wl  = currentWl==='mocha' ? watchlistMocha : watchlist;
+  if(!wl.length){
+    el.innerHTML='<div class="empty">Watchlist vide — ajoutez des joueurs</div>';
+    return;
+  }
   try {
-    const d=await api('/api/online/'+srv);
+    const controller = new AbortController();
+    const tid = setTimeout(()=>controller.abort(), 8000);
+    const r = await fetch(API+'/api/online/'+srv, {signal:controller.signal});
+    clearTimeout(tid);
+    const d = await r.json();
     const lp=d.players||[];
-    if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}
     const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
     const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));
     el.innerHTML=[
       ...on.map(p=>`<div class="wi"><span class="wi-name">${p}</span><div class="wi-status on"><div class="dot"></div>EN LIGNE · ${srv.toUpperCase()}</div></div>`),
       ...off.map(p=>`<div class="wi"><span class="wi-name" style="opacity:.45">${p}</span><div class="wi-status off">◯ Hors ligne</div></div>`)
-    ].join('');
-  } catch(e){ el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`; }
+    ].join('') || '<div class="empty">Aucune donnée</div>';
+  } catch(e){
+    el.innerHTML=`<div class="empty" style="color:var(--red)">${e.name==='AbortError'?'Timeout — bot trop lent à répondre':'Erreur : '+e.message}</div>`;
+  }
 }
 
 // ---- STATS ----
