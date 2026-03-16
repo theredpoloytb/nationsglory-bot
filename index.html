@@ -307,12 +307,12 @@
           </div>
           <button class="btn btn-green" onclick="wlAdd()">+ Ajouter</button>
         </div>
-        <div id="wl-manage"><div class="empty">Cliquez sur LIME ou MOCHA</div></div>
+        <div id="wl-manage"></div>
       </div>
     </div>
     <div class="panel">
       <div class="ph"><span class="pt" id="wl-status-title">⚡ Statut live — LIME</span><button class="btn" onclick="wlRefreshStatus()">↺</button></div>
-      <div class="pb" id="wl-status"><div class="empty">—</div></div>
+      <div class="pb" id="wl-status"></div>
     </div>
   </div>
 </section>
@@ -763,22 +763,23 @@ async function wlRemove(name) {
 }
 async function switchWl(srv) {
   currentWl = srv;
-  // Tab styles
   document.querySelectorAll('#wl-tab-lime,#wl-tab-mocha').forEach(el => {
     el.style.borderColor = 'var(--border)';
     el.style.color = 'var(--text-dim)';
   });
   const active = $('wl-tab-' + srv);
-  if(active){ active.style.borderColor = 'var(--gold)'; active.style.color = 'var(--gold-bright)'; }
+  if(active){ active.style.borderColor='var(--gold)'; active.style.color='var(--gold-bright)'; }
   if($('wl-panel-title')) $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
   if($('wl-status-title')) $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
-  // Affiche ce qu'on a déjà immédiatement
+
+  // Montrer état intermédiaire pendant le chargement
+  $('wl-manage').innerHTML = '<div class="empty" style="color:var(--gold)">↻ Chargement...</div>';
+  $('wl-status').innerHTML = '';
+  // Charge les données PUIS affiche
+  if(srv === 'lime') await loadWatchlist();
+  else await loadMochaWatchlist();
   wlRender();
-  // Recharge en parallèle sans bloquer
-  const loadFn = srv === 'lime' ? loadWatchlist : loadMochaWatchlist;
-  loadFn().then(() => { wlRender(); });
-  // Lance le statut live sans attendre le reload
-  await wlRefreshStatus();
+  wlRefreshStatus();
 }
 
 async function wlRefreshStatus() {
