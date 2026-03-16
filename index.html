@@ -180,10 +180,26 @@ select option{background:var(--s1)}
 
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
+
+/* ── ALERT POPUP ── */
+.alert-popup{position:fixed;top:70px;right:1.5rem;z-index:9000;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.alert-notif{background:linear-gradient(135deg,#0a1520,#081018);border:1px solid var(--grn);border-left:4px solid var(--grn);border-radius:var(--r2);padding:.75rem 1rem;font-family:var(--fm);font-size:.72rem;color:var(--grn);box-shadow:0 0 30px rgba(0,229,122,.2),0 8px 32px rgba(0,0,0,.5);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);min-width:260px;pointer-events:all;cursor:pointer}
+.alert-notif.dc{border-color:var(--red);color:var(--red);box-shadow:0 0 30px rgba(255,45,85,.2),0 8px 32px rgba(0,0,0,.5)}
+.alert-notif-title{font-size:.58rem;letter-spacing:.2em;opacity:.7;margin-bottom:.2rem}
+.alert-notif-name{font-size:.9rem;letter-spacing:.1em}
+.alert-notif-srv{font-size:.6rem;color:var(--txd);margin-top:.15rem}
+.alert-notif .close{position:absolute;top:.4rem;right:.6rem;opacity:.4;font-size:.8rem;cursor:pointer}
+@keyframes popIn{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes popOut{to{opacity:0;transform:translateX(20px) scale(.95)}}
+
+/* LIVE BADGE */
+.live-badge{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--fm);font-size:.55rem;color:var(--grn);background:rgba(0,229,122,.08);border:1px solid rgba(0,229,122,.25);border-radius:20px;padding:.15rem .5rem;letter-spacing:.1em}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--grn);box-shadow:0 0 5px var(--grn);animation:blink .8s infinite}
 </style>
 </head>
 <body>
 
+<div class="alert-popup" id="alert-popup"></div>
 <header class="hdr">
   <div class="hdr-logo">
     <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
@@ -228,7 +244,7 @@ select option{background:var(--s1)}
   <div class="g2 mb">
     <div class="panel">
       <div class="scan-line"></div>
-      <div class="ph"><span class="pt">◉ Interserveur</span><button class="btn" onclick="loadDashboard()">↺ Refresh</button></div>
+      <div class="ph"><span class="pt">◉ Interserveur</span><div style="display:flex;align-items:center;gap:.5rem"><span class="live-badge"><span class="live-dot"></span>LIVE</span><span id="last-update" style="font-family:var(--fm);font-size:.58rem;color:var(--txd)"></span></div></div>
       <div class="pb"><div class="sgrid" id="srv-overview"><div class="ld">Chargement<span class="ld-d"><span>.</span><span>.</span><span>.</span></span></div></div></div>
     </div>
     <div class="panel">
@@ -441,7 +457,7 @@ async function api(path){const r=await fetch(API+path);if(!r.ok)throw new Error(
 async function apiPost(path,body){const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
 // ── NAV ──
-async function nav(id,btn){
+async function nav(id,btn){ soundNav();
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   $('s-'+id).classList.add('active');btn.classList.add('active');
@@ -477,7 +493,8 @@ async function loadKnownPlayers(){
 
 // ── DASHBOARD ──
 async function loadDashboard(){
-  $('srv-overview').innerHTML=ld();
+  // Ne vide l'overview que si vide (premier chargement)
+  if(!$('srv-overview').children.length) $('srv-overview').innerHTML=ld();
   try{
     const all=await api('/api/online_all');
     const lp=all['lime']||[];
@@ -486,26 +503,65 @@ async function loadDashboard(){
     onlinePlayers=[...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
     watchlist.forEach(p=>{SERVERS.forEach(s=>{const on=(all[s]||[]).includes(p),k=p+'@'+s;if(on&&!prevOnline[k])pushAlert('connect',p,s);if(!on&&prevOnline[k])pushAlert('disconnect',p,s);prevOnline[k]=on;});});
     let total=0;SERVERS.forEach(s=>total+=(all[s]||[]).length);
-    $('st-total').textContent=total;
+    const prevTotal=parseInt($('st-total').textContent)||0;
+    if(prevTotal!==total){
+      $('st-total').style.transition='all .3s';
+      $('st-total').textContent=total;
+    }
     $('st-wonline').textContent=watchlist.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase())).length;
     const max=Math.max(...SERVERS.map(s=>(all[s]||[]).length),1);
-    $('srv-overview').innerHTML=SERVERS.map(s=>{
-      const cnt=(all[s]||[]).length,bug=BUGGY(s);
-      return `<div class="scard" onclick="goOnline('${s}')" style="${bug?'border-color:rgba(255,149,0,.3);':''}">
-        <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
-        <div class="scard-n">${cnt}</div>
-        ${bug?'<div class="scard-l" style="color:var(--org)">⚠ données instables</div>':'<div class="scard-l">EN LIGNE</div>'}
-        <div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/max*100)}%"></div></div>
-      </div>`;
-    }).join('');
-    const limeS=watchlist.length?`<div style="font-family:var(--fm);font-size:.58rem;color:var(--grn);letter-spacing:.15em;margin-bottom:.25rem">🟢 LIME</div><div class="ptags" style="margin-bottom:.5rem">${watchlist.map(p=>{const on=lp.map(x=>x.toLowerCase()).includes(p.toLowerCase());return`<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;}).join('')}</div>`:'' ;
+    const existingCards = $('srv-overview').querySelectorAll('.scard');
+    if(existingCards.length === SERVERS.length) {
+      // Smooth update — juste les chiffres et barres
+      SERVERS.forEach((s,i) => {
+        const cnt=(all[s]||[]).length;
+        const card=existingCards[i];
+        const nEl=card.querySelector('.scard-n');
+        const barEl=card.querySelector('.sbar-f');
+        if(nEl && parseInt(nEl.textContent)!==cnt) {
+          nEl.style.transition='opacity .2s';
+          nEl.style.opacity='0.4';
+          setTimeout(()=>{nEl.textContent=cnt;nEl.style.opacity='1';},150);
+        }
+        if(barEl) barEl.style.width=Math.round(cnt/max*100)+'%';
+      });
+    } else {
+      // Premier chargement — render complet
+      $('srv-overview').innerHTML=SERVERS.map(s=>{
+        const cnt=(all[s]||[]).length,bug=BUGGY(s);
+        return `<div class="scard" onmouseenter="soundHover()" onclick="goOnline('${s}')" style="${bug?'border-color:rgba(255,149,0,.3);':''}">
+          <div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div>
+          <div class="scard-n">${cnt}</div>
+          ${bug?'<div class="scard-l" style="color:var(--org)">⚠ données instables</div>':'<div class="scard-l">EN LIGNE</div>'}
+          <div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/max*100)}%"></div></div>
+        </div>`;
+      }).join('');
+    }
     const mp=await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
-    const mochaS=watchlistMocha.length?`<div style="font-family:var(--fm);font-size:.58rem;color:var(--org);letter-spacing:.15em;margin-bottom:.25rem">🟤 MOCHA</div><div class="ptags">${watchlistMocha.map(p=>{const on=mp.map(x=>x.toLowerCase()).includes(p.toLowerCase());return`<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;}).join('')}</div>`:'' ;
-    $('wl-quick').innerHTML=(limeS||mochaS)?limeS+mochaS:'<div class="empty">Watchlists vides</div>';
+    // Smooth update watchlist tags
+    const updateWlSection=(players,list,color,label)=>{
+      if(!list.length) return '';
+      return `<div style="font-family:var(--fm);font-size:.58rem;color:${color};letter-spacing:.15em;margin-bottom:.25rem">${label}</div>`+
+        `<div class="ptags" style="margin-bottom:.5rem">${list.map(p=>{const on=players.map(x=>x.toLowerCase()).includes(p.toLowerCase());return`<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;}).join('')}</div>`;
+    };
+    const limeS=updateWlSection(lp,watchlist,'var(--grn)','🟢 LIME');
+    const mochaS=updateWlSection(mp,watchlistMocha,'var(--org)','🟤 MOCHA');
+    const newHtml=(limeS||mochaS)?limeS+mochaS:'<div class="empty">Watchlists vides</div>';
+    // Ne re-render que si changement
+    if($('wl-quick').innerHTML!==newHtml) $('wl-quick').innerHTML=newHtml;
   }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne ?<br/><span style="font-size:.62rem">${e.message}</span></div>`;}
 }
 
-function pushAlert(type,player,server){alerts.unshift({type,player,server,time:new Date().toLocaleTimeString('fr-FR')});if(alerts.length>60)alerts.pop();renderAlerts();}
+function pushAlert(type,player,server){
+  alerts.unshift({type,player,server,time:new Date().toLocaleTimeString('fr-FR')});
+  if(alerts.length>60)alerts.pop();
+  renderAlerts();
+  // Notification popup + son uniquement pour les cibles de la watchlist
+  if(watchlist.map(p=>p.toLowerCase()).includes(player.toLowerCase()) ||
+     watchlistMocha.map(p=>p.toLowerCase()).includes(player.toLowerCase())) {
+    showAlertPopup(type, player, server);
+  }
+}
 function renderAlerts(){
   $('alert-badge').textContent=alerts.length+' évts';
   $('alert-feed').innerHTML=alerts.length?alerts.map(a=>`<div class="aitem"><div class="adot ${a.type==='connect'?'g':'r'}"></div><span class="at">${a.time}</span><span class="am">${a.type==='connect'?'🟢 Co':'🔴 Déco'} — <b>${a.player}</b><span class="asrv">${a.server.toUpperCase()}</span></span></div>`).join(''):'<div class="empty">En attente...</div>';
@@ -528,7 +584,7 @@ async function loadOnline(){
   try{
     if(!srv){
       const all=await api('/api/online_all');let total=0;SERVERS.forEach(s=>total+=(all[s]||[]).length);
-      body.innerHTML=`<div style="font-family:var(--fm);font-size:.65rem;color:var(--txd);margin-bottom:.7rem">TOTAL <span style="color:var(--gb)">${total}</span> joueurs</div><div class="sgrid">${SERVERS.map(s=>{const pl=all[s]||[],bug=BUGGY(s);return`<div class="scard" onclick="filterOnline('${s}')" style="cursor:pointer${bug?';border-color:rgba(255,149,0,.3)':''}"><div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div><div class="scard-n">${pl.length}</div>${bug?'<div class="scard-l" style="color:var(--org)">⚠ DONNÉES INSTABLES</div>':'<div class="scard-l">CLIQUER POUR FILTRER</div>'}<div class="ptags" style="max-height:75px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,18).map(p=>`<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="event.stopPropagation();quickCA('${p}')">${p}</span>`).join('')}${pl.length>18?`<span style="font-family:var(--fm);font-size:.58rem;color:var(--txd)">+${pl.length-18}</span>`:''}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(pl.length/Math.max(...SERVERS.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div></div>`;}).join('')}</div>`;
+      body.innerHTML=`<div style="font-family:var(--fm);font-size:.65rem;color:var(--txd);margin-bottom:.7rem">TOTAL <span style="color:var(--gb)">${total}</span> joueurs</div><div class="sgrid">${SERVERS.map(s=>{const pl=all[s]||[],bug=BUGGY(s);return`<div class="scard" onmouseenter="soundHover()" onclick="filterOnline('${s}')" style="cursor:pointer${bug?';border-color:rgba(255,149,0,.3)':''}"><div class="scard-top"><span class="scard-name">${s.toUpperCase()}</span><span>${EMO[s]}</span></div><div class="scard-n">${pl.length}</div>${bug?'<div class="scard-l" style="color:var(--org)">⚠ DONNÉES INSTABLES</div>':'<div class="scard-l">CLIQUER POUR FILTRER</div>'}<div class="ptags" style="max-height:75px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,18).map(p=>`<span class="ptag ${watchlist.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'watched':''}" onclick="event.stopPropagation();quickCA('${p}')">${p}</span>`).join('')}${pl.length>18?`<span style="font-family:var(--fm);font-size:.58rem;color:var(--txd)">+${pl.length-18}</span>`:''}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(pl.length/Math.max(...SERVERS.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div></div>`;}).join('')}</div>`;
     }else{
       await loadOnlineSingle(srv);
     }
@@ -542,7 +598,7 @@ async function doCheckall(){
   const res=$('ca-result');res.innerHTML=ld();
   try{
     const d=await api('/api/checkall/'+encodeURIComponent(p));
-    res.innerHTML=d.servers.length?`<div class="res ok"><div class="res-t">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--g)">${s.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="res err"><div class="res-t">Résultat</div><span style="color:var(--txd)">${p} n'est connecté nulle part</span></div>`;
+    if(d.servers.length) soundFound(); res.innerHTML=d.servers.length?`<div class="res ok"><div class="res-t">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div>${EMO[s]} <span style="color:var(--g)">${s.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="res err"><div class="res-t">Résultat</div><span style="color:var(--txd)">${p} n'est connecté nulle part</span></div>`;
     caHistory=caHistory.filter(h=>h.p.toLowerCase()!==p.toLowerCase());
     caHistory.unshift({p,servers:d.servers,t:new Date().toLocaleTimeString('fr-FR')});
     if(caHistory.length>15)caHistory.pop();
@@ -692,6 +748,83 @@ async function loadStats(){
   res.innerHTML=html;
 }
 
+
+// ══════════════════════════════════════
+// AUDIO ENGINE
+// ══════════════════════════════════════
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, type='sine', duration=0.08, vol=0.08, delay=0) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.value = freq;
+    const t = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    osc.start(t); osc.stop(t + duration);
+  } catch(e) {}
+}
+
+// Son de navigation (click sur onglet)
+function soundNav() {
+  playTone(880, 'sine', 0.06, 0.06);
+  playTone(1100, 'sine', 0.05, 0.04, 0.04);
+}
+
+// Son de hover sur les serveur cards
+function soundHover() {
+  playTone(660, 'sine', 0.04, 0.03);
+}
+
+// Son d'alerte watchlist connexion
+function soundAlert(isConnect) {
+  if (isConnect) {
+    playTone(440, 'sine', 0.1, 0.12);
+    playTone(550, 'sine', 0.1, 0.12, 0.1);
+    playTone(660, 'sine', 0.15, 0.15, 0.2);
+  } else {
+    playTone(440, 'sine', 0.1, 0.08);
+    playTone(330, 'sine', 0.12, 0.08, 0.1);
+  }
+}
+
+// Son de résultat trouvé
+function soundFound() {
+  playTone(523, 'sine', 0.08, 0.1);
+  playTone(659, 'sine', 0.08, 0.1, 0.07);
+}
+
+// ══════════════════════════════════════
+// NOTIFICATION POPUP
+// ══════════════════════════════════════
+function showAlertPopup(type, player, server) {
+  soundAlert(type === 'connect');
+  const popup = $('alert-popup');
+  const notif = document.createElement('div');
+  notif.className = 'alert-notif' + (type === 'disconnect' ? ' dc' : '');
+  notif.style.position = 'relative';
+  notif.innerHTML = `
+    <div class="alert-notif-title">${type === 'connect' ? '🟢 CONNEXION DÉTECTÉE' : '🔴 DÉCONNEXION'}</div>
+    <div class="alert-notif-name">${player}</div>
+    <div class="alert-notif-srv">${server.toUpperCase()} · ${new Date().toLocaleTimeString('fr-FR')}</div>
+    <span class="close" onclick="this.parentElement.remove()">✕</span>`;
+  notif.onclick = () => { quickCA(player); };
+  popup.appendChild(notif);
+  // Disparaît après 8 secondes
+  setTimeout(() => {
+    notif.style.animation = 'popOut .25s ease forwards';
+    setTimeout(() => notif.remove(), 250);
+  }, 8000);
+}
+
 // ── INIT ──
 async function init(){
   renderCAHistory();
@@ -702,7 +835,12 @@ async function init(){
     await loadMochaWatchlist();
     loadKnownPlayers();
     await loadDashboard();
-    setInterval(async()=>{await loadWatchlist();await loadDashboard();},30000);
+    if($('last-update')) $('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
+    setInterval(async()=>{
+    await loadWatchlist();
+    await loadDashboard();
+    if($('last-update')) $('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
+  }, 5000);
   }
 }
 init();
