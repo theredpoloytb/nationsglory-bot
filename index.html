@@ -242,13 +242,14 @@
       <div class="row">
         <div class="ac-wrap">
           <input id="ca-input" placeholder="Nom du joueur..." autocomplete="off"
-            oninput="acFilter('ca-input','ca-list',onlinePlayers)"
+            oninput="acFilter('ca-input','ca-list',onlinePlayers);filterPlayerTags('ca-input','ca-player-list')"
             onkeydown="acKey(event,'ca-list',()=>doCheckall())"/>
           <div class="ac-list" id="ca-list"></div>
         </div>
         <button class="btn" onclick="doCheckall()">→ LOCALISER</button>
       </div>
       <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-top:.35rem;letter-spacing:.05em">⚠ Pseudo exact requis — respectez les majuscules (ex: <span style='color:var(--gold)'>Kyzzer_</span> ≠ <span style='color:var(--red)'>kyzzer_</span>)</div>
+      <div id="ca-player-list" class="ptags" style="margin-top:.5rem;max-height:120px;overflow-y:auto"></div>
       <div id="ca-result"></div>
     </div>
   </div>
@@ -300,8 +301,9 @@
         <div class="row mb" style="margin-bottom:.8rem">
           <div class="ac-wrap">
             <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-bottom:.3rem;letter-spacing:.05em">⚠ Pseudo exact — majuscules importantes</div>
+        <div id="wl-add-player-list" class="ptags" style="max-height:120px;overflow-y:auto;margin-bottom:.5rem"></div>
           <input id="wl-add-input" placeholder="Ajouter un joueur..." autocomplete="off"
-              oninput="acFilter('wl-add-input','wl-add-list',onlinePlayers)"
+              oninput="acFilter('wl-add-input','wl-add-list',onlinePlayers);filterPlayerTags('wl-add-input','wl-add-player-list')"
               onkeydown="acKey(event,'wl-add-list',()=>wlAdd())"/>
             <div class="ac-list" id="wl-add-list"></div>
           </div>
@@ -325,7 +327,7 @@
       <div class="row">
         <div class="ac-wrap">
           <input id="st-input" placeholder="Nom du joueur..." autocomplete="off"
-            oninput="acFilter('st-input','st-list',onlinePlayers)"
+            oninput="acFilter('st-input','st-list',onlinePlayers);filterPlayerTags('st-input','st-player-list')"
             onkeydown="acKey(event,'st-list',()=>loadStats())"/>
           <div class="ac-list" id="st-list"></div>
         </div>
@@ -334,6 +336,7 @@
     </div>
   </div>
       <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);margin-bottom:.5rem;letter-spacing:.05em">⚠ Pseudo exact requis — respectez les majuscules (ex: <span style='color:var(--gold)'>Kyzzer_</span> ≠ <span style='color:var(--red)'>kyzzer_</span>)</div>
+      <div id="st-player-list" class="ptags" style="margin-top:.5rem;max-height:120px;overflow-y:auto"></div>
   <div id="st-result"></div>
 </section>
 
@@ -362,6 +365,51 @@ function resolvePlayer(input, pool) {
 }
 
 // ---- AUTOCOMPLETE ENGINE ----
+function renderPlayerTags(divId, onClickFn) {
+  const el = $(divId);
+  if(!el) return;
+  el.innerHTML = onlinePlayers.slice(0,80).map(p =>
+    `<span class="ptag" onclick="${onClickFn}('${p.replace(/'/g,"\'")}');$('"+ divId +"').innerHTML=''">${p}</span>`
+  ).join('');
+}
+
+function filterPlayerTags(inputId, divId) {
+  const el = $(divId);
+  if(!el) return;
+  const val = $(inputId).value.trim().toLowerCase();
+  const pool = onlinePlayers;
+  const filtered = val ? pool.filter(p => p.toLowerCase().includes(val)) : pool;
+  if(!filtered.length){ el.innerHTML=''; return; }
+  // Déterminer la fonction onclick selon le contexte
+  const fnMap = {
+    'ca-player-list':      "pickPlayer_ca",
+    'st-player-list':      "pickPlayer_st",
+    'wl-add-player-list':  "pickPlayer_wl"
+  };
+  const fn = fnMap[divId] || 'quickCA';
+  el.innerHTML = filtered.slice(0,60).map(p =>
+    `<span class="ptag" style="cursor:pointer" onclick="${fn}('${p.replace(/'/g,"\'")}')">${p}</span>`
+  ).join('');
+}
+
+function pickPlayer_ca(p) {
+  $('ca-input').value = p;
+  $('ca-player-list').innerHTML = '';
+  $('ca-list').style.display = 'none';
+  doCheckall();
+}
+function pickPlayer_st(p) {
+  $('st-input').value = p;
+  $('st-player-list').innerHTML = '';
+  $('st-list').style.display = 'none';
+  loadStats();
+}
+function pickPlayer_wl(p) {
+  $('wl-add-input').value = p;
+  $('wl-add-player-list').innerHTML = '';
+  $('wl-add-list').style.display = 'none';
+}
+
 function acFilter(inputId, listId, pool) {
   const val  = $(inputId).value.trim().toLowerCase();
   const list = $(listId);
@@ -458,6 +506,9 @@ async function loadKnownPlayers() {
     merged.sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     onlinePlayers = merged;
     console.log(`✅ ${known.length} pseudos connus chargés`);
+    // Init les listes de tags si les sections sont visibles
+    filterPlayerTags('ca-input','ca-player-list');
+    filterPlayerTags('st-input','st-player-list');
   } catch { /* silencieux */ }
 }
 
