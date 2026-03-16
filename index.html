@@ -760,9 +760,9 @@ async function switchWl(srv) {
   // Titles
   if($('wl-panel-title')) $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
   if($('wl-status-title')) $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
-  // Recharge si la liste est vide (premier accès)
-  if(srv === 'lime' && watchlist.length === 0) await loadWatchlist();
-  if(srv === 'mocha' && watchlistMocha.length === 0) await loadMochaWatchlist();
+  // Toujours recharger la watchlist depuis l'API avant d'afficher
+  if(srv === 'lime') await loadWatchlist();
+  else await loadMochaWatchlist();
   wlRender();
   await wlRefreshStatus();
 }
