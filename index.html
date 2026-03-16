@@ -207,7 +207,7 @@
     </div>
   </div>
   <div class="panel mb">
-    <div class="ph"><span class="pt">👁 Watchlist — Statut live LIME</span><button class="btn" onclick="loadDashboard()">↺</button></div>
+    <div class="ph"><span class="pt">👁 Watchlist — Statut live</span><button class="btn" onclick="loadDashboard()">↺</button></div>
     <div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ld-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
   </div>
 </section>
@@ -434,7 +434,7 @@ function nav(id, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   $('s-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id==='watchlist') { wlRender(); wlRefreshStatus(); }
+  if (id==='watchlist') { wlRender(); wlRefreshStatus(); switchWl(currentWl); }
   if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
 }
 
@@ -501,12 +501,26 @@ async function loadDashboard() {
       </div>`;
     }).join('');
 
-    $('wl-quick').innerHTML = watchlist.length
-      ? `<div class="ptags">${watchlist.map(p=>{
-          const on=lp.includes(p);
-          return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
-        }).join('')}</div>`
-      : '<div class="empty">Watchlist vide</div>';
+    // LIME section
+    const limeSection = watchlist.length
+      ? `<div style="font-family:var(--font-mono);font-size:.6rem;color:var(--gold);letter-spacing:.15em;margin-bottom:.3rem">🟢 LIME</div>
+         <div class="ptags" style="margin-bottom:.6rem">${watchlist.map(p=>{
+           const on=lp.map(x=>x.toLowerCase()).includes(p.toLowerCase());
+           return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
+         }).join('')}</div>`
+      : '';
+    // MOCHA section
+    const mochaOnline = await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
+    const mochaSection = watchlistMocha.length
+      ? `<div style="font-family:var(--font-mono);font-size:.6rem;color:#c9844c;letter-spacing:.15em;margin-bottom:.3rem">🟤 MOCHA</div>
+         <div class="ptags">${watchlistMocha.map(p=>{
+           const on=mochaOnline.map(x=>x.toLowerCase()).includes(p.toLowerCase());
+           return `<span class="ptag ${on?'online':''}">${on?'🟢':'⚫'} ${p}</span>`;
+         }).join('')}</div>`
+      : '';
+    $('wl-quick').innerHTML = (limeSection || mochaSection)
+      ? limeSection + mochaSection
+      : '<div class="empty">Watchlists vides</div>';
 
   } catch(e) {
     $('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Erreur : bot hors ligne ?<br/><span style="font-size:.65rem">${e.message}</span></div>`;
@@ -734,7 +748,7 @@ async function wlRemove(name) {
     wlRender(); wlRefreshStatus();
   } catch(e){ alert('Erreur : '+e.message); }
 }
-function switchWl(srv) {
+async function switchWl(srv) {
   currentWl = srv;
   // Tab styles
   document.querySelectorAll('#wl-tab-lime,#wl-tab-mocha').forEach(el => {
@@ -742,11 +756,13 @@ function switchWl(srv) {
     el.style.color = 'var(--text-dim)';
   });
   const active = $('wl-tab-' + srv);
-  active.style.borderColor = 'var(--gold)';
-  active.style.color = 'var(--gold-bright)';
+  if(active){ active.style.borderColor = 'var(--gold)'; active.style.color = 'var(--gold-bright)'; }
   // Titles
-  $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
-  $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
+  if($('wl-panel-title')) $('wl-panel-title').textContent = '◈ Gérer la watchlist — ' + srv.toUpperCase();
+  if($('wl-status-title')) $('wl-status-title').textContent = '⚡ Statut live — ' + srv.toUpperCase();
+  // Recharge si la liste est vide (premier accès)
+  if(srv === 'lime' && watchlist.length === 0) await loadWatchlist();
+  if(srv === 'mocha' && watchlistMocha.length === 0) await loadMochaWatchlist();
   wlRender();
   wlRefreshStatus();
 }
