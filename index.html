@@ -429,12 +429,17 @@ async function apiPost(path, body) {
 }
 
 // ---- NAV ----
-function nav(id, btn) {
+async function nav(id, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   $('s-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id==='watchlist') { switchWl(currentWl); }
+  if (id==='watchlist') {
+    await loadWatchlist();
+    await loadMochaWatchlist();
+    wlRender();
+    await wlRefreshStatus();
+  }
   if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
 }
 
