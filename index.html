@@ -365,6 +365,14 @@ function resolvePlayer(input, pool) {
 }
 
 // ---- AUTOCOMPLETE ENGINE ----
+function renderAllPlayerTags(divId, fn) {
+  const el = $(divId);
+  if(!el || !onlinePlayers.length) return;
+  el.innerHTML = onlinePlayers.map(p =>
+    `<span class="ptag" style="cursor:pointer" onclick="${fn}('${p.replace(/'/g,"\'")}')">${p}</span>`
+  ).join('');
+}
+
 function renderPlayerTags(divId, onClickFn) {
   const el = $(divId);
   if(!el) return;
@@ -379,7 +387,7 @@ function filterPlayerTags(inputId, divId) {
   const val = $(inputId).value.trim().toLowerCase();
   const pool = onlinePlayers;
   const filtered = val ? pool.filter(p => p.toLowerCase().includes(val)) : pool;
-  if(!filtered.length){ el.innerHTML=''; return; }
+  if(!filtered.length){ el.innerHTML='<div class="empty" style="font-size:.65rem">Aucun résultat</div>'; return; }
   // Déterminer la fonction onclick selon le contexte
   const fnMap = {
     'ca-player-list':      "pickPlayer_ca",
@@ -484,6 +492,8 @@ async function nav(id, btn) {
   btn.classList.add('active');
   if (id==='watchlist') { await switchWl('lime'); }
   if (id==='online')    { $('ol-body').innerHTML=ld(); loadOnline(); }
+  if (id==='checkall')  { renderAllPlayerTags('ca-player-list','pickPlayer_ca'); }
+  if (id==='stats')     { renderAllPlayerTags('st-player-list','pickPlayer_st'); }
 }
 
 // ---- CHECK API ----
@@ -507,8 +517,9 @@ async function loadKnownPlayers() {
     onlinePlayers = merged;
     console.log(`✅ ${known.length} pseudos connus chargés`);
     // Init les listes de tags si les sections sont visibles
-    filterPlayerTags('ca-input','ca-player-list');
-    filterPlayerTags('st-input','st-player-list');
+    renderAllPlayerTags('ca-player-list','pickPlayer_ca');
+    renderAllPlayerTags('st-player-list','pickPlayer_st');
+    renderAllPlayerTags('wl-add-player-list','pickPlayer_wl');
   } catch { /* silencieux */ }
 }
 
