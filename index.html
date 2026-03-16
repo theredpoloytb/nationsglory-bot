@@ -449,6 +449,18 @@ async function checkApi() {
 }
 
 // ---- LOAD WATCHLIST ----
+async function loadKnownPlayers() {
+  try {
+    const d = await fetch(API+'/api/known_players').then(r=>r.json());
+    const known = d.players || [];
+    // Merge avec les joueurs en ligne sans doublons
+    const merged = [...new Set([...known, ...onlinePlayers])];
+    merged.sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    onlinePlayers = merged;
+    console.log(`✅ ${known.length} pseudos connus chargés`);
+  } catch { /* silencieux */ }
+}
+
 async function loadWatchlist() {
   try {
     const ctrl = new AbortController();
@@ -935,6 +947,7 @@ async function init() {
   if(ok){
     await loadWatchlist();
     await loadMochaWatchlist();
+    loadKnownPlayers(); // arrière-plan, pas de await
     await loadDashboard();
     setInterval(async()=>{ await loadWatchlist(); await loadDashboard(); },30000);
   }
