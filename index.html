@@ -576,8 +576,9 @@ async function loadDashboard() {
 
     $('srv-overview').innerHTML = SERVERS.map(s => {
       const cnt = (all[s]||[]).length;
-      const redBorder = s==='red' ? 'border-color:rgba(255,153,51,.35);' : '';
-      const redLbl = s==='red'
+      const isBuggy = s==='red' || s==='mocha';
+      const redBorder = isBuggy ? 'border-color:rgba(255,153,51,.35);' : '';
+      const redLbl = isBuggy
         ? '<div style="font-family:var(--font-mono);font-size:.55rem;color:#ff9933;letter-spacing:.08em">⚠ données instables</div>'
         : '<div class="scard-lbl">EN LIGNE</div>';
       return `<div class="scard" onclick="goOnline('${s}')" style="${redBorder}">
@@ -790,13 +791,13 @@ async function doCheck() {
     const d=await api(`/api/check/${srv}/${encodeURIComponent(c)}`);
     const redNote = `<div style="font-family:var(--font-mono);font-size:.62rem;color:#ff9933;margin-top:.5rem;padding:.3rem .6rem;border-left:2px solid #ff9933">⚠ Dynmap hors service / limité — données possiblement incomplètes</div>`;
     if(d.online_total===0){
-      res.innerHTML=`<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span>${srv==='red'?redNote:''}</div>`;
+      res.innerHTML=`<div class="res ok"><div class="res-title">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--green)">✓ Aucun membre connecté</span>${(srv==='red'||srv==='mocha')?redNote:''}</div>`;
     } else {
       const hasRed = Object.keys(d.servers).includes('red');
       res.innerHTML=`<div class="res err"><div class="res-title">Pays : ${d.country} — ${d.online_total} connectés / ${d.members_total} membres</div>`+
         Object.entries(d.servers).sort((a,b)=>a[0]===srv?-1:1).map(([s,pl])=>
-          `<div style="margin:.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${s==='red'?'<span style="color:#ff9933;font-size:.6rem"> ⚠ limité</span>':''}${s===srv?'<span style="color:var(--red);font-size:.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:.4rem">${pl.join(', ')}</span></div>`
-        ).join('')+(hasRed||srv==='red'?redNote:'')+'</div>';
+          `<div style="margin:.35rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span>${(s==='red'||s==='mocha')?'<span style="color:#ff9933;font-size:.6rem"> ⚠ limité</span>':''}${s===srv?'<span style="color:var(--red);font-size:.62rem"> ← CIBLE</span>':''} <span style="color:var(--text-dim);margin-left:.4rem">${pl.join(', ')}</span></div>`
+        ).join('')+(hasRed||srv==='red'||srv==='mocha'?redNote:'')+'</div>';
     }
   } catch(e){ res.innerHTML=`<div class="res err"><div class="res-title">Erreur</div>${e.message}</div>`; }
 }
