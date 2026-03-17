@@ -243,7 +243,7 @@ select option{background:var(--s2)}
 <body>
 <div id="cursor"></div>
 <div class="amb amb1"></div><div class="amb amb2"></div><div class="amb amb3"></div>
-<canvas id="particles"></canvas>
+<canvas id="particles" style="position:fixed;top:0;left:0;pointer-events:none;z-index:1;width:100%;height:100%"></canvas>
 <div class="apop" id="alert-popup"></div>
 
 <div id="loader">
@@ -412,7 +412,7 @@ const rP=(i,p)=>p.find(x=>x.toLowerCase()===i.toLowerCase())||i;
 
 // LOADER
 window.addEventListener('load',()=>{setTimeout(()=>{$('ltxt').textContent='SYSTÈME PRÊT — CLIQUEZ POUR ENTRER';$('lbtn').style.display='block';},2600);});
-function enterSite(){unlockAudio();$('loader').classList.add('hide');setTimeout(()=>{$('loader').style.display='none';},800);}
+function enterSite(){unlockAudio();window.scrollTo(0,0);$('loader').classList.add('hide');setTimeout(()=>{$('loader').style.display='none';},800);}
 
 // PARTICLES
 (()=>{
@@ -504,7 +504,10 @@ async function loadDash(){
     const all=await api('/api/online_all'),lp=all['lime']||[];
     const pool=new Set(oP);SRV.forEach(s=>(all[s]||[]).forEach(p=>pool.add(p)));
     oP=[...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-    WL.forEach(p=>{SRV.forEach(s=>{const on=(all[s]||[]).includes(p),k=p+'@'+s;if(on&&!prev[k])pAlert('connect',p,s);if(!on&&prev[k])pAlert('disconnect',p,s);prev[k]=on;});});
+    // Alertes LIME → WL uniquement
+    WL.forEach(p=>{const lc=p.toLowerCase(),on=(all['lime']||[]).map(x=>x.toLowerCase()).includes(lc),k=p+'@lime';if(on&&!prev[k])pAlert('connect',p,'lime');if(!on&&prev[k])pAlert('disconnect',p,'lime');prev[k]=on;});
+    // Alertes MOCHA → WLM uniquement
+    WLM.forEach(p=>{const lc=p.toLowerCase(),on=(all['mocha']||[]).map(x=>x.toLowerCase()).includes(lc),k=p+'@mocha';if(on&&!prev[k])pAlert('connect',p,'mocha');if(!on&&prev[k])pAlert('disconnect',p,'mocha');prev[k]=on;});
     let tot=0;SRV.forEach(s=>tot+=(all[s]||[]).length);
     if(parseInt($('st-total').textContent)!==tot)$('st-total').textContent=tot;
     $('st-wonline').textContent=WL.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase())).length;
