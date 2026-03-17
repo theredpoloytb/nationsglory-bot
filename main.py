@@ -1,858 +1,556 @@
-import discord
+import discord, aiohttp, asyncio, time, json, os, sys
 from discord import app_commands
-import aiohttp
-import asyncio
-import time
-import json
-import os
-import sys
 from aiohttp import web
 from datetime import timedelta, datetime
 
-# ==================== CONFIGURATION ====================
+# ── CONFIG ──
+TOKEN      = os.getenv("DISCORD_TOKEN")
+NG_KEY     = os.getenv("NG_API_KEY")
+RENDER_URL = os.getenv("RENDER_EXTERNAL_URL", "")
+MONGO_URL  = os.getenv("MONGO_URL")
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-NG_API_KEY    = os.getenv("NG_API_KEY")
-RENDER_URL    = os.getenv("RENDER_EXTERNAL_URL", "")
-MONGO_URL     = os.getenv("MONGO_URL")
+CH_RAPPORT  = 1459182029924073558
+CH_ALERTE   = 1465309715230888090
+CH_STORAGE  = 1478831933017428070
+CH_M_RAPPORT = 1482879184207347942
+CH_M_ALERTE  = 1482879242416029726
 
-RAPPORT_CHANNEL_ID  = 1459182029924073558
-ALERTE_CHANNEL_ID   = 1465309715230888090
-STORAGE_CHANNEL_ID  = 1478831933017428070
+DEFAULT_WL = ["Canisi","Darkholess","UFO_Thespoot","Franky753","Blakonne","Farsgame","ClashKiller78","Olmat38","FLOTYR2","Raptor51"]
 
-# Watchlist Mocha
-MOCHA_RAPPORT_ID    = 1482879184207347942
-MOCHA_ALERTE_ID     = 1482879242416029726
-
-WATCH_LIST_DEFAULT = [
-    "Canisi", "Darkholess", "UFO_Thespoot", "Franky753",
-    "Blakonne", "Farsgame", "ClashKiller78", "Olmat38",
-    "FLOTYR2", "Raptor51"
-]
-
-WATCH_LIST_MOCHA_DEFAULT = [
-    "Canisi", "Darkholess", "UFO_Thespoot", "Franky753",
-    "Blakonne", "Farsgame", "ClashKiller78", "Olmat38",
-    "FLOTYR2", "Raptor51"
-]
-
-WATCH_LIST       = list(WATCH_LIST_DEFAULT)
-WATCH_LIST_MOCHA = list(WATCH_LIST_MOCHA_DEFAULT)
-watchlist_msg_id      = None
-watchlist_mocha_msg_id = None
+WL       = list(DEFAULT_WL)
+WL_MOCHA = list(DEFAULT_WL)
+wl_msg_id = wl_mocha_msg_id = None
 
 intents = discord.Intents.default()
 client  = discord.Client(intents=intents)
 tree    = app_commands.CommandTree(client)
 
 SERVERS = {
-    "blue":   {"url": "https://blue.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🔵"},
-    "coral":  {"url": "https://coral.nationsglory.fr/standalone/dynmap_world.json",  "emoji": "🔴"},
-    "orange": {"url": "https://orange.nationsglory.fr/standalone/dynmap_world.json", "emoji": "🟠"},
-    "red":    {"url": "https://red.nationsglory.fr/standalone/dynmap_world.json",    "emoji": "🔴"},
-    "yellow": {"url": "https://yellow.nationsglory.fr/standalone/dynmap_world.json", "emoji": "🟡"},
-    "mocha":  {"url": "https://mocha.nationsglory.fr/standalone/dynmap_world.json",  "emoji": "🟤"},
-    "white":  {"url": "https://white.nationsglory.fr/standalone/dynmap_world.json",  "emoji": "⚪"},
-    "jade":   {"url": "https://jade.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🟢"},
-    "black":  {"url": "https://black.nationsglory.fr/standalone/dynmap_world.json",  "emoji": "⚫"},
-    "cyan":   {"url": "https://cyan.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🔵"},
-    "lime":   {"url": "https://lime.nationsglory.fr/standalone/dynmap_world.json",   "emoji": "🟢"}
+    "blue":{"url":"https://blue.nationsglory.fr/standalone/dynmap_world.json","emoji":"🔵"},
+    "coral":{"url":"https://coral.nationsglory.fr/standalone/dynmap_world.json","emoji":"🔴"},
+    "orange":{"url":"https://orange.nationsglory.fr/standalone/dynmap_world.json","emoji":"🟠"},
+    "red":{"url":"https://red.nationsglory.fr/standalone/dynmap_world.json","emoji":"🔴"},
+    "yellow":{"url":"https://yellow.nationsglory.fr/standalone/dynmap_world.json","emoji":"🟡"},
+    "mocha":{"url":"https://mocha.nationsglory.fr/standalone/dynmap_world.json","emoji":"🟤"},
+    "white":{"url":"https://white.nationsglory.fr/standalone/dynmap_world.json","emoji":"⚪"},
+    "jade":{"url":"https://jade.nationsglory.fr/standalone/dynmap_world.json","emoji":"🟢"},
+    "black":{"url":"https://black.nationsglory.fr/standalone/dynmap_world.json","emoji":"⚫"},
+    "cyan":{"url":"https://cyan.nationsglory.fr/standalone/dynmap_world.json","emoji":"🔵"},
+    "lime":{"url":"https://lime.nationsglory.fr/standalone/dynmap_world.json","emoji":"🟢"},
 }
+CACHE_TTL = 900
+ctry_cache = {}
 
-CACHE_TTL       = 900
-countries_cache = {}
-
-# ==================== CORS ====================
-
-CORS_HEADERS = {
-    "Access-Control-Allow-Origin":  "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-}
+# ── CORS ──
+CORS = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type"}
 
 def cors(data, status=200):
-    return web.Response(
-        text=json.dumps(data, ensure_ascii=False),
-        status=status,
-        content_type="application/json",
-        headers=CORS_HEADERS
-    )
+    return web.Response(text=json.dumps(data, ensure_ascii=False), status=status, content_type="application/json", headers=CORS)
 
-async def handle_options(request):
-    return web.Response(status=204, headers=CORS_HEADERS)
+async def handle_options(r): return web.Response(status=204, headers=CORS)
 
-# ==================== MONGODB ====================
-
-mongo_client = None
-db           = None
-sessions_col = None
-config_col   = None
-mongo_ok     = False
+# ── MONGODB ──
+mongo_ok = False
+db = sessions_col = config_col = None
 
 def init_mongo():
-    global mongo_client, db, sessions_col, config_col, mongo_ok
-    print("🔌 Connexion MongoDB...", flush=True)
-    if not MONGO_URL:
-        print("❌ MONGO_URL non défini !", flush=True)
-        return
+    global mongo_ok, db, sessions_col, config_col
+    if not MONGO_URL: return
     try:
         from pymongo import MongoClient, ASCENDING
-        mongo_client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=8000, tls=True, tlsAllowInvalidCertificates=True)
-        mongo_client.admin.command('ping')
-        db           = mongo_client["mossadglory"]
+        c = MongoClient(MONGO_URL, serverSelectionTimeoutMS=8000, tls=True, tlsAllowInvalidCertificates=True)
+        c.admin.command("ping")
+        db = c["mossadglory"]
         sessions_col = db["sessions"]
         config_col   = db["config"]
         sessions_col.create_index([("player", ASCENDING), ("ts", ASCENDING)])
         mongo_ok = True
-        print("✅ MongoDB connecté !", flush=True)
+        print("✅ MongoDB OK", flush=True)
     except Exception as e:
-        print(f"❌ MongoDB erreur: {e}", flush=True)
+        print(f"❌ MongoDB: {e}", flush=True)
 
-def record_connection(player: str, server: str):
-    if not mongo_ok or sessions_col is None:
-        return
+def record_connection(player, server):
+    if not mongo_ok: return
     try:
         now = datetime.utcnow() + timedelta(hours=1)
-        sessions_col.insert_one({
-            "player":  player,
-            "server":  server,
-            "ts":      now,
-            "day":     now.weekday(),
-            "hour":    now.hour,
-            "minute":  now.minute
-        })
-    except Exception as e:
-        print(f"❌ record_connection erreur: {e}", flush=True)
+        sessions_col.insert_one({"player":player,"server":server,"ts":now,"day":now.weekday(),"hour":now.hour,"minute":now.minute})
+    except: pass
 
-def get_sessions(player: str, limit: int = 500):
-    if not mongo_ok or sessions_col is None:
-        return []
+def get_sessions(player, limit=500):
+    if not mongo_ok: return []
     try:
         from pymongo import ASCENDING
-        return list(sessions_col.find(
-            {"player": player},
-            {"_id": 0}
-        ).sort("ts", ASCENDING).limit(limit))
-    except:
-        return []
+        return list(sessions_col.find({"player":player},{"_id":0}).sort("ts",ASCENDING).limit(limit))
+    except: return []
 
-def get_pronostic(player: str):
-    sessions = get_sessions(player, limit=200)
-    if len(sessions) < 3:
-        return None
-    DAYS        = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-    day_counts  = [0] * 7
-    hour_by_day = [[] for _ in range(7)]
-    for s in sessions:
-        d = s["day"]
-        day_counts[d] += 1
-        hour_by_day[d].append(s["hour"] + s.get("minute", 0) / 60)
-    total  = len(sessions)
-    result = []
+def get_pronostic(player):
+    ss = get_sessions(player, 200)
+    if len(ss) < 3: return None
+    DAYS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
+    dc, hbd = [0]*7, [[] for _ in range(7)]
+    for s in ss:
+        dc[s["day"]] += 1
+        hbd[s["day"]].append(s["hour"] + s.get("minute",0)/60)
+    total = len(ss)
+    res = []
     for d in range(7):
-        if day_counts[d] == 0:
-            continue
-        avg   = sum(hour_by_day[d]) / len(hour_by_day[d])
-        avg_h = int(avg)
-        avg_m = int((avg - avg_h) * 60)
-        pct   = round(day_counts[d] / total * 100)
-        result.append((d, avg_h, avg_m, pct))
-    result.sort(key=lambda x: -x[3])
-    return result[:5], DAYS, total
+        if not dc[d]: continue
+        avg = sum(hbd[d])/len(hbd[d])
+        res.append((d, int(avg), int((avg%1)*60), round(dc[d]/total*100)))
+    return sorted(res, key=lambda x:-x[3])[:5], DAYS, total
 
-def get_plages(player: str):
-    sessions = get_sessions(player, limit=500)
-    if not sessions:
-        return None
-    DAYS    = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
-    heatmap = [[0]*24 for _ in range(7)]
-    for s in sessions:
-        heatmap[s["day"]][s["hour"]] += 1
-    return heatmap, DAYS
+def get_plages(player):
+    ss = get_sessions(player, 500)
+    if not ss: return None
+    DAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"]
+    hm = [[0]*24 for _ in range(7)]
+    for s in ss: hm[s["day"]][s["hour"]] += 1
+    return hm, DAYS
 
-def save_rapport_id(msg_id: int):
-    if not mongo_ok or config_col is None:
-        return
+def cfg_set(key, val):
+    if not mongo_ok: return
+    try: config_col.update_one({"key":key},{"$set":{"value":val}},upsert=True)
+    except: pass
+
+def cfg_get(key):
+    if not mongo_ok: return None
     try:
-        config_col.update_one(
-            {"key": "rapport_msg_id"},
-            {"$set": {"value": msg_id}},
-            upsert=True
-        )
-    except:
-        pass
-
-def load_rapport_id():
-    if not mongo_ok or config_col is None:
-        return None
-    try:
-        doc = config_col.find_one({"key": "rapport_msg_id"})
+        doc = config_col.find_one({"key":key})
         return doc["value"] if doc else None
-    except:
-        return None
+    except: return None
 
-# ==================== WATCHLIST ====================
-
-async def load_watchlist():
-    global WATCH_LIST, watchlist_msg_id
-    channel = client.get_channel(STORAGE_CHANNEL_ID)
-    if not channel:
-        return
-    async for msg in channel.history(limit=50):
-        if msg.author == client.user and msg.content.startswith("WATCHLIST:"):
+# ── WATCHLIST (générique) ──
+async def _load_wl(global_name, prefix, channel_id):
+    global WL, WL_MOCHA, wl_msg_id, wl_mocha_msg_id
+    ch = client.get_channel(channel_id)
+    if not ch: return
+    async for msg in ch.history(limit=50):
+        if msg.author == client.user and msg.content.startswith(prefix+":"):
             try:
-                data             = json.loads(msg.content[len("WATCHLIST:"):])
-                WATCH_LIST       = data["players"]
-                watchlist_msg_id = msg.id
-                print(f"✅ Watchlist LIME chargée : {WATCH_LIST}", flush=True)
+                data = json.loads(msg.content[len(prefix)+1:])
+                if global_name == "WL":
+                    WL = data["players"]; wl_msg_id = msg.id
+                else:
+                    WL_MOCHA = data["players"]; wl_mocha_msg_id = msg.id
+                print(f"✅ Watchlist {global_name} chargée", flush=True)
                 return
-            except:
-                pass
-    await save_watchlist()
+            except: pass
+    await _save_wl(global_name, prefix, channel_id)
 
-async def save_watchlist():
-    global watchlist_msg_id
-    channel = client.get_channel(STORAGE_CHANNEL_ID)
-    if not channel:
-        return
-    content_str = "WATCHLIST:" + json.dumps({"players": WATCH_LIST})
-    if watchlist_msg_id:
+async def _save_wl(global_name, prefix, channel_id):
+    global wl_msg_id, wl_mocha_msg_id
+    ch = client.get_channel(channel_id)
+    if not ch: return
+    players = WL if global_name == "WL" else WL_MOCHA
+    msg_id  = wl_msg_id if global_name == "WL" else wl_mocha_msg_id
+    content = f"{prefix}:" + json.dumps({"players": players})
+    if msg_id:
         try:
-            msg = await channel.fetch_message(watchlist_msg_id)
-            await msg.edit(content=content_str)
+            msg = await ch.fetch_message(msg_id)
+            await msg.edit(content=content)
             return
-        except discord.NotFound:
-            pass
-    msg = await channel.send(content_str)
-    watchlist_msg_id = msg.id
+        except discord.NotFound: pass
+    msg = await ch.send(content)
+    if global_name == "WL": wl_msg_id = msg.id
+    else: wl_mocha_msg_id = msg.id
 
-async def load_watchlist_mocha():
-    global WATCH_LIST_MOCHA, watchlist_mocha_msg_id
-    channel = client.get_channel(MOCHA_RAPPORT_ID)
-    if not channel:
-        return
-    async for msg in channel.history(limit=50):
-        if msg.author == client.user and msg.content.startswith("WATCHLIST_MOCHA:"):
-            try:
-                data                  = json.loads(msg.content[len("WATCHLIST_MOCHA:"):])
-                WATCH_LIST_MOCHA      = data["players"]
-                watchlist_mocha_msg_id = msg.id
-                print(f"✅ Watchlist MOCHA chargée : {WATCH_LIST_MOCHA}", flush=True)
-                return
-            except:
-                pass
-    await save_watchlist_mocha()
+async def load_watchlist():       await _load_wl("WL",    "WATCHLIST",       CH_STORAGE)
+async def save_watchlist():       await _save_wl("WL",    "WATCHLIST",       CH_STORAGE)
+async def load_watchlist_mocha(): await _load_wl("MOCHA", "WATCHLIST_MOCHA", CH_M_RAPPORT)
+async def save_watchlist_mocha(): await _save_wl("MOCHA", "WATCHLIST_MOCHA", CH_M_RAPPORT)
 
-async def save_watchlist_mocha():
-    global watchlist_mocha_msg_id
-    channel = client.get_channel(MOCHA_RAPPORT_ID)
-    if not channel:
-        return
-    content_str = "WATCHLIST_MOCHA:" + json.dumps({"players": WATCH_LIST_MOCHA})
-    if watchlist_mocha_msg_id:
-        try:
-            msg = await channel.fetch_message(watchlist_mocha_msg_id)
-            await msg.edit(content=content_str)
-            return
-        except discord.NotFound:
-            pass
-    msg = await channel.send(content_str)
-    watchlist_mocha_msg_id = msg.id
-
-# ==================== FONCTIONS API ====================
-
-async def get_countries_list(server: str):
-    now = time.time()
-    if server in countries_cache:
-        cached_data, cached_time = countries_cache[server]
-        if now - cached_time < CACHE_TTL:
-            return cached_data
-    url     = f"https://publicapi.nationsglory.fr/country/list/{server}"
-    headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
-    timeout = aiohttp.ClientTimeout(total=10)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            async with session.get(url, headers=headers) as resp:
-                if resp.status in (200, 500):
-                    data    = await resp.json()
-                    claimed = [c["name"] for c in data.get("claimed", []) if c.get("name")]
-                    countries_cache[server] = (claimed, now)
-                    return claimed
-        except:
-            pass
+# ── FETCH ──
+async def get_online(server):
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as s:
+            async with s.get(SERVERS[server]["url"]) as r:
+                if r.status == 200:
+                    return [p["name"] for p in (await r.json()).get("players",[])]
+    except: pass
     return []
 
-async def get_country_members(server: str, country: str):
-    url     = f"https://publicapi.nationsglory.fr/country/{server}/{country}"
-    headers = {"Authorization": f"Bearer {NG_API_KEY}", "accept": "application/json"}
-    timeout = aiohttp.ClientTimeout(total=10)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            async with session.get(url, headers=headers) as resp:
-                data = await resp.json()
-                if "members" in data and data["members"]:
-                    members = [m.lstrip("*+-") for m in data.get("members", [])]
-                    return members, data.get("name", country)
-        except:
-            pass
+async def get_all_online():
+    results = await asyncio.gather(*[get_online(s) for s in SERVERS], return_exceptions=True)
+    return {s: (r if isinstance(r,list) else []) for s,r in zip(SERVERS,results)}
+
+async def get_country_list(server):
+    now = time.time()
+    if server in ctry_cache and now - ctry_cache[server][1] < CACHE_TTL:
+        return ctry_cache[server][0]
+    try:
+        headers = {"Authorization":f"Bearer {NG_KEY}","accept":"application/json"}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}", headers=headers) as r:
+                if r.status in (200,500):
+                    data = await r.json()
+                    claimed = [c["name"] for c in data.get("claimed",[]) if c.get("name")]
+                    ctry_cache[server] = (claimed, now)
+                    return claimed
+    except: pass
+    return []
+
+async def get_country_members(server, country):
+    try:
+        headers = {"Authorization":f"Bearer {NG_KEY}","accept":"application/json"}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            async with s.get(f"https://publicapi.nationsglory.fr/country/{server}/{country}", headers=headers) as r:
+                data = await r.json()
+                if data.get("members"):
+                    return [m.lstrip("*+-") for m in data["members"]], data.get("name", country)
+    except: pass
     return None, None
 
-async def get_online_players(server: str):
-    url     = SERVERS[server]["url"]
-    timeout = aiohttp.ClientTimeout(total=5)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    return [p["name"] for p in data.get("players", [])]
-        except:
-            pass
-    return []
+# ── API ROUTES ──
+async def api_health(r):       return cors({"status":"ok","mongo":mongo_ok})
+async def api_online(r):
+    s = r.match_info["server"].lower()
+    if s not in SERVERS: return cors({"error":"Serveur invalide"},400)
+    pl = await get_online(s)
+    return cors({"server":s,"players":pl,"count":len(pl)})
 
-# ==================== API ROUTES ====================
+async def api_online_all(r):   return cors(await get_all_online())
 
-async def api_health(request):
-    return cors({"status": "ok", "mongo": mongo_ok})
+async def api_checkall(r):
+    p = r.match_info["player"]
+    all_ = await get_all_online()
+    return cors({"player":p,"servers":[s for s,pl in all_.items() if p in pl]})
 
-async def api_online(request):
-    server = request.match_info["server"].lower()
-    if server not in SERVERS:
-        return cors({"error": "Serveur invalide"}, 400)
-    players = await get_online_players(server)
-    return cors({"server": server, "players": players, "count": len(players)})
+async def api_countries(r):
+    s = r.match_info["server"].lower()
+    if s not in SERVERS: return cors({"error":"Serveur invalide"},400)
+    return cors({"server":s,"countries":await get_country_list(s)})
 
-async def api_online_all(request):
-    tasks   = {s: get_online_players(s) for s in SERVERS}
-    results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-    data    = {s: (r if isinstance(r, list) else []) for s, r in zip(tasks.keys(), results)}
-    return cors(data)
+async def api_check(r):
+    s, c = r.match_info["server"].lower(), r.match_info["country"]
+    if s not in SERVERS: return cors({"error":"Serveur invalide"},400)
+    members, name = await get_country_members(s, c)
+    if not members: return cors({"error":"Pays introuvable"},404)
+    all_ = await get_all_online()
+    found, total = {}, 0
+    for sv, pl in all_.items():
+        f = [m for m in members if m in pl]
+        if f: found[sv] = f; total += len(f)
+    return cors({"country":name,"members_total":len(members),"online_total":total,"servers":found})
 
-async def api_checkall(request):
-    player  = request.match_info["player"]
-    tasks   = {s: get_online_players(s) for s in SERVERS}
-    results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-    found   = [s for s, r in zip(tasks.keys(), results) if isinstance(r, list) and player in r]
-    return cors({"player": player, "servers": found})
+async def api_wl_get(r):       return cors({"players":WL})
+async def api_wl_mocha_get(r): return cors({"players":WL_MOCHA})
 
-async def api_countries(request):
-    server = request.match_info["server"].lower()
-    if server not in SERVERS:
-        return cors({"error": "Serveur invalide"}, 400)
-    countries = await get_countries_list(server)
-    return cors({"server": server, "countries": countries})
+async def _wl_mutate(r, lst, save_fn):
+    try:
+        body = await r.json()
+        p = body.get("player","").strip()
+        if not p: return cors({"error":"Nom vide"},400)
+        action = r.path.split("/")[-1]
+        if action == "add" and p not in lst: lst.append(p); await save_fn()
+        elif action == "remove" and p in lst: lst.remove(p); await save_fn()
+        return cors({"players":lst})
+    except Exception as e: return cors({"error":str(e)},400)
 
-async def api_check(request):
-    server  = request.match_info["server"].lower()
-    country = request.match_info["country"]
-    if server not in SERVERS:
-        return cors({"error": "Serveur invalide"}, 400)
+async def api_wl_add(r):          return await _wl_mutate(r, WL, save_watchlist)
+async def api_wl_remove(r):       return await _wl_mutate(r, WL, save_watchlist)
+async def api_wl_mocha_add(r):    return await _wl_mutate(r, WL_MOCHA, save_watchlist_mocha)
+async def api_wl_mocha_remove(r): return await _wl_mutate(r, WL_MOCHA, save_watchlist_mocha)
+
+async def api_pronostic(r):
+    res = get_pronostic(r.match_info["player"])
+    if not res: return cors({"error":"Pas assez de données (min 3)"},404)
+    top, DAYS, total = res
+    return cors({"player":r.match_info["player"],"total":total,"pronostic":[{"day":DAYS[d],"avg_h":h,"avg_m":m,"pct":pct} for d,h,m,pct in top]})
+
+async def api_plages(r):
+    res = get_plages(r.match_info["player"])
+    if not res: return cors({"error":"Aucune donnée"},404)
+    hm, DAYS = res
+    return cors({"player":r.match_info["player"],"days":DAYS,"heatmap":hm})
+
+async def api_known_players(r):
+    if not mongo_ok: return cors({"players":[]})
+    try:
+        pl = sessions_col.distinct("player")
+        pl.sort(key=str.lower)
+        return cors({"players":pl})
+    except: return cors({"players":[]})
+
+# ── AUTOCOMPLETE ──
+async def srv_ac(i, cur): return [app_commands.Choice(name=s.upper(),value=s) for s in SERVERS if cur.lower() in s][:25]
+async def ctry_ac(i, cur):
+    s = i.namespace.server
+    if not s or s not in SERVERS: return []
+    return [app_commands.Choice(name=c,value=c) for c in await get_country_list(s) if cur.lower() in c.lower()][:25]
+
+# ── COMMANDES SLASH ──
+@tree.command(name="check", description="Espionner les membres d'un pays")
+@app_commands.autocomplete(server=srv_ac, country=ctry_ac)
+async def cmd_check(i: discord.Interaction, server: str, country: str):
+    await i.response.defer()
+    if server not in SERVERS: return await i.followup.send("❌ Serveur invalide")
     members, name = await get_country_members(server, country)
-    if not members:
-        return cors({"error": "Pays introuvable"}, 404)
-    tasks   = {s: get_online_players(s) for s in SERVERS}
-    results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-    found   = {}
-    total   = 0
-    for s, r in zip(tasks.keys(), results):
-        if not isinstance(r, list):
-            continue
-        f = [m for m in members if m in r]
-        if f:
-            found[s] = f
-            total   += len(f)
-    return cors({"country": name, "members_total": len(members), "online_total": total, "servers": found})
-
-async def api_watchlist_get(request):
-    return cors({"players": WATCH_LIST})
-
-async def api_watchlist_add(request):
-    try:
-        body   = await request.json()
-        player = body.get("player", "").strip()
-        if not player:
-            return cors({"error": "Nom vide"}, 400)
-        if player not in WATCH_LIST:
-            WATCH_LIST.append(player)
-            await save_watchlist()
-        return cors({"players": WATCH_LIST})
-    except Exception as e:
-        return cors({"error": str(e)}, 400)
-
-async def api_watchlist_remove(request):
-    try:
-        body   = await request.json()
-        player = body.get("player", "").strip()
-        if player in WATCH_LIST:
-            WATCH_LIST.remove(player)
-            await save_watchlist()
-        return cors({"players": WATCH_LIST})
-    except Exception as e:
-        return cors({"error": str(e)}, 400)
-
-async def api_pronostic(request):
-    player = request.match_info["player"]
-    result = get_pronostic(player)
-    if not result:
-        return cors({"error": "Pas assez de données (min 3 connexions)"}, 404)
-    top, DAYS, total = result
-    return cors({
-        "player": player, "total": total,
-        "pronostic": [{"day": DAYS[d], "avg_h": h, "avg_m": m, "pct": pct} for d, h, m, pct in top]
-    })
-
-async def api_known_players(request):
-    if not mongo_ok or sessions_col is None:
-        return cors({"players": []})
-    try:
-        players = sessions_col.distinct("player")
-        players.sort(key=lambda x: x.lower())
-        return cors({"players": players})
-    except Exception as e:
-        return cors({"players": [], "error": str(e)})
-
-async def api_plages(request):
-    player = request.match_info["player"]
-    result = get_plages(player)
-    if not result:
-        return cors({"error": "Aucune donnée"}, 404)
-    heatmap, DAYS = result
-    return cors({"player": player, "days": DAYS, "heatmap": heatmap})
-
-# ==================== AUTOCOMPLETIONS ====================
-
-async def server_autocomplete(interaction: discord.Interaction, current: str):
-    return [app_commands.Choice(name=s.upper(), value=s) for s in SERVERS if current.lower() in s.lower()][:25]
-
-async def country_autocomplete(interaction: discord.Interaction, current: str):
-    server = interaction.namespace.server
-    if not server or server not in SERVERS:
-        return []
-    countries = await get_countries_list(server)
-    return [app_commands.Choice(name=c, value=c) for c in countries if current.lower() in c.lower()][:25]
-
-# ==================== COMMANDES ====================
-
-@tree.command(name="check", description="Espionne les membres d'un pays sur tous les serveurs")
-@app_commands.autocomplete(server=server_autocomplete, country=country_autocomplete)
-async def check_command(interaction: discord.Interaction, server: str, country: str):
-    await interaction.response.defer()
-    if server not in SERVERS:
-        return await interaction.followup.send("❌ Serveur invalide")
-    members, country_name = await get_country_members(server, country)
-    if not members:
-        return await interaction.followup.send("❌ Pays introuvable")
-    tasks            = {s: get_online_players(s) for s in SERVERS}
-    results          = await asyncio.gather(*tasks.values())
-    online_by_server = dict(zip(tasks.keys(), results))
-    found = {}
-    total = 0
-    for s, players in online_by_server.items():
-        f = [m for m in members if m in players]
-        if f:
-            found[s] = f
-            total   += len(f)
-    embed = discord.Embed(title=f"📊 Espionnage {country_name}", color=discord.Color.red())
+    if not members: return await i.followup.send("❌ Pays introuvable")
+    all_ = await get_all_online()
+    found, total = {}, 0
+    for s, pl in all_.items():
+        f = [m for m in members if m in pl]
+        if f: found[s] = f; total += len(f)
+    e = discord.Embed(title=f"📊 Espionnage {name}", color=discord.Color.red())
     if found:
-        for s, pl in sorted(found.items(), key=lambda x: (x[0] != server, x[0])):
-            label = f"{SERVERS[s]['emoji']} {s.upper()} ({len(pl)})"
-            if s == server:
-                label += " ← serveur cible"
-            embed.add_field(name=label, value=", ".join(pl), inline=False)
-        embed.set_footer(text=f"Total connectés : {total} | {len(members)} membres au total")
+        for s, pl in sorted(found.items(), key=lambda x:(x[0]!=server, x[0])):
+            lbl = f"{SERVERS[s]['emoji']} {s.upper()} ({len(pl)})" + (" ← cible" if s==server else "")
+            e.add_field(name=lbl, value=", ".join(pl), inline=False)
+        e.set_footer(text=f"Total : {total} | {len(members)} membres")
     else:
-        embed.description = f"✅ Aucun membre de {country_name} n'est connecté"
-        embed.color       = discord.Color.green()
-    await interaction.followup.send(embed=embed)
+        e.description = f"✅ Aucun membre de {name} connecté"; e.color = discord.Color.green()
+    await i.followup.send(embed=e)
 
-@tree.command(name="checkall", description="Voir sur quel serveur un joueur est connecté")
-async def checkall_command(interaction: discord.Interaction, joueur: str):
-    await interaction.response.defer()
-    tasks            = {s: get_online_players(s) for s in SERVERS}
-    results          = await asyncio.gather(*tasks.values())
-    online_by_server = dict(zip(tasks.keys(), results))
-    found = [s for s, players in online_by_server.items() if joueur in players]
-    embed = discord.Embed(title=f"🔍 Localisation de {joueur}", color=discord.Color.red())
-    if found:
-        embed.color       = discord.Color.green()
-        embed.description = "\n".join([f"{SERVERS[s]['emoji']} **{s.upper()}**" for s in found])
-    else:
-        embed.description = f"**{joueur}** n'est connecté sur aucun serveur"
-    await interaction.followup.send(embed=embed)
+@tree.command(name="checkall", description="Localiser un joueur")
+async def cmd_checkall(i: discord.Interaction, joueur: str):
+    await i.response.defer()
+    all_ = await get_all_online()
+    found = [s for s,pl in all_.items() if joueur in pl]
+    e = discord.Embed(title=f"🔍 {joueur}", color=discord.Color.green() if found else discord.Color.red())
+    e.description = "\n".join(f"{SERVERS[s]['emoji']} **{s.upper()}**" for s in found) if found else f"**{joueur}** hors ligne"
+    await i.followup.send(embed=e)
 
-@tree.command(name="online", description="Voir tous les joueurs connectés sur un serveur")
-@app_commands.autocomplete(server=server_autocomplete)
-async def online_command(interaction: discord.Interaction, server: str):
-    await interaction.response.defer()
-    if server not in SERVERS:
-        return await interaction.followup.send("❌ Serveur invalide")
-    players = await get_online_players(server)
-    embed   = discord.Embed(
-        title=f"{SERVERS[server]['emoji']} Joueurs en ligne — {server.upper()}",
-        color=discord.Color.blurple()
-    )
-    if players:
-        chunks = [players[i:i+20] for i in range(0, len(players), 20)]
-        for i, chunk in enumerate(chunks):
-            embed.add_field(name=f"Joueurs {i+1}", value="\n".join([f"• {p}" for p in chunk]), inline=True)
-        embed.set_footer(text=f"{len(players)} joueurs connectés")
-    else:
-        embed.description = "Aucun joueur connecté"
-    await interaction.followup.send(embed=embed)
+@tree.command(name="online", description="Joueurs en ligne sur un serveur")
+@app_commands.autocomplete(server=srv_ac)
+async def cmd_online(i: discord.Interaction, server: str):
+    await i.response.defer()
+    if server not in SERVERS: return await i.followup.send("❌ Serveur invalide")
+    pl = await get_online(server)
+    e = discord.Embed(title=f"{SERVERS[server]['emoji']} {server.upper()}", color=discord.Color.blurple())
+    if pl:
+        for idx, chunk in enumerate([pl[j:j+20] for j in range(0,len(pl),20)]):
+            e.add_field(name=f"Joueurs {idx+1}", value="\n".join(f"• {p}" for p in chunk), inline=True)
+        e.set_footer(text=f"{len(pl)} connectés")
+    else: e.description = "Aucun joueur"
+    await i.followup.send(embed=e)
 
-@tree.command(name="pronostic", description="Pronostic de connexion d'un joueur")
-async def pronostic_command(interaction: discord.Interaction, joueur: str):
-    await interaction.response.defer()
-    if not mongo_ok:
-        return await interaction.followup.send("❌ MongoDB non connecté", ephemeral=True)
-    result = get_pronostic(joueur)
-    if not result:
-        return await interaction.followup.send(
-            f"⚠️ Pas assez de données pour **{joueur}** (minimum 3 connexions)", ephemeral=True
-        )
-    top, DAYS, total = result
-    embed = discord.Embed(
-        title=f"🔮 Pronostic — {joueur}",
-        description=f"Basé sur **{total}** connexions enregistrées",
-        color=discord.Color.purple()
-    )
+@tree.command(name="pronostic", description="Pronostic de connexion")
+async def cmd_pronostic(i: discord.Interaction, joueur: str):
+    await i.response.defer()
+    if not mongo_ok: return await i.followup.send("❌ MongoDB non connecté", ephemeral=True)
+    res = get_pronostic(joueur)
+    if not res: return await i.followup.send(f"⚠️ Pas assez de données pour **{joueur}**", ephemeral=True)
+    top, DAYS, total = res
+    e = discord.Embed(title=f"🔮 Pronostic — {joueur}", description=f"Basé sur **{total}** connexions", color=discord.Color.purple())
     for d, avg_h, avg_m, pct in top:
-        bar = "█" * (pct // 10) + "░" * (10 - pct // 10)
-        embed.add_field(
-            name=f"{DAYS[d]} — {pct}%",
-            value=f"`{bar}` Heure moyenne : **{avg_h}h{str(avg_m).zfill(2)}**",
-            inline=False
-        )
-    embed.set_footer(text="% = fréquence de connexion par jour de la semaine")
-    await interaction.followup.send(embed=embed)
+        e.add_field(name=f"{DAYS[d]} — {pct}%", value=f"`{'█'*(pct//10)}{'░'*(10-pct//10)}` **{avg_h}h{str(avg_m).zfill(2)}**", inline=False)
+    e.set_footer(text="% = fréquence par jour")
+    await i.followup.send(embed=e)
 
-@tree.command(name="plages", description="Voir les plages horaires de connexion d'un joueur")
-async def plages_command(interaction: discord.Interaction, joueur: str):
-    await interaction.response.defer()
-    if not mongo_ok:
-        return await interaction.followup.send("❌ MongoDB non connecté", ephemeral=True)
-    result = get_plages(joueur)
-    if not result:
-        return await interaction.followup.send(f"⚠️ Aucune donnée pour **{joueur}**", ephemeral=True)
-    heatmap, DAYS = result
-    embed = discord.Embed(title=f"🕐 Plages horaires — {joueur}", color=discord.Color.orange())
+@tree.command(name="plages", description="Plages horaires d'un joueur")
+async def cmd_plages(i: discord.Interaction, joueur: str):
+    await i.response.defer()
+    if not mongo_ok: return await i.followup.send("❌ MongoDB non connecté", ephemeral=True)
+    res = get_plages(joueur)
+    if not res: return await i.followup.send(f"⚠️ Aucune donnée pour **{joueur}**", ephemeral=True)
+    hm, DAYS = res
+    e = discord.Embed(title=f"🕐 Plages — {joueur}", color=discord.Color.orange())
     for d in range(7):
-        row = heatmap[d]
-        if sum(row) == 0:
-            continue
-        hours_with_data = [h for h in range(24) if row[h] > 0]
-        plages = []
-        start  = hours_with_data[0]
-        prev   = hours_with_data[0]
-        for h in hours_with_data[1:]:
-            if h - prev > 2:
-                plages.append(f"{start}h-{prev+1}h")
-                start = h
+        row = hm[d]
+        if not sum(row): continue
+        hw = [h for h in range(24) if row[h]]
+        plages, start, prev = [], hw[0], hw[0]
+        for h in hw[1:]:
+            if h - prev > 2: plages.append(f"{start}h-{prev+1}h"); start = h
             prev = h
         plages.append(f"{start}h-{prev+1}h")
-        embed.add_field(name=DAYS[d], value=" • ".join(plages), inline=True)
-    embed.set_footer(text="Basé sur l'historique complet des connexions")
-    await interaction.followup.send(embed=embed)
+        e.add_field(name=DAYS[d], value=" • ".join(plages), inline=True)
+    e.set_footer(text="Historique complet")
+    await i.followup.send(embed=e)
 
-@tree.command(name="addwatch", description="Ajouter un joueur à la surveillance")
-async def addwatch_command(interaction: discord.Interaction, joueur: str):
-    if joueur in WATCH_LIST:
-        return await interaction.response.send_message(f"⚠️ **{joueur}** est déjà dans la watchlist", ephemeral=True)
-    WATCH_LIST.append(joueur)
-    await save_watchlist()
-    await interaction.response.send_message(f"✅ **{joueur}** ajouté à la surveillance", ephemeral=True)
+def _wl_cmd(name, lst, save_fn, label=""):
+    suffix = f"_{name}" if name else ""
+    tag = f" {label}" if label else ""
 
-@tree.command(name="removewatch", description="Retirer un joueur de la surveillance")
-async def removewatch_command(interaction: discord.Interaction, joueur: str):
-    if joueur not in WATCH_LIST:
-        return await interaction.response.send_message(f"❌ **{joueur}** n'est pas dans la watchlist", ephemeral=True)
-    WATCH_LIST.remove(joueur)
-    await save_watchlist()
-    await interaction.response.send_message(f"🗑️ **{joueur}** retiré de la surveillance", ephemeral=True)
+    @tree.command(name=f"addwatch{suffix}", description=f"Ajouter à la watchlist{tag}")
+    async def _add(i: discord.Interaction, joueur: str):
+        if joueur in lst: return await i.response.send_message(f"⚠️ **{joueur}** déjà dans la watchlist{tag}", ephemeral=True)
+        lst.append(joueur); await save_fn()
+        await i.response.send_message(f"✅ **{joueur}** ajouté{tag}", ephemeral=True)
 
-@tree.command(name="watchlist", description="Afficher la liste de surveillance")
-async def watchlist_command(interaction: discord.Interaction):
-    if not WATCH_LIST:
-        return await interaction.response.send_message("📋 La watchlist est vide", ephemeral=True)
-    embed = discord.Embed(title="👁️ Watchlist — LIME", color=discord.Color.blurple())
-    embed.description = "\n".join([f"• {p}" for p in WATCH_LIST])
-    embed.set_footer(text=f"{len(WATCH_LIST)} joueurs surveillés")
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+    @tree.command(name=f"removewatch{suffix}", description=f"Retirer de la watchlist{tag}")
+    async def _remove(i: discord.Interaction, joueur: str):
+        if joueur not in lst: return await i.response.send_message(f"❌ **{joueur}** pas dans la watchlist{tag}", ephemeral=True)
+        lst.remove(joueur); await save_fn()
+        await i.response.send_message(f"🗑️ **{joueur}** retiré{tag}", ephemeral=True)
 
+    @tree.command(name=f"watchlist{suffix}", description=f"Afficher la watchlist{tag}")
+    async def _show(i: discord.Interaction):
+        if not lst: return await i.response.send_message(f"📋 Watchlist{tag} vide", ephemeral=True)
+        e = discord.Embed(title=f"👁️ Watchlist{tag}", color=discord.Color.blurple())
+        e.description = "\n".join(f"• {p}" for p in lst)
+        e.set_footer(text=f"{len(lst)} joueurs")
+        await i.response.send_message(embed=e, ephemeral=True)
 
-@tree.command(name="addwatch_mocha", description="Ajouter un joueur à la surveillance MOCHA")
-async def addwatch_mocha_command(interaction: discord.Interaction, joueur: str):
-    if joueur in WATCH_LIST_MOCHA:
-        return await interaction.response.send_message(f"⚠️ **{joueur}** est déjà dans la watchlist MOCHA", ephemeral=True)
-    WATCH_LIST_MOCHA.append(joueur)
-    await save_watchlist_mocha()
-    await interaction.response.send_message(f"✅ **{joueur}** ajouté à la surveillance MOCHA", ephemeral=True)
+_wl_cmd("",      WL,       save_watchlist)
+_wl_cmd("mocha", WL_MOCHA, save_watchlist_mocha, "MOCHA")
 
-@tree.command(name="removewatch_mocha", description="Retirer un joueur de la surveillance MOCHA")
-async def removewatch_mocha_command(interaction: discord.Interaction, joueur: str):
-    if joueur not in WATCH_LIST_MOCHA:
-        return await interaction.response.send_message(f"❌ **{joueur}** n'est pas dans la watchlist MOCHA", ephemeral=True)
-    WATCH_LIST_MOCHA.remove(joueur)
-    await save_watchlist_mocha()
-    await interaction.response.send_message(f"🗑️ **{joueur}** retiré de la surveillance MOCHA", ephemeral=True)
+# ── SCANNER ──
+last_states = {s:{} for s in SERVERS}
+rapport_msg_id = None
 
-@tree.command(name="watchlist_mocha", description="Afficher la watchlist MOCHA")
-async def watchlist_mocha_command(interaction: discord.Interaction):
-    if not WATCH_LIST_MOCHA:
-        return await interaction.response.send_message("📋 La watchlist MOCHA est vide", ephemeral=True)
-    embed = discord.Embed(title="👁️ Watchlist — MOCHA", color=discord.Color.orange())
-    embed.description = "\n".join([f"• {p}" for p in WATCH_LIST_MOCHA])
-    embed.set_footer(text=f"{len(WATCH_LIST_MOCHA)} joueurs surveillés")
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+def _status_text(wl, players):
+    on  = [p for p in wl if p in players]
+    off = [p for p in wl if p not in players]
+    txt = ""
+    if on:  txt += f"🟢 **En ligne ({len(on)}) :**\n" + "".join(f"• {p}\n" for p in on)
+    if off: txt += ("\n" if txt else "") + f"⚪ **Hors ligne ({len(off)}) :**\n" + "".join(f"• {p}\n" for p in off)
+    return txt or "Aucun joueur surveillé en ligne"
 
-# ==================== SCANNER ====================
+def _rapport_embed(title, count, time_str, status_text, color):
+    e = discord.Embed(title=title, color=color, timestamp=discord.utils.utcnow())
+    e.add_field(name="👥 Connectés", value=f"**{count}**", inline=True)
+    e.add_field(name="⏱️ Relevé",    value=f"**{time_str}**", inline=True)
+    e.add_field(name="👁️ Surveillance", value=status_text, inline=False)
+    e.set_footer(text=f"Scanner • MongoDB {'✅' if mongo_ok else '❌'}")
+    return e
 
-last_states        = {s: {} for s in SERVERS}
-rapport_message_id = None
+async def _update_rapport(channel, msg_id_ref, embed, save_fn):
+    if not channel: return msg_id_ref
+    if msg_id_ref:
+        try:
+            msg = await channel.fetch_message(msg_id_ref)
+            await msg.edit(embed=embed)
+            return msg_id_ref
+        except discord.NotFound: pass
+    msg = await channel.send(embed=embed)
+    await asyncio.get_running_loop().run_in_executor(None, save_fn, msg.id)
+    return msg.id
 
-async def scan_server(server: str, alerte_channel):
-    players    = await get_online_players(server)
-    player_set = set(players)
-    prev       = last_states[server]
-    mocha_alerte_ch = client.get_channel(MOCHA_ALERTE_ID)
-    for player in player_set:
-        if not prev.get(player, False):
-            record_connection(player, server)
-            # Alerte LIME watchlist
-            if player in WATCH_LIST and alerte_channel:
-                embed = discord.Embed(
-                    title="🟢 CONNEXION DÉTECTÉE",
-                    description=f"**{player}** vient de se connecter sur **{server.upper()}**",
-                    color=discord.Color.green(),
-                    timestamp=discord.utils.utcnow()
-                )
-                await alerte_channel.send(embed=embed)
-            # Alerte MOCHA watchlist
-            if player in WATCH_LIST_MOCHA and server == "mocha" and mocha_alerte_ch:
-                embed = discord.Embed(
-                    title="🟢 CONNEXION DÉTECTÉE — MOCHA",
-                    description=f"**{player}** vient de se connecter sur **MOCHA**",
-                    color=discord.Color.orange(),
-                    timestamp=discord.utils.utcnow()
-                )
-                await mocha_alerte_ch.send(embed=embed)
-    for player, was_online in prev.items():
-        if was_online and player not in player_set:
-            if player in WATCH_LIST and alerte_channel:
-                embed = discord.Embed(
-                    title="🔴 DÉCONNEXION",
-                    description=f"**{player}** vient de se déconnecter de **{server.upper()}**",
-                    color=discord.Color.red(),
-                    timestamp=discord.utils.utcnow()
-                )
-                await alerte_channel.send(embed=embed)
-            if player in WATCH_LIST_MOCHA and server == "mocha" and mocha_alerte_ch:
-                embed = discord.Embed(
-                    title="🔴 DÉCONNEXION — MOCHA",
-                    description=f"**{player}** vient de se déconnecter de **MOCHA**",
-                    color=discord.Color.red(),
-                    timestamp=discord.utils.utcnow()
-                )
-                await mocha_alerte_ch.send(embed=embed)
-    last_states[server] = {p: True for p in player_set}
+async def scan_server(server, alerte_ch):
+    players = await get_online(server)
+    pset    = set(players)
+    prev    = last_states[server]
+    mocha_ch = client.get_channel(CH_M_ALERTE)
+    ts = discord.utils.utcnow()
+
+    for p in pset:
+        if not prev.get(p):
+            record_connection(p, server)
+            if p in WL and alerte_ch:
+                e = discord.Embed(title="🟢 CONNEXION", description=f"**{p}** → **{server.upper()}**", color=discord.Color.green(), timestamp=ts)
+                await alerte_ch.send(embed=e)
+            if p in WL_MOCHA and server == "mocha" and mocha_ch:
+                e = discord.Embed(title="🟢 CONNEXION — MOCHA", description=f"**{p}** → **MOCHA**", color=discord.Color.orange(), timestamp=ts)
+                await mocha_ch.send(embed=e)
+
+    for p, was in prev.items():
+        if was and p not in pset:
+            if p in WL and alerte_ch:
+                e = discord.Embed(title="🔴 DÉCONNEXION", description=f"**{p}** ← **{server.upper()}**", color=discord.Color.red(), timestamp=ts)
+                await alerte_ch.send(embed=e)
+            if p in WL_MOCHA and server == "mocha" and mocha_ch:
+                e = discord.Embed(title="🔴 DÉCONNEXION — MOCHA", description=f"**{p}** ← **MOCHA**", color=discord.Color.red(), timestamp=ts)
+                await mocha_ch.send(embed=e)
+
+    last_states[server] = {p: True for p in pset}
     return players
 
 async def scanner_loop():
-    global rapport_message_id
+    global rapport_msg_id
     await client.wait_until_ready()
     await load_watchlist()
     await load_watchlist_mocha()
-    rapport_message_id = await asyncio.get_event_loop().run_in_executor(None, load_rapport_id)
-    print(f"📋 Rapport message ID: {rapport_message_id}", flush=True)
-    rapport_channel = client.get_channel(RAPPORT_CHANNEL_ID)
-    alerte_channel  = client.get_channel(ALERTE_CHANNEL_ID)
-    scan_tick = 0
+    rapport_msg_id = await asyncio.get_running_loop().run_in_executor(None, cfg_get, "rapport_msg_id")
+    print(f"📋 Rapport ID: {rapport_msg_id}", flush=True)
+
+    ch_rapport = client.get_channel(CH_RAPPORT)
+    ch_alerte  = client.get_channel(CH_ALERTE)
+    tick = 0
+
     while True:
         try:
-            tasks          = {s: scan_server(s, alerte_channel) for s in SERVERS}
-            results        = await asyncio.gather(*tasks.values(), return_exceptions=True)
-            server_players = dict(zip(tasks.keys(), results))
-            if scan_tick % 5 == 0:
-                lime_players    = server_players.get("lime", [])
-                if isinstance(lime_players, Exception):
-                    lime_players = []
-                watched_online  = [p for p in WATCH_LIST if p in lime_players]
-                watched_offline = [p for p in WATCH_LIST if p not in lime_players]
-                now      = discord.utils.utcnow()
-                time_str = (now + timedelta(hours=1)).strftime("%H:%M:%S")
-                status_text = ""
-                if watched_online:
-                    status_text += f"🟢 **En ligne ({len(watched_online)}) :**\n"
-                    for p in watched_online:
-                        status_text += f"• {p}\n"
-                if watched_offline:
-                    if status_text:
-                        status_text += "\n"
-                    status_text += f"⚪ **Hors ligne ({len(watched_offline)}) :**\n"
-                    for p in watched_offline:
-                        status_text += f"• {p}\n"
-                rapport_embed = discord.Embed(
-                    title="🟢 RAPPORT TACTIQUE — LIME",
-                    color=discord.Color.green() if watched_online else discord.Color.greyple(),
-                    timestamp=now
-                )
-                rapport_embed.add_field(name="👥 Connectés Total", value=f"**{len(lime_players)}**", inline=True)
-                rapport_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",          inline=True)
-                rapport_embed.add_field(name="👁️ Surveillance", value=status_text or "Aucun joueur surveillé en ligne", inline=False)
-                rapport_embed.set_footer(text=f"Scanner interserveur • MongoDB {'✅' if mongo_ok else '❌'}")
-                if rapport_channel:
-                    if rapport_message_id:
-                        try:
-                            msg = await rapport_channel.fetch_message(rapport_message_id)
-                            await msg.edit(embed=rapport_embed)
-                        except discord.NotFound:
-                            msg                = await rapport_channel.send(embed=rapport_embed)
-                            rapport_message_id = msg.id
-                            await asyncio.get_event_loop().run_in_executor(None, save_rapport_id, rapport_message_id)
-                    else:
-                        msg                = await rapport_channel.send(embed=rapport_embed)
-                        rapport_message_id = msg.id
-                        await asyncio.get_event_loop().run_in_executor(None, save_rapport_id, rapport_message_id)
+            results = await asyncio.gather(*[scan_server(s, ch_alerte) for s in SERVERS], return_exceptions=True)
+            sp = {s: (r if isinstance(r,list) else []) for s,r in zip(SERVERS,results)}
 
-                # ── RAPPORT MOCHA ──
-                mocha_players = server_players.get("mocha", [])
-                if isinstance(mocha_players, Exception):
-                    mocha_players = []
-                mocha_online  = [p for p in WATCH_LIST_MOCHA if p in mocha_players]
-                mocha_offline = [p for p in WATCH_LIST_MOCHA if p not in mocha_players]
-                mocha_text = ""
-                NL = "\n"
-                if mocha_online:
-                    mocha_text += f"🟢 **En ligne ({len(mocha_online)}) :**{NL}"
-                    for p in mocha_online:
-                        mocha_text += f"• {p}{NL}"
-                if mocha_offline:
-                    if mocha_text:
-                        mocha_text += NL
-                    mocha_text += f"⚪ **Hors ligne ({len(mocha_offline)}) :**{NL}"
-                    for p in mocha_offline:
-                        mocha_text += f"• {p}{NL}"
-                mocha_embed = discord.Embed(
-                    title="🟤 RAPPORT TACTIQUE — MOCHA",
-                    color=discord.Color.orange() if mocha_online else discord.Color.greyple(),
-                    timestamp=now
-                )
-                mocha_embed.add_field(name="👥 Connectés Total", value=f"**{len(mocha_players)}**", inline=True)
-                mocha_embed.add_field(name="⏱️ Dernier relevé",  value=f"**{time_str}**",           inline=True)
-                mocha_embed.add_field(name="👁️ Surveillance",    value=mocha_text or "Aucun joueur surveillé en ligne", inline=False)
-                mocha_embed.set_footer(text=f"Scanner interserveur • MongoDB {'✅' if mongo_ok else '❌'}")
-                mocha_rapport_ch = client.get_channel(MOCHA_RAPPORT_ID)
-                if mocha_rapport_ch:
+            if tick % 5 == 0:
+                now = discord.utils.utcnow()
+                ts  = (now + timedelta(hours=1)).strftime("%H:%M:%S")
+
+                # LIME rapport
+                lp = sp.get("lime",[])
+                e  = _rapport_embed("🟢 RAPPORT TACTIQUE — LIME", len(lp), ts, _status_text(WL, lp), discord.Color.green() if any(p in lp for p in WL) else discord.Color.greyple())
+                rapport_msg_id = await _update_rapport(ch_rapport, rapport_msg_id, e, lambda mid: cfg_set("rapport_msg_id", mid))
+
+                # MOCHA rapport
+                mp       = sp.get("mocha",[])
+                mocha_e  = _rapport_embed("🟤 RAPPORT TACTIQUE — MOCHA", len(mp), ts, _status_text(WL_MOCHA, mp), discord.Color.orange() if any(p in mp for p in WL_MOCHA) else discord.Color.greyple())
+                ch_mr    = client.get_channel(CH_M_RAPPORT)
+                if ch_mr:
                     found = False
-                    async for old_msg in mocha_rapport_ch.history(limit=15):
-                        if old_msg.author == client.user and old_msg.embeds and "RAPPORT TACTIQUE — MOCHA" in old_msg.embeds[0].title:
-                            await old_msg.edit(embed=mocha_embed)
-                            found = True
-                            break
-                    if not found:
-                        await mocha_rapport_ch.send(embed=mocha_embed)
-            scan_tick += 1
+                    async for old in ch_mr.history(limit=10):
+                        if old.author == client.user and old.embeds and "RAPPORT TACTIQUE — MOCHA" in (old.embeds[0].title or ""):
+                            await old.edit(embed=mocha_e); found = True; break
+                    if not found: await ch_mr.send(embed=mocha_e)
+
+            tick += 1
         except Exception as e:
-            print(f"❌ Erreur scanner: {e}", flush=True)
+            print(f"❌ Scanner: {e}", flush=True)
         await asyncio.sleep(1)
 
-
-async def api_watchlist_mocha_get(request):
-    return cors({"players": WATCH_LIST_MOCHA})
-
-async def api_watchlist_mocha_add(request):
-    try:
-        body   = await request.json()
-        player = body.get("player", "").strip()
-        if not player:
-            return cors({"error": "Nom vide"}, 400)
-        if player not in WATCH_LIST_MOCHA:
-            WATCH_LIST_MOCHA.append(player)
-            await save_watchlist_mocha()
-        return cors({"players": WATCH_LIST_MOCHA})
-    except Exception as e:
-        return cors({"error": str(e)}, 400)
-
-async def api_watchlist_mocha_remove(request):
-    try:
-        body   = await request.json()
-        player = body.get("player", "").strip()
-        if player in WATCH_LIST_MOCHA:
-            WATCH_LIST_MOCHA.remove(player)
-            await save_watchlist_mocha()
-        return cors({"players": WATCH_LIST_MOCHA})
-    except Exception as e:
-        return cors({"error": str(e)}, 400)
-
-# ==================== SERVEUR WEB ====================
-
-async def start_webserver():
+# ── SERVEUR WEB ──
+async def start_web():
     app = web.Application()
-    app.router.add_get('/',       api_health)
-    app.router.add_get('/health', api_health)
-    app.router.add_get('/api/online/{server}',          api_online)
-    app.router.add_get('/api/online_all',               api_online_all)
-    app.router.add_get('/api/checkall/{player}',        api_checkall)
-    app.router.add_get('/api/countries/{server}',       api_countries)
-    app.router.add_get('/api/check/{server}/{country}', api_check)
-    app.router.add_get('/api/watchlist',                api_watchlist_get)
-    app.router.add_post('/api/watchlist/add',           api_watchlist_add)
-    app.router.add_post('/api/watchlist/remove',        api_watchlist_remove)
-    app.router.add_get('/api/watchlist_mocha',              api_watchlist_mocha_get)
-    app.router.add_post('/api/watchlist_mocha/add',         api_watchlist_mocha_add)
-    app.router.add_post('/api/watchlist_mocha/remove',      api_watchlist_mocha_remove)
-    app.router.add_get('/api/pronostic/{player}',       api_pronostic)
-    app.router.add_get('/api/plages/{player}',          api_plages)
-    app.router.add_get('/api/known_players',            api_known_players)
-    app.router.add_route('OPTIONS', '/{path_info:.*}',  handle_options)
+    routes = [
+        ("GET",  "/",                              api_health),
+        ("GET",  "/health",                        api_health),
+        ("GET",  "/api/online/{server}",           api_online),
+        ("GET",  "/api/online_all",                api_online_all),
+        ("GET",  "/api/checkall/{player}",         api_checkall),
+        ("GET",  "/api/countries/{server}",        api_countries),
+        ("GET",  "/api/check/{server}/{country}",  api_check),
+        ("GET",  "/api/watchlist",                 api_wl_get),
+        ("POST", "/api/watchlist/add",             api_wl_add),
+        ("POST", "/api/watchlist/remove",          api_wl_remove),
+        ("GET",  "/api/watchlist_mocha",           api_wl_mocha_get),
+        ("POST", "/api/watchlist_mocha/add",       api_wl_mocha_add),
+        ("POST", "/api/watchlist_mocha/remove",    api_wl_mocha_remove),
+        ("GET",  "/api/pronostic/{player}",        api_pronostic),
+        ("GET",  "/api/plages/{player}",           api_plages),
+        ("GET",  "/api/known_players",             api_known_players),
+    ]
+    for method, path, handler in routes:
+        app.router.add_route(method, path, handler)
+    app.router.add_route("OPTIONS", "/{path_info:.*}", handle_options)
     runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.getenv("PORT", 10000))
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-    print(f"🌐 Serveur HTTP + API démarré sur port {port}", flush=True)
+    await web.TCPSite(runner, "0.0.0.0", port).start()
+    print(f"🌐 API démarrée sur {port}", flush=True)
 
 async def self_ping():
     await asyncio.sleep(60)
+    url = (RENDER_URL if RENDER_URL.startswith("http") else f"https://{RENDER_URL}") if RENDER_URL else None
     while True:
-        try:
-            if RENDER_URL:
-                url = RENDER_URL if RENDER_URL.startswith("http") else f"https://{RENDER_URL}"
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)):
-                        pass
-        except:
-            pass
+        if url:
+            try:
+                async with aiohttp.ClientSession() as s:
+                    await s.get(url, timeout=aiohttp.ClientTimeout(total=10))
+            except: pass
         await asyncio.sleep(600)
 
-# ==================== LANCEMENT ====================
-
+# ── LANCEMENT ──
 async def main():
-    print("🚀 Démarrage du bot...", flush=True)
+    print("🚀 Démarrage...", flush=True)
     init_mongo()
     await asyncio.sleep(5)
     async with client:
-        asyncio.create_task(start_webserver())
-        if RENDER_URL:
-            asyncio.create_task(self_ping())
+        asyncio.create_task(start_web())
+        if RENDER_URL: asyncio.create_task(self_ping())
         asyncio.create_task(scanner_loop())
         try:
-            await client.start(DISCORD_TOKEN)
+            await client.start(TOKEN)
         except discord.errors.HTTPException as e:
-            print(f"❌ Erreur connexion Discord (rate limit?) : {e}", flush=True)
-            await asyncio.sleep(60)
-            sys.exit(1)
+            print(f"❌ Rate limit Discord: {e}", flush=True)
+            await asyncio.sleep(60); sys.exit(1)
         except Exception as e:
-            print(f"❌ Erreur inattendue : {e}", flush=True)
-            await asyncio.sleep(30)
-            sys.exit(1)
+            print(f"❌ Erreur: {e}", flush=True)
+            await asyncio.sleep(30); sys.exit(1)
 
 @client.event
 async def on_ready():
     await tree.sync()
-    print(f"✅ Bot connecté : {client.user}", flush=True)
-    print(f"🌍 Scanner interserveur actif — {len(SERVERS)} serveurs", flush=True)
-    print(f"🗄️ MongoDB : {'✅ OK' if mongo_ok else '❌ NON CONNECTÉ'}", flush=True)
+    print(f"✅ {client.user} | {len(SERVERS)} serveurs | MongoDB {'✅' if mongo_ok else '❌'}", flush=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
