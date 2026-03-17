@@ -276,7 +276,6 @@ select option{background:var(--s2)}
 
 <!-- CURSOR -->
 <div id="cursor"></div>
-<canvas id="cursor-trail"></canvas>
 
 <!-- AMBIENT -->
 <div class="amb amb1"></div>
@@ -552,12 +551,13 @@ window.addEventListener('load',()=>{
 // ── CURSOR ──
 (()=>{
   const cur=$('cursor');
-  const ct=$('cursor-trail');
-  // Position fixed + taille = viewport
-  ct.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:99998;';
-  ct.width=innerWidth;ct.height=innerHeight;
+  // Créer le canvas trail dynamiquement hors du flux
+  const ct=document.createElement('canvas');
+  ct.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:99998;';
+  document.body.appendChild(ct);
+  ct.width=window.innerWidth;ct.height=window.innerHeight;
   const tc=ct.getContext('2d');
-  window.addEventListener('resize',()=>{ct.width=innerWidth;ct.height=innerHeight;});
+  window.addEventListener('resize',()=>{ct.width=window.innerWidth;ct.height=window.innerHeight;});
   const trail=[];const MAX=22;
   document.addEventListener('mousemove',e=>{
     const x=e.clientX,y=e.clientY;
@@ -774,7 +774,22 @@ async function loadStats(){
 
 // ── AUDIO ──
 let actx=null;
-function gCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
+function gCtx(){
+  if(!actx){actx=new(window.AudioContext||window.webkitAudioContext)();}
+  // Débloquer si suspendu (politique navigateur)
+  if(actx.state==='suspended')actx.resume();
+  return actx;
+}
+// Déverrouilller l'audio au premier geste utilisateur
+let _audioUnlocked=false;
+function unlockAudio(){
+  if(_audioUnlocked)return;
+  _audioUnlocked=true;
+  try{const ctx=gCtx();ctx.resume().then(()=>console.log('🔊 Audio OK'));}catch(e){}
+}
+document.addEventListener('mousemove',unlockAudio,{once:false});
+document.addEventListener('click',unlockAudio,{once:true});
+document.addEventListener('keydown',unlockAudio,{once:true});
 function toggleSound(){snd=!snd;localStorage.setItem('mg_sound',snd?'on':'off');const b=$('sound-btn');if(b){b.textContent=snd?'🔊 SON':'🔇 SON';b.style.color=snd?'var(--g)':'var(--txd)';b.style.borderColor=snd?'rgba(201,168,76,.2)':'var(--b0)';}}
 function pT(f,t='sine',d=.08,v=.08,dl=0){if(!snd)return;try{const ctx=gCtx(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=t;o.frequency.value=f;const ts=ctx.currentTime+dl;g.gain.setValueAtTime(0,ts);g.gain.linearRampToValueAtTime(v,ts+.01);g.gain.exponentialRampToValueAtTime(.001,ts+d);o.start(ts);o.stop(ts+d);}catch(e){}}
 function sndNav(){pT(880,'sine',.06,.06);pT(1100,'sine',.05,.04,.04);}
