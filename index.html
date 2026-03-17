@@ -412,7 +412,7 @@ const rP=(i,p)=>p.find(x=>x.toLowerCase()===i.toLowerCase())||i;
 
 // LOADER
 window.addEventListener('load',()=>{setTimeout(()=>{$('ltxt').textContent='SYSTÈME PRÊT — CLIQUEZ POUR ENTRER';$('lbtn').style.display='block';},2600);});
-function enterSite(){unlockAudio();window.scrollTo(0,0);$('loader').classList.add('hide');setTimeout(()=>{$('loader').style.display='none';},800);}
+function enterSite(){try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}_au=true;window.scrollTo(0,0);$('loader').classList.add('hide');setTimeout(()=>{$('loader').style.display='none';},800);}
 
 // PARTICLES
 (()=>{
@@ -578,7 +578,6 @@ let actx=null;
 function gCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}
 let _au=false;
 function unlockAudio(){if(_au)return;_au=true;try{gCtx().resume();}catch(e){}}
-document.addEventListener('mousemove',unlockAudio,{once:false});
 document.addEventListener('click',unlockAudio,{once:true});
 function toggleSound(){snd=!snd;localStorage.setItem('mg_sound',snd?'on':'off');const b=$('sound-btn');if(b){b.textContent=snd?'🔊 SON':'🔇 SON';b.style.color=snd?'var(--g)':'var(--txd)';b.style.borderColor=snd?'rgba(201,168,76,.2)':'var(--b0)';}}
 function pT(f,t='sine',d=.08,v=.08,dl=0){if(!snd)return;try{const ctx=gCtx(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=t;o.frequency.value=f;const ts=ctx.currentTime+dl;g.gain.setValueAtTime(0,ts);g.gain.linearRampToValueAtTime(v,ts+.01);g.gain.exponentialRampToValueAtTime(.001,ts+d);o.start(ts);o.stop(ts+d);}catch(e){}}
