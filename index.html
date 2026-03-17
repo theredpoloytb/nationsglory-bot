@@ -114,6 +114,29 @@ body { background:var(--bg); color:var(--tx); font-family:var(--body); min-heigh
 #clock { font-family:var(--mono); font-size:.58rem; color:var(--gold); letter-spacing:.15em; font-variant-numeric:tabular-nums; text-shadow:0 0 8px rgba(212,168,67,.2) }
 .hdr-btn { background:transparent; border:1px solid var(--b1); padding:.2rem .6rem; font-family:var(--mono); font-size:.48rem; color:var(--gold); letter-spacing:.1em; transition:all .2s; border-radius:2px }
 .hdr-btn:hover { border-color:var(--b3); background:var(--goldg) }
+.sc-player { display:flex; align-items:center; gap:.5rem; padding:.18rem .55rem; border:1px solid var(--b1); border-radius:2px; background:rgba(8,17,28,.8); transition:border-color .2s }
+.sc-player:hover { border-color:var(--b2) }
+.sc-play-btn { width:20px; height:20px; border-radius:50%; border:1px solid rgba(240,192,64,.35); background:transparent; display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0 }
+.sc-play-btn:hover { border-color:var(--goldb); background:var(--goldg) }
+.sc-play-icon { width:0; height:0; border-style:solid; border-width:4px 0 4px 7px; border-color:transparent transparent transparent var(--goldb); margin-left:1px; transition:all .15s }
+.sc-play-icon.pause { border-style:none; width:7px; height:8px; background:linear-gradient(to right,var(--goldb) 35%,transparent 35%,transparent 65%,var(--goldb) 65%); margin-left:0 }
+.sc-info { display:flex; flex-direction:column; gap:1px; min-width:0 }
+.sc-title { font-family:var(--mono); font-size:.44rem; color:var(--gold); letter-spacing:.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px }
+.sc-bar-wrap { width:80px; height:2px; background:rgba(212,168,67,.1); border-radius:1px; overflow:hidden; position:relative }
+.sc-bar-fill { height:100%; background:linear-gradient(90deg,rgba(212,168,67,.4),var(--goldb)); border-radius:1px; width:0%; transition:width .5s linear }
+.sc-vol { display:flex; align-items:center; gap:.25rem }
+.sc-vol-icon { font-size:.55rem; color:var(--txd) }
+.sc-vol-slider { -webkit-appearance:none; appearance:none; width:45px; height:2px; background:rgba(212,168,67,.15); border-radius:1px; outline:none; border:none; padding:0; flex:none; min-width:unset }
+.sc-vol-slider::-webkit-slider-thumb { -webkit-appearance:none; width:8px; height:8px; border-radius:50%; background:var(--goldb); cursor:pointer; box-shadow:0 0 6px rgba(240,192,64,.4) }
+.sc-eq { display:flex; align-items:flex-end; gap:1px; height:12px; opacity:0; transition:opacity .3s }
+.sc-eq.active { opacity:1 }
+.sc-eq span { width:2px; background:var(--goldb); border-radius:1px; animation:eqBar 0s ease-in-out infinite alternate }
+.sc-eq span:nth-child(1){height:4px;animation-duration:.4s}
+.sc-eq span:nth-child(2){height:8px;animation-duration:.6s}
+.sc-eq span:nth-child(3){height:12px;animation-duration:.5s}
+.sc-eq span:nth-child(4){height:6px;animation-duration:.7s}
+.sc-eq span:nth-child(5){height:10px;animation-duration:.45s}
+@keyframes eqBar{to{height:2px}}
 
 /* ══════════════════════════════
    NAV
@@ -415,6 +438,18 @@ select option { background:#060c14 }
     <div class="status-pill"><div class="led" id="api-led"></div><span id="api-txt">API</span></div>
     <div class="status-pill"><div class="led" id="scan-led"></div><span>SCAN</span></div>
     <span id="clock">--:--:--</span>
+    <div class="sc-player" id="sc-player">
+      <button class="sc-play-btn" id="sc-play-btn" onclick="scToggle()"><div class="sc-play-icon" id="sc-icon"></div></button>
+      <div class="sc-info">
+        <span class="sc-title">Tel Aviv — Omer Adam</span>
+        <div class="sc-bar-wrap"><div class="sc-bar-fill" id="sc-bar"></div></div>
+      </div>
+      <div class="sc-vol">
+        <span class="sc-vol-icon">🔈</span>
+        <input class="sc-vol-slider" type="range" min="0" max="100" value="70" oninput="scVol(this.value)" id="sc-vol">
+      </div>
+      <div class="sc-eq" id="sc-eq"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
     <button class="hdr-btn" id="sound-btn" onclick="toggleSound()">🔊 SON</button>
     <span style="font-family:var(--mono);font-size:.5rem;color:var(--txd);opacity:.15;letter-spacing:.08em">מוסד</span>
   </div>
@@ -861,6 +896,61 @@ function showPop(type,player,server){
   pop.appendChild(n);
   setTimeout(()=>{n.style.animation='alertOut .28s ease forwards';setTimeout(()=>n.remove(),280);},8000);
 }
+
+/* ── SOUNDCLOUD PLAYER ── */
+let scWidget=null,scPlaying=false,scBarTimer=null;
+(()=>{
+  const iframe=document.createElement('iframe');
+  iframe.id='sc-iframe';
+  iframe.style.cssText='position:absolute;width:0;height:0;border:none;opacity:0;pointer-events:none';
+  iframe.allow='autoplay';
+  iframe.src='https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user-164072391-103154989/omer-adam-feat-arisa-tel-aviv&color=%23f0c040&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false';
+  document.body.appendChild(iframe);
+  const scScript=document.createElement('script');
+  scScript.src='https://w.soundcloud.com/player/api.js';
+  scScript.onload=()=>{
+    scWidget=SC.Widget(iframe);
+    scWidget.bind(SC.Widget.Events.READY,()=>{
+      scWidget.setVolume(70);
+    });
+    scWidget.bind(SC.Widget.Events.PLAY,()=>{
+      scPlaying=true;
+      document.getElementById('sc-icon').classList.add('pause');
+      document.getElementById('sc-eq').classList.add('active');
+      scStartBar();
+    });
+    scWidget.bind(SC.Widget.Events.PAUSE,()=>{
+      scPlaying=false;
+      document.getElementById('sc-icon').classList.remove('pause');
+      document.getElementById('sc-eq').classList.remove('active');
+      scStopBar();
+    });
+    scWidget.bind(SC.Widget.Events.FINISH,()=>{
+      scPlaying=false;
+      document.getElementById('sc-icon').classList.remove('pause');
+      document.getElementById('sc-eq').classList.remove('active');
+      document.getElementById('sc-bar').style.width='0%';
+    });
+  };
+  document.head.appendChild(scScript);
+})();
+function scToggle(){
+  if(!scWidget)return;
+  if(scPlaying){scWidget.pause();}else{scWidget.play();}
+}
+function scVol(v){if(scWidget)scWidget.setVolume(parseInt(v));}
+function scStartBar(){
+  scStopBar();
+  scBarTimer=setInterval(()=>{
+    if(!scWidget)return;
+    scWidget.getPosition(pos=>{
+      scWidget.getDuration(dur=>{
+        if(dur>0)document.getElementById('sc-bar').style.width=(pos/dur*100)+'%';
+      });
+    });
+  },500);
+}
+function scStopBar(){if(scBarTimer){clearInterval(scBarTimer);scBarTimer=null;}}
 
 /* ── INIT ── */
 async function init(){
