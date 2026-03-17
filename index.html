@@ -37,23 +37,20 @@ body { background:var(--bg); color:var(--tx); font-family:var(--body); min-heigh
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V17L28 1l28 16v33L28 66zm0 50L0 100V67l28-16 28 16v33L28 116z' fill='none' stroke='%23d4a843' stroke-width='.5'/%3E%3C/svg%3E") }
 
 /* ══════════════════════════════
-   CUSTOM CURSOR — SQUARE TERMINAL
+   CUSTOM CURSOR — MAGNETIC DOT
 ══════════════════════════════ */
 #cursor { position:fixed; pointer-events:none; z-index:99999 }
-.cur-outer { position:absolute; transform:translate(-50%,-50%) rotate(0deg); width:22px; height:22px;
-  border:1px solid rgba(240,192,64,.5); transition:width .15s var(--ease),height .15s var(--ease),border-color .15s;
-  animation:curSpin 8s linear infinite }
-@keyframes curSpin { to { transform:translate(-50%,-50%) rotate(360deg) } }
-.cur-outer::before,.cur-outer::after { content:''; position:absolute; background:var(--goldb) }
-.cur-outer::before { width:5px; height:1px; top:-1px; left:50%; transform:translateX(-50%) }
-.cur-outer::after  { width:1px; height:5px; left:-1px; top:50%; transform:translateY(-50%) }
-.cur-inner { position:absolute; transform:translate(-50%,-50%); width:3px; height:3px;
-  background:var(--goldb); box-shadow:0 0 10px var(--goldb),0 0 20px rgba(240,192,64,.3);
-  transition:transform .1s,box-shadow .1s }
-#cursor.hov .cur-outer { width:36px; height:36px; border-color:rgba(240,192,64,.22); animation-duration:3s }
-#cursor.hov .cur-inner { transform:translate(-50%,-50%) scale(0) }
-#cursor.click .cur-inner { transform:translate(-50%,-50%) scale(4); box-shadow:0 0 20px var(--goldb) }
-#cursor.click .cur-outer { width:10px; height:10px; border-color:rgba(240,192,64,.9) }
+.cur-dot { position:absolute; transform:translate(-50%,-50%); width:5px; height:5px;
+  background:var(--goldb); border-radius:50%;
+  box-shadow:0 0 10px var(--goldb),0 0 22px rgba(240,192,64,.35);
+  transition:transform .08s,width .12s,height .12s,background .15s }
+.cur-aura { position:absolute; transform:translate(-50%,-50%); width:36px; height:36px;
+  border-radius:50%; border:1px solid rgba(240,192,64,.18);
+  transition:width .35s var(--ease),height .35s var(--ease),border-color .35s,opacity .35s,transform .35s var(--ease) }
+#cursor.hov .cur-aura { width:52px; height:52px; border-color:rgba(240,192,64,.08); transform:translate(-50%,-50%) scale(1) }
+#cursor.hov .cur-dot { width:3px; height:3px; background:rgba(240,192,64,.5) }
+#cursor.click .cur-dot { transform:translate(-50%,-50%) scale(2.5); background:#fff; box-shadow:0 0 20px #fff }
+#cursor.click .cur-aura { width:14px; height:14px; border-color:rgba(240,192,64,.8); opacity:.9 }
 #trail-canvas { position:fixed; inset:0; pointer-events:none; z-index:99998 }
 
 /* ══════════════════════════════
@@ -353,8 +350,8 @@ select option { background:#060c14 }
 
 <!-- CURSOR -->
 <div id="cursor">
-  <div class="cur-outer"></div>
-  <div class="cur-inner"></div>
+  <div class="cur-aura"></div>
+  <div class="cur-dot"></div>
 </div>
 <canvas id="trail-canvas"></canvas>
 
@@ -691,16 +688,32 @@ const rP=(i,p)=>p.find(x=>x.toLowerCase()===i.toLowerCase())||i;
 
 /* ── CURSOR ── */
 (()=>{
-  const cur=$('cursor'),trail=[],MAX=20;
+  const cur=$('cursor');
+  const dot=cur.querySelector('.cur-dot');
+  const aura=cur.querySelector('.cur-aura');
   const tc=$('trail-canvas'),tctx=tc.getContext('2d');
   const sync=()=>{tc.width=innerWidth;tc.height=innerHeight;};sync();window.addEventListener('resize',sync);
-  document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';trail.push({x:e.clientX,y:e.clientY,t:Date.now()});if(trail.length>MAX)trail.shift();});
+  let mx=0,my=0,ax=0,ay=0,trail=[],MAX=24;
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    // dot follows instantly
+    dot.style.left=mx+'px';dot.style.top=my+'px';
+    trail.push({x:mx,y:my,t:Date.now()});if(trail.length>MAX)trail.shift();
+  });
   document.addEventListener('mousedown',()=>cur.classList.add('click'));
   document.addEventListener('mouseup',()=>cur.classList.remove('click'));
   const HS='button,a,input,select,.tag,.srv-card,.wl-tab,.aci,.wi,.btn,.tab,.hdr-btn,.stat,.panel';
   document.addEventListener('mouseover',e=>{if(e.target.closest(HS))cur.classList.add('hov');});
   document.addEventListener('mouseout',e=>{if(e.target.closest(HS))cur.classList.remove('hov');});
-  const draw=()=>{tctx.clearRect(0,0,tc.width,tc.height);const now=Date.now();trail.forEach((p,i)=>{const age=(now-p.t)/300,s=(i+1)/MAX*(1-age);if(s<=0)return;tctx.beginPath();tctx.arc(p.x,p.y,1.8*s,0,Math.PI*2);tctx.fillStyle=`rgba(240,192,64,${s*.28})`;tctx.fill();});requestAnimationFrame(draw);};draw();
+  // aura lags behind with lerp
+  const draw=()=>{
+    ax+=(mx-ax)*.12; ay+=(my-ay)*.12;
+    aura.style.left=ax+'px'; aura.style.top=ay+'px';
+    tctx.clearRect(0,0,tc.width,tc.height);
+    const now=Date.now();
+    trail.forEach((p,i)=>{const age=(now-p.t)/280,s=(i+1)/MAX*(1-age);if(s<=0)return;tctx.beginPath();tctx.arc(p.x,p.y,1.5*s,0,Math.PI*2);tctx.fillStyle=`rgba(240,192,64,${s*.22})`;tctx.fill();});
+    requestAnimationFrame(draw);
+  };draw();
 })();
 
 /* ── CLOCK ── */
