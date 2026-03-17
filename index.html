@@ -17,6 +17,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--tx);font-family:var(--fb);min-height:100vh;overflow-x:hidden;cursor:none}
+*{cursor:none!important}
 
 /* CURSOR CUSTOM */
 #cursor{position:fixed;width:20px;height:20px;pointer-events:none;z-index:99999;transition:transform .1s}
@@ -551,28 +552,44 @@ window.addEventListener('load',()=>{
 // ── CURSOR ──
 (()=>{
   const cur=$('cursor');
-  const tc=$('cursor-trail').getContext('2d');
-  let tw,$ct=$('cursor-trail');
-  $ct.width=innerWidth;$ct.height=innerHeight;
-  window.addEventListener('resize',()=>{$ct.width=innerWidth;$ct.height=innerHeight;});
-  const trail=[];const MAX=20;
-  let lx=0,ly=0;
+  const ct=$('cursor-trail');
+  // Position fixed + taille = viewport
+  ct.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:99998;';
+  ct.width=innerWidth;ct.height=innerHeight;
+  const tc=ct.getContext('2d');
+  window.addEventListener('resize',()=>{ct.width=innerWidth;ct.height=innerHeight;});
+  const trail=[];const MAX=22;
   document.addEventListener('mousemove',e=>{
     const x=e.clientX,y=e.clientY;
     cur.style.left=x+'px';cur.style.top=y+'px';
-    trail.push({x,y,a:1});if(trail.length>MAX)trail.shift();
-    lx=x;ly=y;
+    trail.push({x,y});if(trail.length>MAX)trail.shift();
   });
-  document.querySelectorAll('button,a,.tag,.sc,.wtb,.aci,.wi').forEach(el=>{
-    el.addEventListener('mouseenter',()=>cur.classList.add('hover'));
-    el.addEventListener('mouseleave',()=>cur.classList.remove('hover'));
-  });
+  // Empêche le curseur natif sur tout le document
+  document.body.style.cursor='none';
+  document.addEventListener('mouseover',e=>{e.target.style.cursor='none';});
   const drawTrail=()=>{
-    tc.clearRect(0,0,innerWidth,innerHeight);
-    trail.forEach((p,i)=>{const s=i/MAX;tc.beginPath();tc.arc(p.x,p.y,2*s,0,Math.PI*2);tc.fillStyle=`rgba(245,200,66,${s*.4})`;tc.fill();});
+    tc.clearRect(0,0,ct.width,ct.height);
+    trail.forEach((p,i)=>{
+      const s=(i+1)/MAX;
+      tc.beginPath();tc.arc(p.x,p.y,2.5*s,0,Math.PI*2);
+      tc.fillStyle=`rgba(245,200,66,${s*.45})`;tc.fill();
+    });
     requestAnimationFrame(drawTrail);
   };
   drawTrail();
+  // Hover sur éléments interactifs — agrandit le curseur custom
+  const addHover=()=>{
+    document.querySelectorAll('button,a,.tag,.sc,.wtb,.aci,.wi,input,select').forEach(el=>{
+      if(el._cursorHover) return;
+      el._cursorHover=true;
+      el.addEventListener('mouseenter',()=>{cur.classList.add('hover');});
+      el.addEventListener('mouseleave',()=>{cur.classList.remove('hover');});
+    });
+  };
+  addHover();
+  // Re-scan après chaque update du DOM
+  const obs=new MutationObserver(addHover);
+  obs.observe(document.body,{childList:true,subtree:true});
 })();
 
 // ── CLOCK / DATE ──
@@ -763,7 +780,25 @@ function pT(f,t='sine',d=.08,v=.08,dl=0){if(!snd)return;try{const ctx=gCtx(),o=c
 function sndNav(){pT(880,'sine',.06,.06);pT(1100,'sine',.05,.04,.04);}
 function sndH(){pT(660,'sine',.04,.025);}
 function sndF(){pT(523,'sine',.08,.1);pT(659,'sine',.08,.1,.07);}
-function sndA(c){if(c){pT(440,'square',.08,.25);pT(550,'square',.08,.25,.09);pT(880,'sine',.2,.3,.18);pT(880,'sine',.15,.25,.4);}else{pT(660,'square',.08,.25);pT(440,'square',.08,.25,.09);pT(220,'sawtooth',.2,.3,.18);pT(180,'sawtooth',.15,.25,.4);}}
+function sndA(c){
+  if(!snd)return;
+  try{
+    const ctx=gCtx();
+    if(c){
+      // CONNEXION - alarme montante urgente
+      [0,.15,.3,.45,.6].forEach((dl,i)=>{
+        pT(600+i*80,'square',.12,.35,dl);
+        pT(1200+i*100,'sine',.08,.15,dl+.06);
+      });
+    }else{
+      // DÉCONNEXION - alarme descendante grave
+      [0,.18,.36].forEach((dl,i)=>{
+        pT(500-i*100,'sawtooth',.15,.35,dl);
+        pT(250-i*50,'square',.12,.2,dl+.08);
+      });
+    }
+  }catch(e){}
+}
 function spk(t){if(!snd)return;try{window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='fr-FR';m.rate=1.1;m.volume=1;const v=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('fr'));if(v)m.voice=v;window.speechSynthesis.speak(m);}catch(e){}}
 function showPop(type,player,server){
   sndA(type==='connect');setTimeout(()=>spk(type==='connect'?`${player} vient de se connecter sur ${server}`:`${player} vient de se déconnecter`),500);
