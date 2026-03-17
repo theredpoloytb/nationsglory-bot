@@ -553,11 +553,12 @@ window.addEventListener('load',()=>{
   const cur=$('cursor');
   // Créer le canvas trail dynamiquement hors du flux
   const ct=document.createElement('canvas');
-  ct.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:99998;';
+  ct.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:99998;';
   document.body.appendChild(ct);
-  ct.width=window.innerWidth;ct.height=window.innerHeight;
+  const syncSize=()=>{ct.width=window.innerWidth;ct.height=window.innerHeight;ct.style.width=window.innerWidth+'px';ct.style.height=window.innerHeight+'px';};
+  syncSize();
+  window.addEventListener('resize',syncSize);
   const tc=ct.getContext('2d');
-  window.addEventListener('resize',()=>{ct.width=window.innerWidth;ct.height=window.innerHeight;});
   const trail=[];const MAX=22;
   document.addEventListener('mousemove',e=>{
     const x=e.clientX,y=e.clientY;
