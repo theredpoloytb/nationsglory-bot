@@ -427,8 +427,8 @@ async def scan_server(server, alerte_ch):
     for p in pset:
         if not prev.get(p):
             record_connection(p, server)
-            if p in WL and alerte_ch:
-                e = discord.Embed(title="🟢 CONNEXION", description=f"**{p}** → **{server.upper()}**", color=discord.Color.green(), timestamp=ts)
+            if p in WL and server == "lime" and alerte_ch:
+                e = discord.Embed(title="🟢 CONNEXION", description=f"**{p}** → **LIME**", color=discord.Color.green(), timestamp=ts)
                 await alerte_ch.send(embed=e)
             if p in WL_MOCHA and server == "mocha" and mocha_ch:
                 e = discord.Embed(title="🟢 CONNEXION — MOCHA", description=f"**{p}** → **MOCHA**", color=discord.Color.orange(), timestamp=ts)
@@ -436,8 +436,8 @@ async def scan_server(server, alerte_ch):
 
     for p, was in prev.items():
         if was and p not in pset:
-            if p in WL and alerte_ch:
-                e = discord.Embed(title="🔴 DÉCONNEXION", description=f"**{p}** ← **{server.upper()}**", color=discord.Color.red(), timestamp=ts)
+            if p in WL and server == "lime" and alerte_ch:
+                e = discord.Embed(title="🔴 DÉCONNEXION", description=f"**{p}** ← **LIME**", color=discord.Color.red(), timestamp=ts)
                 await alerte_ch.send(embed=e)
             if p in WL_MOCHA and server == "mocha" and mocha_ch:
                 e = discord.Embed(title="🔴 DÉCONNEXION — MOCHA", description=f"**{p}** ← **MOCHA**", color=discord.Color.red(), timestamp=ts)
