@@ -585,9 +585,9 @@ function sndNav(){pT(880,'sine',.06,.06);pT(1100,'sine',.05,.04,.04);}
 function sndH(){pT(660,'sine',.04,.025);}
 function sndF(){pT(523,'sine',.08,.1);pT(659,'sine',.08,.1,.07);}
 function sndA(c){if(c){[0,.15,.3,.45,.6].forEach((dl,i)=>{pT(600+i*80,'square',.12,.35,dl);pT(1200+i*100,'sine',.08,.15,dl+.06);});}else{[0,.18,.36].forEach((dl,i)=>{pT(500-i*100,'sawtooth',.15,.35,dl);pT(250-i*50,'square',.12,.2,dl+.08);});}}
-function spk(t){if(!snd)return;try{window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='fr-FR';m.rate=1.1;m.volume=1;const v=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('fr'));if(v)m.voice=v;window.speechSynthesis.speak(m);}catch(e){}}
+function spk(t){if(!snd)return;try{window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='fr-FR';m.rate=0.88;m.pitch=1.25;m.volume=1;const voices=window.speechSynthesis.getVoices();const v=voices.find(v=>v.lang.startsWith('fr')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('fr')&&(v.name.includes('Amélie')||v.name.includes('Audrey')||v.name.includes('Marie')||v.name.includes('Julie')||v.name.includes('Lea')||v.name.includes('Léa')||v.name.includes('Virginie')||v.name.includes('Google français')))||voices.find(v=>v.lang.startsWith('fr'));if(v)m.voice=v;window.speechSynthesis.speak(m);}catch(e){}}
 function showPop(type,player,server){
-  sndA(type==='connect');setTimeout(()=>spk(type==='connect'?`${player} vient de se connecter sur ${server}`:`${player} vient de se déconnecter`),500);
+  sndA(type==='connect');setTimeout(()=>spk(type==='connect'?`${player} vient de se connecter`:`${player} s'est déconnecté`),400);
   const pop=$('alert-popup'),n=document.createElement('div');
   n.className='an'+(type==='disconnect'?' dc':'');
   n.innerHTML=`<div class="ant">${type==='connect'?'🟢 CONNEXION DÉTECTÉE':'🔴 DÉCONNEXION'}</div><div class="ann">${player}</div><div class="ans">${server.toUpperCase()} · ${new Date().toLocaleTimeString('fr-FR')}</div><span class="anx" onclick="this.parentElement.remove()">✕</span>`;
@@ -605,5 +605,4 @@ async function init(){
 init();
 </script>
 </body>
-  
 </html>
