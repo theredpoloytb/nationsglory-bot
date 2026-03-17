@@ -37,22 +37,23 @@ body { background:var(--bg); color:var(--tx); font-family:var(--body); min-heigh
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V17L28 1l28 16v33L28 66zm0 50L0 100V67l28-16 28 16v33L28 116z' fill='none' stroke='%23d4a843' stroke-width='.5'/%3E%3C/svg%3E") }
 
 /* ══════════════════════════════
-   CUSTOM CURSOR
+   CUSTOM CURSOR — SQUARE TERMINAL
 ══════════════════════════════ */
-#cursor { position:fixed; pointer-events:none; z-index:99999; mix-blend-mode:difference }
-.cur-cross { position:absolute; transform:translate(-50%,-50%); width:20px; height:20px }
-.cur-cross::before, .cur-cross::after { content:''; position:absolute; background:var(--goldb); }
-.cur-cross::before { width:1px; height:100%; left:50%; top:0 }
-.cur-cross::after { height:1px; width:100%; top:50%; left:0 }
-.cur-ring { position:absolute; transform:translate(-50%,-50%); width:32px; height:32px;
-  border:1px solid rgba(240,192,64,.4); border-radius:50%;
-  transition:width .15s var(--ease),height .15s var(--ease),border-color .15s,opacity .15s }
-.cur-dot { position:absolute; transform:translate(-50%,-50%); width:3px; height:3px;
-  background:var(--goldb); border-radius:50%; box-shadow:0 0 8px var(--goldb) }
-#cursor.hov .cur-ring { width:48px; height:48px; border-color:rgba(240,192,64,.2) }
-#cursor.hov .cur-cross { opacity:.4 }
-#cursor.click .cur-dot { transform:translate(-50%,-50%) scale(3); transition:transform .08s }
-#cursor.click .cur-ring { width:16px; height:16px; opacity:.8 }
+#cursor { position:fixed; pointer-events:none; z-index:99999 }
+.cur-outer { position:absolute; transform:translate(-50%,-50%) rotate(0deg); width:22px; height:22px;
+  border:1px solid rgba(240,192,64,.5); transition:width .15s var(--ease),height .15s var(--ease),border-color .15s;
+  animation:curSpin 8s linear infinite }
+@keyframes curSpin { to { transform:translate(-50%,-50%) rotate(360deg) } }
+.cur-outer::before,.cur-outer::after { content:''; position:absolute; background:var(--goldb) }
+.cur-outer::before { width:5px; height:1px; top:-1px; left:50%; transform:translateX(-50%) }
+.cur-outer::after  { width:1px; height:5px; left:-1px; top:50%; transform:translateY(-50%) }
+.cur-inner { position:absolute; transform:translate(-50%,-50%); width:3px; height:3px;
+  background:var(--goldb); box-shadow:0 0 10px var(--goldb),0 0 20px rgba(240,192,64,.3);
+  transition:transform .1s,box-shadow .1s }
+#cursor.hov .cur-outer { width:36px; height:36px; border-color:rgba(240,192,64,.22); animation-duration:3s }
+#cursor.hov .cur-inner { transform:translate(-50%,-50%) scale(0) }
+#cursor.click .cur-inner { transform:translate(-50%,-50%) scale(4); box-shadow:0 0 20px var(--goldb) }
+#cursor.click .cur-outer { width:10px; height:10px; border-color:rgba(240,192,64,.9) }
 #trail-canvas { position:fixed; inset:0; pointer-events:none; z-index:99998 }
 
 /* ══════════════════════════════
@@ -198,6 +199,7 @@ body { background:var(--bg); color:var(--tx); font-family:var(--body); min-heigh
 .srv-emo { font-size:12px; opacity:.7 }
 .srv-n { font-family:var(--display); font-size:2rem; color:var(--txh); line-height:1; transition:all .2s; opacity-transition:.15s }
 .srv-lbl { font-family:var(--mono); font-size:.4rem; color:var(--txd); letter-spacing:.2em; margin:.15rem 0 }
+.srv-lbl.warn { color:var(--org); text-shadow:0 0 8px rgba(255,122,0,.4) }
 .srv-bar { margin-top:.5rem; height:1px; background:rgba(212,168,67,.07) }
 .srv-bar-f { height:100%; background:linear-gradient(90deg,rgba(212,168,67,.25),var(--goldb)); transition:width 1.2s var(--ease); box-shadow:0 0 6px rgba(212,168,67,.2) }
 
@@ -351,9 +353,8 @@ select option { background:#060c14 }
 
 <!-- CURSOR -->
 <div id="cursor">
-  <div class="cur-ring"></div>
-  <div class="cur-cross"></div>
-  <div class="cur-dot"></div>
+  <div class="cur-outer"></div>
+  <div class="cur-inner"></div>
 </div>
 <canvas id="trail-canvas"></canvas>
 
@@ -765,7 +766,7 @@ async function loadDash(){
     const mx=Math.max(...SRV.map(s=>(all[s]||[]).length),1);
     const cards=$('srv-overview').querySelectorAll('.srv-card');
     if(cards.length===SRV.length){SRV.forEach((s,i)=>{const cnt=(all[s]||[]).length,c=cards[i],n=c.querySelector('.srv-n'),b=c.querySelector('.srv-bar-f');if(n&&parseInt(n.textContent)!==cnt){n.style.opacity='.15';setTimeout(()=>{n.textContent=cnt;n.style.opacity='1';},130);}if(b)b.style.width=Math.round(cnt/mx*100)+'%';});}
-    else $('srv-overview').innerHTML=SRV.map(s=>{const cnt=(all[s]||[]).length,bug=BUG(s);return`<div class="srv-card" onmouseenter="sndH()" onclick="gOL('${s}')" ${bug?'style="border-color:rgba(255,122,0,.14)"':''}><div class="srv-top"><span class="srv-name">${s.toUpperCase()}</span><span class="srv-emo">${EMO[s]}</span></div><div class="srv-n">${cnt}</div><div class="srv-lbl">${bug?'⚠ INSTABLE':'EN LIGNE'}</div><div class="srv-bar"><div class="srv-bar-f" style="width:${Math.round(cnt/mx*100)}%"></div></div></div>`;}).join('');
+    else $('srv-overview').innerHTML=SRV.map(s=>{const cnt=(all[s]||[]).length,bug=BUG(s);return`<div class="srv-card" onmouseenter="sndH()" onclick="gOL('${s}')" ${bug?'style="border-color:rgba(255,122,0,.14)"':''}><div class="srv-top"><span class="srv-name">${s.toUpperCase()}</span><span class="srv-emo">${EMO[s]}</span></div><div class="srv-n">${cnt}</div>${bug?'<div class=\"srv-lbl\" style=\"color:#ff7a00;font-weight:700;text-shadow:0 0 10px rgba(255,122,0,.5)\">⚠ INSTABLE</div>':'<div class=\"srv-lbl\">EN LIGNE</div>'}<div class="srv-bar"><div class="srv-bar-f" style="width:${Math.round(cnt/mx*100)}%"></div></div></div>`;}).join('');
     const mp=await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
     const mk=(pl,l,c,lb)=>l.length?`<div style="font-family:var(--mono);font-size:.46rem;color:${c};letter-spacing:.22em;margin-bottom:.18rem">${lb}</div><div class="tags" style="margin-bottom:.38rem">${l.map(p=>{const on=pl.map(x=>x.toLowerCase()).includes(p.toLowerCase());return`<span class="tag ${on?'on':''}">${on?'🟢':'⚫'} ${p}</span>`;}).join('')}</div>`:'';
     $('wl-quick').innerHTML=(mk(lp,WL,'var(--grn)','🟢 LIME')||'')+(mk(mp,WLM,'var(--org)','🟤 MOCHA')||'')||'<div class="empty">Watchlists vides</div>';
@@ -779,7 +780,7 @@ function rAlerts(){$('alert-badge').textContent=ALR.length+' évts';$('alert-fee
 function gOL(s){document.querySelectorAll('.tab')[1].click();$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
 function fOL(s){$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
 async function loadOLS(srv){const body=$('ol-body'),w=BUG(srv)?WARN:'';try{const d=await api('/api/online/'+srv),pl=d.players||[];body.innerHTML=w+(pl.length?`<div style="font-family:var(--mono);font-size:.55rem;color:var(--txd);margin-bottom:.38rem"><span style="color:var(--goldb)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div><div class="tags">${pl.map(p=>`<span class="tag ${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'on':''}" onclick="qCA('${p}')">${p}</span>`).join('')}</div>`:`<div class="empty">${BUG(srv)?'0 joueur (dynmap limité)':'Aucun joueur sur '+srv.toUpperCase()}</div>`);}catch(e){body.innerHTML=w+`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
-async function loadOnline(){const srv=$('ol-srv').value,body=$('ol-body');body.innerHTML=ld();try{if(!srv){const all=await api('/api/online_all');let tot=0;SRV.forEach(s=>tot+=(all[s]||[]).length);body.innerHTML=`<div style="font-family:var(--mono);font-size:.55rem;color:var(--txd);margin-bottom:.55rem">TOTAL <span style="color:var(--goldb)">${tot}</span> joueurs</div><div class="srv-grid">${SRV.map(s=>{const pl=all[s]||[],bug=BUG(s);return`<div class="srv-card" onmouseenter="sndH()" onclick="fOL('${s}')" ${bug?'style="border-color:rgba(255,122,0,.14)"':''}><div class="srv-top"><span class="srv-name">${s.toUpperCase()}</span><span class="srv-emo">${EMO[s]}</span></div><div class="srv-n">${pl.length}</div><div class="srv-lbl">${bug?'⚠ INSTABLE':'CLIQUER'}</div><div class="tags" style="max-height:65px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,16).map(p=>`<span class="tag ${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'wl':''}" onclick="event.stopPropagation();qCA('${p}')">${p}</span>`).join('')}${pl.length>16?`<span style="font-family:var(--mono);font-size:.46rem;color:var(--txd)">+${pl.length-16}</span>`:''}</div><div class="srv-bar"><div class="srv-bar-f" style="width:${Math.round(pl.length/Math.max(...SRV.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div></div>`;}).join('')}</div>`;} else await loadOLS(srv);}catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
+async function loadOnline(){const srv=$('ol-srv').value,body=$('ol-body');body.innerHTML=ld();try{if(!srv){const all=await api('/api/online_all');let tot=0;SRV.forEach(s=>tot+=(all[s]||[]).length);body.innerHTML=`<div style="font-family:var(--mono);font-size:.55rem;color:var(--txd);margin-bottom:.55rem">TOTAL <span style="color:var(--goldb)">${tot}</span> joueurs</div><div class="srv-grid">${SRV.map(s=>{const pl=all[s]||[],bug=BUG(s);return`<div class="srv-card" onmouseenter="sndH()" onclick="fOL('${s}')" ${bug?'style="border-color:rgba(255,122,0,.14)"':''}><div class="srv-top"><span class="srv-name">${s.toUpperCase()}</span><span class="srv-emo">${EMO[s]}</span></div><div class="srv-n">${pl.length}</div>${bug?'<div class=\"srv-lbl\" style=\"color:#ff7a00;font-weight:700;text-shadow:0 0 10px rgba(255,122,0,.5)\">⚠ INSTABLE</div>':'<div class=\"srv-lbl\">CLIQUER</div>'}<div class="tags" style="max-height:65px;overflow-y:auto" onclick="event.stopPropagation()">${pl.slice(0,16).map(p=>`<span class="tag ${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'wl':''}" onclick="event.stopPropagation();qCA('${p}')">${p}</span>`).join('')}${pl.length>16?`<span style="font-family:var(--mono);font-size:.46rem;color:var(--txd)">+${pl.length-16}</span>`:''}</div><div class="srv-bar"><div class="srv-bar-f" style="width:${Math.round(pl.length/Math.max(...SRV.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div></div>`;}).join('')}</div>`;} else await loadOLS(srv);}catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
 
 /* ── CHECKALL ── */
 async function doCA(){const raw=$('ca-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('ca-input').value=p;const res=$('ca-result');res.innerHTML=ld();try{const d=await api('/api/checkall/'+encodeURIComponent(p));if(d.servers.length)sndF();res.innerHTML=d.servers.length?`<div class="res ok"><div class="rt">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div style="margin:.2rem 0">${EMO[s]} <span style="color:var(--gold)">${s.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="res err"><div class="rt">Résultat</div><span style="color:var(--txd)">${p} n'est connecté nulle part</span></div>`;hist=hist.filter(h=>h.p.toLowerCase()!==p.toLowerCase());hist.unshift({p,servers:d.servers,t:new Date().toLocaleTimeString('fr-FR')});if(hist.length>15)hist.pop();localStorage.setItem('mg_h',JSON.stringify(hist));rHist();}catch(e){res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`;}}
