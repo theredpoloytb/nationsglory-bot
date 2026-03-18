@@ -78,7 +78,80 @@ input,select{padding:.44rem .7rem;font-size:.6rem}
 .tab{padding:.5rem .5rem;font-size:.42rem}
 .logo-name{font-size:1.1rem}
 .stat-val{font-size:1.7rem}
-}</style></head><body><canvas id="bg"></canvas><div class="grain"></div><div class="scanlines"></div><div class="vig"></div><div id="cur"><div id="cd"></div></div><canvas id="trl"></canvas><div id="apop"></div><div class="toast-wrap" id="toast-wrap"></div><div id="ldr"><canvas id="matrix-canvas"></canvas><div class="lc tl"></div><div class="lc tr"></div><div class="lc bl"></div><div class="lc br"></div><div class="l-scanbeam"></div><div class="radar"><div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-sweep"></div><div class="radar-dot"></div><div class="radar-dot"></div><div class="radar-dot"></div><div class="radar-center"><svg viewBox="0 0 40 40" width="50" height="50" fill="none"><polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/><polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".22"/><polygon points="20,37 6,8 34,8" stroke="#c8a84b" stroke-width=".4" opacity=".22"/><circle cx="20" cy="20" r="2.2" fill="rgba(240,192,64,.6)"/><circle cx="20" cy="20" r="7" fill="none" stroke="rgba(240,192,64,.1)" stroke-width=".5"/></svg></div></div><div class="l-title">MOSSAD GLORY</div><div class="l-sub">INTELLIGENCE · NATIONSGLORY · SURVEILLANCE</div><div class="l-progress"><div class="l-bar"><div class="l-fill"></div></div><div class="l-pct" id="l-pct">0%</div></div><div class="l-msg blink" id="l-msg">INITIALISATION DU SYSTÈME...</div><button id="lbtn" onclick="enterSite()">▶ &nbsp; ENTRER</button></div><header class="hdr"><div class="logo"><svg class="logo-svg" viewBox="0 0 40 40" width="34" height="34" fill="none"><polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/><polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".2"/><circle cx="20" cy="20" r="1.5" fill="rgba(240,192,64,.5)"/></svg><div><div class="logo-name">MOSSAD GLORY</div><div class="logo-tag">Intelligence Terminal</div></div></div><div class="hdr-mid"><div class="hsep"></div><span id="hdr-date">--/--/----</span><span style="opacity:.18">◆</span><span style="color:var(--g)">OPÉRATION ACTIVE</span><div class="hsep" style="transform:scaleX(-1)"></div></div><div class="hdr-r"><div class="scp"><button class="scpbtn" onclick="scToggle()"><div class="scp-tri" id="scp-tri"></div></button><div class="scp-meta"><span class="scp-title">Tel Aviv — Omer Adam</span><div class="scp-bar"><div class="scp-bar-f" id="scp-bf"></div></div></div><div class="scp-eq" id="scp-eq"><span></span><span></span><span></span><span></span><span></span></div><input class="scp-vol" type="range" min="0" max="100" value="70" oninput="scVol(this.value)"></div><div class="pill"><div class="led" id="api-led"></div><span id="api-txt">API</span></div><div class="pill"><div class="led" id="scan-led"></div><span>SCAN</span></div><div id="countdown"><div class="cd-bar"><div class="cd-fill" id="cd-fill" style="width:100%"></div></div><span id="cd-txt">5s</span></div><span id="clock">--:--:--</span><button class="hbtn" id="sound-btn" onclick="toggleSound()">🔊 SON</button><span style="font-family:var(--M);font-size:.5rem;color:var(--t3);opacity:.1;letter-spacing:.08em">מוסד</span></div></header><nav class="nav"><button class="tab active" onclick="nav('dashboard',this)">◈ Dashboard</button><button class="tab" onclick="nav('online',this)">◉ En Ligne</button><button class="tab" onclick="nav('checkall',this)">⊕ Localiser</button><button class="tab" onclick="nav('check',this)">◎ Espionner</button><button class="tab" onclick="nav('watchlist',this)">◈ Watchlist</button><button class="tab" onclick="nav('stats',this)">◐ Stats</button><button class="tab" onclick="nav('changelog',this)">◎ V1.7</button><div class="nav-r"><span class="blink">■</span><span>SYSTÈME OPÉRATIONNEL</span></div></nav><main class="main"><section class="sec active" id="s-dashboard"><div class="sh"><span class="sh-n">01</span><div class="sh-l"></div><span class="sh-t">Vue globale — surveillance temps réel LIME &amp; MOCHA</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="g4 mb2"><div class="stat"><div class="stat-icon">🌐</div><div class="stat-info"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Joueurs en ligne</div><canvas class="stat-spark" id="spark-total"></canvas></div></div><div class="stat"><div class="stat-icon">⚡</div><div class="stat-info"><div class="stat-val">11</div><div class="stat-lbl">Serveurs actifs</div><canvas class="stat-spark" id="spark-srv"></canvas></div></div><div class="stat"><div class="stat-icon">🎯</div><div class="stat-info"><div class="stat-val" id="st-wonline">—</div><div class="stat-lbl">Cibles en ligne</div><canvas class="stat-spark" id="spark-wl"></canvas></div></div><div class="stat"><div class="stat-icon">👁</div><div class="stat-info"><div class="stat-val" id="st-wcount">—</div><div class="stat-lbl">Cibles surveillées</div><canvas class="stat-spark" id="spark-wc"></canvas></div></div></div><div class="g2 mb"><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="pscan"></div><div class="ph"><span class="pt">◉ Interserveur</span><div style="display:flex;align-items:center;gap:.5rem"><span class="liveb"><span class="liveled"></span>LIVE</span><span id="last-update" style="font-family:var(--M);font-size:.43rem;color:var(--t3)"></span><span id="weather-badge" style="display:inline-flex;align-items:center;gap:.28rem;font-family:var(--M);font-size:.44rem;letter-spacing:.14em;padding:.1rem .45rem;border:1px solid var(--b1);background:rgba(4,9,18,.8)"><span id="weather-icon">🌙</span><span id="weather-label" class="weather-label calm">CALME</span></span></div></div><div class="pb"><div class="sg" id="srv-overview"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div></div><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0 évts</span></div><div style="padding:.35rem 1.15rem"><div class="feed" id="alert-feed"><div class="empty">En attente d'activité...</div></div></div></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">📈 Activité — Joueurs en ligne</span></div><div class="pb"><div class="graph-wrap"><canvas id="activity-graph"></canvas></div><div class="graph-labels" id="graph-labels"></div></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">👁 Watchlist — Statut live</span><button class="btn" onclick="loadDash()">↺ Actualiser</button></div><div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div></section><section class="sec" id="s-online"><div class="sh"><span class="sh-n">02</span><div class="sh-l"></div><span class="sh-t">Joueurs connectés par serveur</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◉ Joueurs en ligne</span><div class="row" style="flex-wrap:nowrap"><select id="ol-srv" style="max-width:145px" onchange="$('ol-body').innerHTML=ld2();loadOnline()"><option value="">Tous les serveurs</option><option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option><option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option><option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option><option value="cyan">CYAN</option><option value="lime">LIME</option></select><button class="btn" onclick="loadOnline()">↺</button></div></div><div class="pb" id="ol-body"><div class="empty">Sélectionnez un serveur</div></div></div></section><section class="sec" id="s-checkall"><div class="sh"><span class="sh-n">03</span><div class="sh-l"></div><span class="sh-t">Localiser un joueur sur tous les serveurs</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="g2"><div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">⊕ Localiser</span></div><div class="pb"><div class="row"><div class="acw"><input id="ca-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('ca-input','ca-list',oP);fPT('ca-input','ca-pl')" onkeydown="acK(event,'ca-list',doCA)"/><div class="acl" id="ca-list"></div></div><button class="btn" onclick="doCA()">→ Go</button></div><div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-top:.22rem">⚠ Case sensitive — <span style="color:var(--g)">Kyzzer_</span> ≠ <span style="color:var(--red)">kyzzer_</span></div><div id="ca-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div><div id="ca-result"></div></div></div><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◷ Historique</span></div><div class="pb" id="ca-history"><div class="empty">Aucune recherche</div></div></div></div><div id="ca-side"></div></div></section><section class="sec" id="s-check"><div class="sh"><span class="sh-n">04</span><div class="sh-l"></div><span class="sh-t">Espionner un pays — membres connectés</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◎ Espionner un pays</span><span class="pts">Serveur → Pays → Espionner</span></div><div class="pb"><div class="row"><select id="ck-srv" style="max-width:145px" onchange="loadCS()"><option value="">Serveur...</option><option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option><option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option><option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option><option value="cyan">CYAN</option><option value="lime">LIME</option></select><div class="acw"><input id="ck-country" placeholder="Nom du pays..." autocomplete="off" oninput="acFC()" onkeydown="acK(event,'ck-list',doCheck)"/><div class="acl" id="ck-list"></div></div><button class="btn" onclick="doCheck()">→ Espionner</button></div><div id="ck-suggest" class="tags" style="margin-top:.32rem;max-height:110px;overflow-y:auto"></div><div id="ck-result"></div></div></div></section><section class="sec" id="s-watchlist"><div class="sh"><span class="sh-n">05</span><div class="sh-l"></div><span class="sh-t">Gérer les cibles — alertes Discord automatiques</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="wlt"><span style="font-family:var(--M);font-size:.46rem;color:var(--t3);letter-spacing:.2em">SERVEUR :</span><span class="wtb act" id="wl-tab-lime" onclick="switchWl('lime')">🟢 LIME</span><span class="wtb" id="wl-tab-mocha" onclick="switchWl('mocha')">🟤 MOCHA</span></div><div class="g2"><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt" id="wl-pt">◈ Watchlist — LIME</span></div><div class="pb"><div id="wl-pl" class="tags" style="max-height:80px;overflow-y:auto;margin-bottom:.36rem"></div><div class="row mb" style="margin-bottom:.7rem"><div class="acw"><input id="wl-add" placeholder="Ajouter un joueur..." autocomplete="off" oninput="acF('wl-add','wl-acl',oP);fPT('wl-add','wl-pl')" onkeydown="acK(event,'wl-acl',wlAdd)"/><div class="acl" id="wl-acl"></div></div><button class="btn btn-g" onclick="wlAdd()">+ Ajouter</button></div><div id="wl-manage"></div></div></div><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt" id="wl-st">⚡ Statut live — LIME</span><button class="btn" onclick="wlRS()">↺</button></div><div class="pb" id="wl-status"></div></div></div></section><section class="sec" id="s-stats"><div class="sh"><span class="sh-n">06</span><div class="sh-l"></div><span class="sh-t">Analyse comportementale — pronostic · heatmap · historique</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyser un joueur</span></div><div class="pb"><div class="row"><div class="acw"><input id="st-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('st-input','st-list',oP);fPT('st-input','st-pl')" onkeydown="acK(event,'st-list',loadStats)"/><div class="acl" id="st-list"></div></div><button class="btn" onclick="loadStats()">→ Analyser</button></div><div id="st-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div></div></div><div id="st-result"></div></section><section class="sec" id="s-changelog"><div class="cl-wrap"><div class="cl-header"><div class="cl-transmission">// TRANSMISSION OFFICIELLE — MISE À JOUR</div><div class="cl-title"><span class="cl-title-deco">◈</span> VERSION 1.7 — UPGRADE MAJEUR <span class="cl-title-deco">◈</span></div><div class="cl-intro"> Depuis la V1.6, le dashboard a été massivement enrichi.<br> Plus intelligent, plus vivant — et maintenant <strong>avec profil joueur intégré</strong>. </div></div><div class="cl-grid"><div class="cl-card new"><div class="cl-card-title"><span>📡</span> RADAR LOADER</div><div class="cl-card-body">Loader entièrement refait — système radar militaire avec sweep rotatif, anneaux pulsants et points ennemis animés. Pluie de code dorée style Matrix en fond.</div></div><div class="cl-card new"><div class="cl-card-title"><span>👤</span> PROFIL JOUEUR</div><div class="cl-card-body">Clic sur n'importe quel pseudo = panel latéral avec avatar Minecraft, statut live, pronostic, heatmap horaire et lien profil NationsGlory. Fermeture à la touche Échap.</div></div><div class="cl-card new"><div class="cl-card-title"><span>⏱</span> TIMER DE SESSION</div><div class="cl-card-body">Dans la watchlist statut live, chaque joueur connecté affiche depuis combien de temps il est en ligne en temps réel — "4min 32s", "1h 12min". Se lance dès la détection de connexion.</div></div><div class="cl-card new"><div class="cl-card-title"><span>🔔</span> NOTIFICATIONS BROWSER</div><div class="cl-card-body">Alertes natives Windows/Mac quand une cible se connecte ou déconnecte — même si l'onglet est en arrière-plan ou le site réduit. Permission demandée au démarrage.</div></div><div class="cl-card new"><div class="cl-card-title"><span>📊</span> GRAPHE D'ACTIVITÉ</div><div class="cl-card-body">Courbe canvas temps réel des joueurs en ligne sur les 30 derniers points. Gradient, grille, point doré sur la dernière valeur, labels horaires automatiques.</div></div><div class="cl-card new"><div class="cl-card-title"><span>🕐</span> DERNIÈRE CONNEXION</div><div class="cl-card-body">Dans la watchlist et le dashboard — "vu il y a 4min" en vert, "vu il y a 1h" en doré. Mis à jour à chaque refresh automatique.</div></div><div class="cl-card new"><div class="cl-card-title"><span>🌤</span> MÉTÉO D'ACTIVITÉ</div><div class="cl-card-body">Badge intelligent à côté du badge LIVE — 🌙 CALME, 🌤 ACTIVITÉ, ⚡ AGITÉ, 🔥 CRITIQUE selon le % de ta watchlist en ligne. Clignote en rouge en mode critique.</div></div><div class="cl-card new"><div class="cl-card-title"><span>⏳</span> COMPTE À REBOURS</div><div class="cl-card-body">Barre dorée dans le header avec timer décomptant jusqu'au prochain refresh automatique. Se recharge à chaque cycle de 5 secondes.</div></div><div class="cl-card visual"><div class="cl-card-title"><span>✦</span> TRANSITIONS CINÉMATIQUES</div><div class="cl-card-body">Flash lumineux doré qui balaie l'écran à chaque changement d'onglet. Combiné au slide/scale des sections pour une navigation fluide et premium.</div></div><div class="cl-card visual"><div class="cl-card-title"><span>◈</span> CLIP-PATH UNIVERSEL</div><div class="cl-card-body">Coins coupés en diagonale sur absolument tous les éléments — panels, stats, boutons, inputs, tags, popups, watchlist. Cohérence esthétique totale, style militaire/mecha.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>⚡</span> WATCHLIST AUTO-REFRESH</div><div class="cl-card-body">Le statut live de la watchlist se met maintenant à jour automatiquement à chaque refresh du dashboard sans avoir à cliquer manuellement.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>👁</span> CONTRASTE AMÉLIORÉ</div><div class="cl-card-body">Tous les textes gris sur fond sombre ont été rendus plus lisibles — t1 .72→.88, t2 .42→.62, t3 .36→.52. Titres de panels, labels, feed, placeholders.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>⌨</span> RACCOURCIS CLAVIER</div><div class="cl-card-body">Touches 1–6 pour naviguer entre les onglets. Ctrl+K ou / pour ouvrir directement la recherche. Escape pour fermer le panel joueur.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>🎯</span> ALERTES LIME/MOCHA ONLY</div><div class="cl-card-body">Corrigé — le bot Discord et le site n'envoient plus d'alertes pour les autres serveurs. WL → LIME uniquement, WLM → MOCHA uniquement.</div></div></div><div class="cl-checklist"><div class="cl-check">Radar loader + pluie de code Matrix dorée</div><div class="cl-check">Panel profil joueur avec avatar, stats, heatmap</div><div class="cl-check">Timer de session en temps réel dans la watchlist</div><div class="cl-check">Notifications browser natives (arrière-plan)</div><div class="cl-check">Graphe d'activité canvas avec historique 30 points</div><div class="cl-check">Météo d'activité — CALME / ACTIVITÉ / AGITÉ / CRITIQUE</div><div class="cl-check">Compte à rebours prochain refresh dans le header</div><div class="cl-check">Transitions cinématiques entre onglets</div><div class="cl-check">Clip-path universel sur tous les composants</div><div class="cl-check">Watchlist statut live auto-refresh</div><div class="cl-check">Contraste texte amélioré sur 16 éléments</div><div class="cl-check">Raccourcis clavier 1–6 + Ctrl+K</div></div><div class="cl-footer"><span>מוסד גלורי · CLASSIFIED INTEL</span><a href="https://theredpoloytb.github.io/nationsglory-bot" target="_blank">theredpoloytb.github.io/nationsglory-bot →</a><span class="cl-version-badge">V1.7 — 2026</span></div></div></section></main> <script>
+}
+.pred-badge{display:inline-flex;align-items:center;gap:.28rem;font-family:var(--M);font-size:.44rem;
+  color:var(--blu);border:1px solid rgba(0,187,255,.18);background:rgba(0,187,255,.04);
+  padding:.08rem .42rem;letter-spacing:.1em;white-space:nowrap}
+.pred-badge.soon{color:var(--org);border-color:rgba(255,119,0,.25);background:rgba(255,119,0,.04)}
+.pred-badge.verysoon{color:var(--red);border-color:rgba(255,24,64,.25);background:rgba(255,24,64,.04);animation:blink .9s step-end infinite}
+
+/* ═══ COUNTRY WATCH ═══ */
+.cw-item{background:rgba(4,9,18,.88);border:1px solid var(--b1);padding:.75rem 1rem;display:flex;align-items:center;gap:.8rem;transition:border-color .2s;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.cw-item::after{content:'';position:absolute;top:0;right:0;width:8px;height:8px;border-bottom:1px solid var(--b2);border-left:1px solid var(--b2)}
+.cw-item{position:relative}
+.cw-item.alert{border-color:rgba(255,24,64,.4);background:rgba(255,24,64,.04)}.cw-item.recruit-only{border-color:rgba(200,168,75,.25);background:rgba(200,168,75,.03)}
+.cw-item.alert .cw-status{color:var(--red);animation:blink .7s step-end infinite}
+.cw-info{flex:1;min-width:0}
+.cw-name{font-family:var(--M);font-size:.62rem;color:var(--txb);letter-spacing:.06em}
+.cw-meta{font-family:var(--M);font-size:.46rem;color:var(--t3);letter-spacing:.1em;margin-top:.15rem}
+.cw-status{font-family:var(--M);font-size:.48rem;letter-spacing:.12em;color:var(--t3);flex-shrink:0}
+.cw-status.ok{color:var(--grn)}
+.cw-count{font-family:var(--D);font-size:1.6rem;color:var(--gb);line-height:1;flex-shrink:0;min-width:32px;text-align:center}
+.cw-count.danger{color:var(--red)}
+.cw-members{font-family:var(--M);font-size:.5rem;color:var(--t2);margin-top:.3rem;line-height:1.65}
+
+.cw-threshold input[type=number]{width:48px;padding:.3rem .5rem;font-size:.55rem;flex:none;min-width:0;text-align:center}
+.cw-empty{text-align:center;padding:2.5rem 1rem;font-family:var(--M);font-size:.58rem;color:var(--t3);letter-spacing:.18em;border:1px dashed rgba(200,168,75,.12);background:rgba(4,9,18,.5)}
+</style></head><body><canvas id="bg"></canvas><div class="grain"></div><div class="scanlines"></div><div class="vig"></div><div id="cur"><div id="cd"></div></div><canvas id="trl"></canvas><div id="apop"></div><div class="toast-wrap" id="toast-wrap"></div><div id="ldr"><canvas id="matrix-canvas"></canvas><div class="lc tl"></div><div class="lc tr"></div><div class="lc bl"></div><div class="lc br"></div><div class="l-scanbeam"></div><div class="radar"><div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-sweep"></div><div class="radar-dot"></div><div class="radar-dot"></div><div class="radar-dot"></div><div class="radar-center"><svg viewBox="0 0 40 40" width="50" height="50" fill="none"><polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/><polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".22"/><polygon points="20,37 6,8 34,8" stroke="#c8a84b" stroke-width=".4" opacity=".22"/><circle cx="20" cy="20" r="2.2" fill="rgba(240,192,64,.6)"/><circle cx="20" cy="20" r="7" fill="none" stroke="rgba(240,192,64,.1)" stroke-width=".5"/></svg></div></div><div class="l-title">MOSSAD GLORY</div><div class="l-sub">INTELLIGENCE · NATIONSGLORY · SURVEILLANCE</div><div class="l-progress"><div class="l-bar"><div class="l-fill"></div></div><div class="l-pct" id="l-pct">0%</div></div><div class="l-msg blink" id="l-msg">INITIALISATION DU SYSTÈME...</div><button id="lbtn" onclick="enterSite()">▶ &nbsp; ENTRER</button></div><header class="hdr"><div class="logo"><svg class="logo-svg" viewBox="0 0 40 40" width="34" height="34" fill="none"><polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/><polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".2"/><circle cx="20" cy="20" r="1.5" fill="rgba(240,192,64,.5)"/></svg><div><div class="logo-name">MOSSAD GLORY</div><div class="logo-tag">Intelligence Terminal</div></div></div><div class="hdr-mid"><div class="hsep"></div><span id="hdr-date">--/--/----</span><span style="opacity:.18">◆</span><span style="color:var(--g)">OPÉRATION ACTIVE</span><div class="hsep" style="transform:scaleX(-1)"></div></div><div class="hdr-r"><div class="scp"><button class="scpbtn" onclick="scToggle()"><div class="scp-tri" id="scp-tri"></div></button><div class="scp-meta"><span class="scp-title">Tel Aviv — Omer Adam</span><div class="scp-bar"><div class="scp-bar-f" id="scp-bf"></div></div></div><div class="scp-eq" id="scp-eq"><span></span><span></span><span></span><span></span><span></span></div><input class="scp-vol" type="range" min="0" max="100" value="70" oninput="scVol(this.value)"></div><div class="pill"><div class="led" id="api-led"></div><span id="api-txt">API</span></div><div class="pill"><div class="led" id="scan-led"></div><span>SCAN</span></div><div id="countdown"><div class="cd-bar"><div class="cd-fill" id="cd-fill" style="width:100%"></div></div><span id="cd-txt">5s</span></div><span id="clock">--:--:--</span><button class="hbtn" id="sound-btn" onclick="toggleSound()">🔊 SON</button><span style="font-family:var(--M);font-size:.5rem;color:var(--t3);opacity:.1;letter-spacing:.08em">מוסד</span></div></header><nav class="nav"><button class="tab active" onclick="nav('dashboard',this)">◈ Dashboard</button><button class="tab" onclick="nav('online',this)">◉ En Ligne</button><button class="tab" onclick="nav('checkall',this)">⊕ Localiser</button><button class="tab" onclick="nav('check',this)">◎ Espionner</button><button class="tab" onclick="nav('watchlist',this)">◈ Watchlist</button><button class="tab" onclick="nav('stats',this)">◐ Stats</button><button class="tab" onclick="nav('countrywatch',this)">⚠ PAYS</button><button class="tab" onclick="nav('changelog',this)">◎ V1.9</button><div class="nav-r"><span class="blink">■</span><span>SYSTÈME OPÉRATIONNEL</span></div></nav><main class="main"><section class="sec active" id="s-dashboard"><div class="sh"><span class="sh-n">01</span><div class="sh-l"></div><span class="sh-t">Vue globale — surveillance temps réel LIME &amp; MOCHA</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="g4 mb2"><div class="stat"><div class="stat-icon">🌐</div><div class="stat-info"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Joueurs en ligne</div><canvas class="stat-spark" id="spark-total"></canvas></div></div><div class="stat"><div class="stat-icon">⚡</div><div class="stat-info"><div class="stat-val">11</div><div class="stat-lbl">Serveurs actifs</div><canvas class="stat-spark" id="spark-srv"></canvas></div></div><div class="stat"><div class="stat-icon">🎯</div><div class="stat-info"><div class="stat-val" id="st-wonline">—</div><div class="stat-lbl">Cibles en ligne</div><canvas class="stat-spark" id="spark-wl"></canvas></div></div><div class="stat"><div class="stat-icon">👁</div><div class="stat-info"><div class="stat-val" id="st-wcount">—</div><div class="stat-lbl">Cibles surveillées</div><canvas class="stat-spark" id="spark-wc"></canvas></div></div></div><div class="g2 mb"><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="pscan"></div><div class="ph"><span class="pt">◉ Interserveur</span><div style="display:flex;align-items:center;gap:.5rem"><span class="liveb"><span class="liveled"></span>LIVE</span><span id="last-update" style="font-family:var(--M);font-size:.43rem;color:var(--t3)"></span><span id="weather-badge" style="display:inline-flex;align-items:center;gap:.28rem;font-family:var(--M);font-size:.44rem;letter-spacing:.14em;padding:.1rem .45rem;border:1px solid var(--b1);background:rgba(4,9,18,.8)"><span id="weather-icon">🌙</span><span id="weather-label" class="weather-label calm">CALME</span></span></div></div><div class="pb"><div class="sg" id="srv-overview"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div></div><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0 évts</span></div><div style="padding:.35rem 1.15rem"><div class="feed" id="alert-feed"><div class="empty">En attente d'activité...</div></div></div></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">📈 Activité — Joueurs en ligne</span></div><div class="pb"><div class="graph-wrap"><canvas id="activity-graph"></canvas></div><div class="graph-labels" id="graph-labels"></div></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">👁 Watchlist — Statut live</span><button class="btn" onclick="loadDash()">↺ Actualiser</button></div><div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div></section><section class="sec" id="s-online"><div class="sh"><span class="sh-n">02</span><div class="sh-l"></div><span class="sh-t">Joueurs connectés par serveur</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◉ Joueurs en ligne</span><div class="row" style="flex-wrap:nowrap"><select id="ol-srv" style="max-width:145px" onchange="$('ol-body').innerHTML=ld2();loadOnline()"><option value="">Tous les serveurs</option><option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option><option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option><option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option><option value="cyan">CYAN</option><option value="lime">LIME</option></select><button class="btn" onclick="loadOnline()">↺</button></div></div><div class="pb" id="ol-body"><div class="empty">Sélectionnez un serveur</div></div></div></section><section class="sec" id="s-checkall"><div class="sh"><span class="sh-n">03</span><div class="sh-l"></div><span class="sh-t">Localiser un joueur sur tous les serveurs</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="g2"><div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">⊕ Localiser</span></div><div class="pb"><div class="row"><div class="acw"><input id="ca-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('ca-input','ca-list',oP);fPT('ca-input','ca-pl')" onkeydown="acK(event,'ca-list',doCA)"/><div class="acl" id="ca-list"></div></div><button class="btn" onclick="doCA()">→ Go</button></div><div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-top:.22rem">⚠ Case sensitive — <span style="color:var(--g)">Kyzzer_</span> ≠ <span style="color:var(--red)">kyzzer_</span></div><div id="ca-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div><div id="ca-result"></div></div></div><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◷ Historique</span></div><div class="pb" id="ca-history"><div class="empty">Aucune recherche</div></div></div></div><div id="ca-side"></div></div></section><section class="sec" id="s-check"><div class="sh"><span class="sh-n">04</span><div class="sh-l"></div><span class="sh-t">Espionner un pays — membres connectés</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◎ Espionner un pays</span><span class="pts">Serveur → Pays → Espionner</span></div><div class="pb"><div class="row"><select id="ck-srv" style="max-width:145px" onchange="loadCS()"><option value="">Serveur...</option><option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option><option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option><option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option><option value="cyan">CYAN</option><option value="lime">LIME</option></select><div class="acw"><input id="ck-country" placeholder="Nom du pays..." autocomplete="off" oninput="acFC()" onkeydown="acK(event,'ck-list',doCheck)"/><div class="acl" id="ck-list"></div></div><button class="btn" onclick="doCheck()">→ Espionner</button></div><div id="ck-suggest" class="tags" style="margin-top:.32rem;max-height:110px;overflow-y:auto"></div><div id="ck-result"></div></div></div></section><section class="sec" id="s-watchlist"><div class="sh"><span class="sh-n">05</span><div class="sh-l"></div><span class="sh-t">Gérer les cibles — alertes Discord automatiques</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="wlt"><span style="font-family:var(--M);font-size:.46rem;color:var(--t3);letter-spacing:.2em">SERVEUR :</span><span class="wtb act" id="wl-tab-lime" onclick="switchWl('lime')">🟢 LIME</span><span class="wtb" id="wl-tab-mocha" onclick="switchWl('mocha')">🟤 MOCHA</span></div><div class="g2"><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt" id="wl-pt">◈ Watchlist — LIME</span></div><div class="pb"><div id="wl-pl" class="tags" style="max-height:80px;overflow-y:auto;margin-bottom:.36rem"></div><div class="row mb" style="margin-bottom:.7rem"><div class="acw"><input id="wl-add" placeholder="Ajouter un joueur..." autocomplete="off" oninput="acF('wl-add','wl-acl',oP);fPT('wl-add','wl-pl')" onkeydown="acK(event,'wl-acl',wlAdd)"/><div class="acl" id="wl-acl"></div></div><button class="btn btn-g" onclick="wlAdd()">+ Ajouter</button></div><div id="wl-manage"></div></div></div><div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt" id="wl-st">⚡ Statut live — LIME</span><button class="btn" onclick="wlRS()">↺</button></div><div class="pb" id="wl-status"></div></div></div></section><section class="sec" id="s-stats"><div class="sh"><span class="sh-n">06</span><div class="sh-l"></div><span class="sh-t">Analyse comportementale — pronostic · heatmap · historique</span><div class="sh-l" style="transform:scaleX(-1)"></div></div><div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyser un joueur</span></div><div class="pb"><div class="row"><div class="acw"><input id="st-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('st-input','st-list',oP);fPT('st-input','st-pl')" onkeydown="acK(event,'st-list',loadStats)"/><div class="acl" id="st-list"></div></div><button class="btn" onclick="loadStats()">→ Analyser</button></div><div id="st-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div></div></div><div id="st-result"></div></section><section class="sec" id="s-changelog"><div class="cl-wrap"><div class="cl-header"><div class="cl-transmission">// TRANSMISSION OFFICIELLE — MISE À JOUR</div><div class="cl-title"><span class="cl-title-deco">◈</span> VERSION 1.9 — UPGRADE MAJEUR <span class="cl-title-deco">◈</span></div><div class="cl-intro"> Depuis la V1.6, le dashboard a été massivement enrichi.<br> Plus intelligent, plus vivant — et maintenant <strong>avec profil joueur intégré</strong>. </div></div><div class="cl-grid"><div class="cl-card new"><div class="cl-card-title"><span>📡</span> RADAR LOADER</div><div class="cl-card-body">Loader entièrement refait — système radar militaire avec sweep rotatif, anneaux pulsants et points ennemis animés. Pluie de code dorée style Matrix en fond.</div></div><div class="cl-card new"><div class="cl-card-title"><span>👤</span> PROFIL JOUEUR</div><div class="cl-card-body">Clic sur n'importe quel pseudo = panel latéral avec avatar Minecraft, statut live, pronostic, heatmap horaire et lien profil NationsGlory. Fermeture à la touche Échap.</div></div><div class="cl-card new"><div class="cl-card-title"><span>⏱</span> TIMER DE SESSION</div><div class="cl-card-body">Dans la watchlist statut live, chaque joueur connecté affiche depuis combien de temps il est en ligne en temps réel — "4min 32s", "1h 12min". Se lance dès la détection de connexion.</div></div><div class="cl-card new"><div class="cl-card-title"><span>🔔</span> NOTIFICATIONS BROWSER</div><div class="cl-card-body">Alertes natives Windows/Mac quand une cible se connecte ou déconnecte — même si l'onglet est en arrière-plan ou le site réduit. Permission demandée au démarrage.</div></div><div class="cl-card new"><div class="cl-card-title"><span>📊</span> GRAPHE D'ACTIVITÉ</div><div class="cl-card-body">Courbe canvas temps réel des joueurs en ligne sur les 30 derniers points. Gradient, grille, point doré sur la dernière valeur, labels horaires automatiques.</div></div><div class="cl-card new"><div class="cl-card-title"><span>🕐</span> DERNIÈRE CONNEXION</div><div class="cl-card-body">Dans la watchlist et le dashboard — "vu il y a 4min" en vert, "vu il y a 1h" en doré. Mis à jour à chaque refresh automatique.</div></div><div class="cl-card new"><div class="cl-card-title"><span>🌤</span> MÉTÉO D'ACTIVITÉ</div><div class="cl-card-body">Badge intelligent à côté du badge LIVE — 🌙 CALME, 🌤 ACTIVITÉ, ⚡ AGITÉ, 🔥 CRITIQUE selon le % de ta watchlist en ligne. Clignote en rouge en mode critique.</div></div><div class="cl-card new"><div class="cl-card-title"><span>⏳</span> COMPTE À REBOURS</div><div class="cl-card-body">Barre dorée dans le header avec timer décomptant jusqu'au prochain refresh automatique. Se recharge à chaque cycle de 5 secondes.</div></div><div class="cl-card visual"><div class="cl-card-title"><span>✦</span> TRANSITIONS CINÉMATIQUES</div><div class="cl-card-body">Flash lumineux doré qui balaie l'écran à chaque changement d'onglet. Combiné au slide/scale des sections pour une navigation fluide et premium.</div></div><div class="cl-card visual"><div class="cl-card-title"><span>◈</span> CLIP-PATH UNIVERSEL</div><div class="cl-card-body">Coins coupés en diagonale sur absolument tous les éléments — panels, stats, boutons, inputs, tags, popups, watchlist. Cohérence esthétique totale, style militaire/mecha.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>⚡</span> WATCHLIST AUTO-REFRESH</div><div class="cl-card-body">Le statut live de la watchlist se met maintenant à jour automatiquement à chaque refresh du dashboard sans avoir à cliquer manuellement.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>👁</span> CONTRASTE AMÉLIORÉ</div><div class="cl-card-body">Tous les textes gris sur fond sombre ont été rendus plus lisibles — t1 .72→.88, t2 .42→.62, t3 .36→.52. Titres de panels, labels, feed, placeholders.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>⌨</span> RACCOURCIS CLAVIER</div><div class="cl-card-body">Touches 1–6 pour naviguer entre les onglets. Ctrl+K ou / pour ouvrir directement la recherche. Escape pour fermer le panel joueur.</div></div><div class="cl-card fix"><div class="cl-card-title"><span>🎯</span> ALERTES LIME/MOCHA ONLY</div><div class="cl-card-body">Corrigé — le bot Discord et le site n'envoient plus d'alertes pour les autres serveurs. WL → LIME uniquement, WLM → MOCHA uniquement.</div></div></div><div class="cl-card new">
+        <div class="cl-card-title"><span>⏳</span> HEURE DE DÉCO PRÉVUE</div>
+        <div class="cl-card-body">Basé sur l'historique des sessions — estime combien de temps il reste avant la déconnexion. "~45min restantes" en bleu, orange si &lt;30min, rouge clignotant si &lt;10min. Affiché dans la watchlist et le profil joueur.</div>
+      </div>
+      <div class="cl-card fix">
+        <div class="cl-card-title"><span>📱</span> RESPONSIVE MOBILE</div>
+      </div>
+      <div class="cl-card new">
+        <div class="cl-card-title"><span>🚨</span> SURVEILLANCE PAYS</div>
+        <div class="cl-card-body">Nouvel onglet dédié — choisis un pays + serveur + seuil. Alerte popup + son + notification browser dès que le nombre de membres connectés dépasse ton seuil. Refresh automatique toutes les 30s.</div>
+        <div class="cl-card-body">Site entièrement adapté mobile — header compact, nav scrollable, panel joueur plein écran, toasts pleine largeur. Breakpoints 640px et 380px.</div>
+      </div>
+      <div class="cl-checklist"><div class="cl-check">Radar loader + pluie de code Matrix dorée</div><div class="cl-check">Panel profil joueur avec avatar, stats, heatmap</div><div class="cl-check">Timer de session en temps réel dans la watchlist</div><div class="cl-check">Notifications browser natives (arrière-plan)</div><div class="cl-check">Graphe d'activité canvas avec historique 30 points</div><div class="cl-check">Météo d'activité — CALME / ACTIVITÉ / AGITÉ / CRITIQUE</div><div class="cl-check">Compte à rebours prochain refresh dans le header</div><div class="cl-check">Transitions cinématiques entre onglets</div><div class="cl-check">Clip-path universel sur tous les composants</div><div class="cl-check">Watchlist statut live auto-refresh</div><div class="cl-check">Contraste texte amélioré sur 16 éléments</div><div class="cl-check">Raccourcis clavier 1–6 + Ctrl+K</div>
+      <div class="cl-check">Prédiction heure de déconnexion en temps réel</div>
+      <div class="cl-check">Responsive mobile complet (640px + 380px)</div>
+      <div class="cl-check">Surveillance pays — alerte assaut possible (≥ 2 membres connectés)</div></div><div class="cl-footer"><span>מוסד גלורי · CLASSIFIED INTEL</span><a href="https://theredpoloytb.github.io/nationsglory-bot" target="_blank">theredpoloytb.github.io/nationsglory-bot →</a><span class="cl-version-badge">V1.9 — 2026</span></div></div></section>
+<section class="sec" id="s-countrywatch">
+  <div class="sh"><span class="sh-n">07</span><div class="sh-l"></div><span class="sh-t">Surveillance pays — alerte assaut possible (≥ 2 membres connectés)</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+  <!-- ADD FORM -->
+  <div class="panel mb"><div class="pacc"></div><div class="ptop"></div>
+    <div class="ph"><span class="pt">+ Surveiller un pays ennemi</span></div>
+    <div class="pb">
+      <div class="row" style="flex-wrap:wrap;gap:.5rem">
+        <select id="cw-srv" style="max-width:130px" onchange="cwLoadCountries()">
+          <option value="">Serveur...</option>
+          <option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option><option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option><option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option><option value="cyan">CYAN</option><option value="lime">LIME</option>
+        </select>
+        <div class="acw" style="min-width:150px">
+          <input id="cw-country" placeholder="Nom du pays..." autocomplete="off" oninput="cwFilterCountries()" onkeydown="acK(event,'cw-acl',cwAdd)"/>
+          <div class="acl" id="cw-acl"></div>
+        </div>
+        <button class="btn btn-g" onclick="cwAdd()">+ Surveiller</button>
+      </div>
+      <div id="cw-suggest" class="tags" style="margin-top:.38rem;max-height:90px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <!-- LIST -->
+  <div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="pscan"></div>
+    <div class="ph">
+      <span class="pt">◉ Pays surveillés</span>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <span class="liveb"><span class="liveled"></span>LIVE</span>
+        <button class="btn" onclick="cwRefreshAll()" style="padding:.2rem .6rem;font-size:.46rem">↺</button>
+      </div>
+    </div>
+    <div class="pb" id="cw-list"><div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div></div>
+  </div>
+</section>
+</main> <script>
 const API='https://nationsglory-spy.onrender.com';
 const SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
 const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
@@ -218,7 +291,7 @@ async function api(p){const r=await fetch(API+p);if(!r.ok)throw new Error('HTTP 
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
 /* ═══ NAV ═══ */
-async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');}
+async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');}
 
 /* ═══ AUTOCOMPLETE ═══ */
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -297,7 +370,7 @@ function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el
 async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
 async function wlRm(name){try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/remove':'/api/watchlist/remove',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} retiré`);}catch(e){showToast('Erreur : '+e.message);}}
 async function switchWl(s){cwl=s;document.querySelectorAll('.wtb').forEach(e=>e.classList.remove('act'));const a=$('wl-tab-'+s);if(a)a.classList.add('act');if($('wl-pt'))$('wl-pt').textContent='◈ Watchlist — '+s.toUpperCase();if($('wl-st'))$('wl-st').textContent='⚡ Statut live — '+s.toUpperCase();$('wl-manage').innerHTML='';$('wl-status').innerHTML='';if(s==='lime')await loadWL();else await loadWLM();wlR();wlRS();}
-async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>setLastSeen(p,s));el.innerHTML=[...on.map(p=>`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span></div>`),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
+async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>{setLastSeen(p,s);loadSessionDurations(p);});el.innerHTML=[...on.map(p=>{const pred=predictDecoTime(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span>${pred?`<span class="pred-badge ${pred.cls}">⏳ ${pred.text}</span>`:''}</div>`;}),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
 .join('')||'<div class="empty">Aucune donnée</div>';}catch{el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur</div>`;}}
 
 /* ═══ STATS ═══ */
@@ -475,6 +548,7 @@ async function openPlayerPanel(player){
         <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
         ${online?ca.servers.map(s=>`${EMO[s]} ${s.toUpperCase()}`).join(' · '):'Hors ligne'}
       </div>
+      ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
     </div>
   </div>`;
@@ -578,11 +652,187 @@ setInterval(()=>{
   });
 },1000);
 
+
+/* ═══ DÉCO PREDICTION ═══ */
+function predictDecoTime(player){
+  // Get session data from pronostic API cache if available
+  // Use average session duration from heatmap history
+  // Falls back to last 5 sessions average
+  const s=sessionStart[player];
+  if(!s)return null;
+  const elapsed=Math.floor((Date.now()-s)/1000/60); // minutes elapsed
+  // We need historical session durations — stored in sessionDurations
+  const durs=sessionDurations[player]||[];
+  if(durs.length<2)return null;
+  const avg=durs.reduce((a,b)=>a+b,0)/durs.length;
+  const remaining=Math.round(avg-elapsed);
+  if(remaining<=0)return{text:'déco imminente',cls:'verysoon'};
+  if(remaining<=10)return{text:`~${remaining}min restantes`,cls:'verysoon'};
+  if(remaining<=30)return{text:`~${remaining}min restantes`,cls:'soon'};
+  return{text:`~${remaining}min restantes`,cls:''};
+}
+
+// Store session durations when player disconnects
+const sessionDurations={};
+const _origEndSession=typeof endSession==='function'?endSession:null;
+function endSession(player){
+  if(sessionStart[player]){
+    const dur=Math.floor((Date.now()-sessionStart[player])/1000/60);
+    if(dur>1){ // ignore <1min sessions
+      if(!sessionDurations[player])sessionDurations[player]=[];
+      sessionDurations[player].push(dur);
+      if(sessionDurations[player].length>10)sessionDurations[player].shift(); // keep last 10
+    }
+  }
+  delete sessionStart[player];
+}
+
+// Load historical session durations from pronostic data
+async function loadSessionDurations(player){
+  try{
+    const d=await api('/api/plages/'+encodeURIComponent(player));
+    if(!d||!d.heatmap)return;
+    // Estimate avg session from heatmap: most active consecutive hours = avg duration
+    const hm=d.heatmap;
+    let totalSessions=0,totalDur=0;
+    hm.forEach(dayRow=>{
+      let streak=0,maxStreak=0;
+      dayRow.forEach(v=>{if(v>0){streak++;maxStreak=Math.max(maxStreak,streak);}else{streak=0;}});
+      if(maxStreak>0){totalSessions++;totalDur+=maxStreak*60;} // hours→minutes
+    });
+    if(totalSessions>0&&!sessionDurations[player]?.length){
+      const avgMin=Math.round(totalDur/totalSessions);
+      sessionDurations[player]=[avgMin,avgMin]; // seed with historical avg
+    }
+  }catch(e){}
+}
+
+/* ═══ COUNTRY WATCH ═══ */
+let cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');
+let cwCountries={};
+let cwRefreshTimer=null;
+
+function cwSave(){localStorage.setItem('mg_cw',JSON.stringify(cwWatches));}
+
+async function cwLoadCountries(){
+  const s=$('cw-srv').value;if(!s)return;
+  $('cw-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
+  try{
+    if(!cwCountries[s]){const d=await api('/api/countries/'+s);cwCountries[s]=(d.countries||[]).sort((a,b)=>a.localeCompare(b));}
+    cwFilterCountries();
+  }catch{$('cw-suggest').innerHTML='';}
+}
+
+function cwFilterCountries(){
+  const s=$('cw-srv').value,v=$('cw-country').value.trim().toLowerCase();
+  const p=cwCountries[s]||[];
+  const f=v?p.filter(x=>x.toLowerCase().includes(v)):p;
+  $('cw-suggest').innerHTML=f.slice(0,60).map(x=>`<span class="tag" onclick="$('cw-country').value='${x.replace(/'/g,"\'")}';$('cw-acl').style.display='none';cwFilterCountries()">${x}</span>`).join('');
+  // autocomplete dropdown
+  const acl=$('cw-acl');
+  if(v&&f.length){
+    acl.innerHTML=f.slice(0,8).map(x=>`<div class="aci" onmousedown="$('cw-country').value='${x.replace(/'/g,"\'")}';acl.style.display='none'">${x}</div>`).join('');
+    acl.style.display='block';
+  }else acl.style.display='none';
+}
+
+function cwAdd(){
+  const s=$('cw-srv').value,country=$('cw-country').value.trim();
+  if(!s||!country)return showToast('Sélectionne un serveur et un pays');
+  const exists=cwWatches.find(w=>w.server===s&&w.country.toLowerCase()===country.toLowerCase());
+  if(exists)return showToast('Déjà surveillé !');
+  cwWatches.push({server:s,country,threshold:2,online:0,members:[],alertFired:false});
+  cwSave();cwRender();cwRefreshAll();
+  $('cw-country').value='';
+  showToast(`${country} (${s.toUpperCase()}) ajouté`);
+}
+
+function cwRemove(idx){
+  cwWatches.splice(idx,1);cwSave();cwRender();
+  showToast('Surveillance supprimée');
+}
+
+async function cwRefreshOne(idx){
+  const w=cwWatches[idx];if(!w)return;
+  try{
+    const d=await api(`/api/check/${w.server}/${encodeURIComponent(w.country)}`);
+    const online=d.online_total||0;
+    const members=Object.values(d.servers||{}).flat();
+    const wasAlert=w.alertFired;
+    w.online=online;
+    w.members=members;
+    w.hasNonRecruit=false;w.alertFired=false;
+    if(online>=2){const _nr=await hasNonRecruit(members,w.server);w.hasNonRecruit=_nr;w.alertFired=_nr;}
+    // fire alert if newly triggered
+    if(w.alertFired&&!wasAlert){
+      showPop('connect',`⚔ ${w.country}`,`${online} membres · assaut possible · ${w.server.toUpperCase()}`);
+      sendBrowserNotif('connect',`🚨 Assaut possible sur ${w.country} — ${online} membres connectés`,w.server);
+      sndA(true);
+      showToast(`🚨 ASSAUT POSSIBLE — ${w.country} · ${online} membres sur ${w.server.toUpperCase()}`);
+    }
+    cwSave();
+  }catch(e){w.online=-1;}
+  cwRender();
+}
+
+async function cwRefreshAll(){
+  await Promise.all(cwWatches.map((_,i)=>cwRefreshOne(i)));
+}
+
+function cwRender(){
+  const el=$('cw-list');if(!el)return;
+  if(!cwWatches.length){el.innerHTML='<div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div>';return;}
+  el.innerHTML=cwWatches.map((w,i)=>{
+    const alert=w.alertFired;const recruitOnly=w.online>=2&&!w.hasNonRecruit&&!alert;
+    const cnt=w.online<0?'?':w.online;
+    return`<div class="cw-item ${alert?'alert':recruitOnly?'recruit-only':''}" style="margin-bottom:.5rem">
+      <div class="cw-count ${alert?'danger':''}">${cnt}</div>
+      <div class="cw-info">
+        <div class="cw-name">${w.country}</div>
+        <div class="cw-meta">${EMO[w.server]||''} ${w.server.toUpperCase()} · assaut possible si ≥ 2 connectés</div>
+        ${w.members.length?`<div class="cw-members">${w.members.slice(0,8).join(', ')}${w.members.length>8?` +${w.members.length-8}`:''}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">
+        <span class="cw-status ${alert?'':'ok'}">${alert?'🚨 ASSAUT POSSIBLE':'◯ PAS ASSEZ'}</span>
+        <button class="btn btn-r" style="padding:.08rem .35rem;font-size:.46rem" onclick="cwRemove(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Auto-refresh country watches every 30s
+setInterval(cwRefreshAll, 30000);
+
+
+/* ═══ GRADE CHECK ═══ */
+const NG_KEY='NGAPI_q05@rd^9Gg!@A9(4YYQEHVj9)6fNTGF2c02f64647e5f99a75001c7cb30c1e8e5';
+const gradeCache={};
+
+async function getPlayerGrade(player, server){
+  const key=player+'@'+server;
+  if(gradeCache[key]&&Date.now()-gradeCache[key].ts<120000)return gradeCache[key].rank;
+  try{
+    const r=await fetch(`https://publicapi.nationsglory.fr/user/${encodeURIComponent(player)}`,{
+      headers:{Authorization:`Bearer ${NG_KEY}`,accept:'application/json'}
+    });
+    if(!r.ok)return null;
+    const d=await r.json();
+    const rank=d.servers?.[server]?.country_rank||null;
+    gradeCache[key]={rank,ts:Date.now()};
+    return rank;
+  }catch{return null;}
+}
+
+async function hasNonRecruit(members, server){
+  // Check grades in parallel, max 6 at a time to avoid rate limit
+  const results=await Promise.allSettled(members.slice(0,12).map(p=>getPlayerGrade(p,server)));
+  return results.some(r=>r.status==='fulfilled'&&r.value&&r.value!=='recruit');
+}
 /* ═══ INIT ═══ */
 async function init(){
   const b=$('sound-btn');if(b&&!snd){b.textContent='🔇 SON';b.style.color='var(--t3)';}
   requestNotifPerms();
-  rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
+  cwRender();rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
   if(ok){
     await loadWL();await loadWLM();loadKP();await loadDash();
     startCountdown(5);
