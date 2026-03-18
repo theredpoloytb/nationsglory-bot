@@ -708,11 +708,11 @@ async function loadSessionDurations(player){
 }
 
 /* ═══ COUNTRY WATCH ═══ */
-let cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');
+let cwWatches=[];
 let cwCountries={};
 let cwRefreshTimer=null;
 
-function cwSave(){localStorage.setItem('mg_cw',JSON.stringify(cwWatches));}
+async function cwSave(){localStorage.setItem('mg_cw',JSON.stringify(cwWatches));}
 
 async function cwLoadCountries(){
   const s=$('cw-srv').value;if(!s)return;
@@ -747,7 +747,9 @@ function cwAdd(){
   showToast(`${country} (${s.toUpperCase()}) ajouté`);
 }
 
-function cwRemove(idx){
+async function cwRemove(idx){
+  const w=cwWatches[idx];if(!w)return;
+  try{await apiP('/api/country_watches/remove',{server:w.server,country:w.country});}catch(e){}
   cwWatches.splice(idx,1);cwSave();cwRender();
   showToast('Surveillance supprimée');
 }
@@ -828,7 +830,7 @@ async function hasNonRecruit(members, server){
 async function init(){
   const b=$('sound-btn');if(b&&!snd){b.textContent='🔇 SON';b.style.color='var(--t3)';}
   requestNotifPerms();
-  cwRender();rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
+  api('/api/country_watches').then(d=>{cwWatches=d.watches||[];const stored=JSON.parse(localStorage.getItem('mg_cw')||'[]');stored.forEach(w=>{if(!cwWatches.find(x=>x.server===w.server&&x.country===w.country))cwWatches.push(w);});cwRender();}).catch(()=>{cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');cwRender();});rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
   if(ok){
     await loadWL();await loadWLM();loadKP();await loadDash();
     startCountdown(5);
