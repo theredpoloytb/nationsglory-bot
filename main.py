@@ -534,24 +534,12 @@ async def check_country_watch(watch):
             watch["last_alert"] = True
             ch = client.get_channel(CH_PAYS)
             if ch:
-                desc_lines = []
-                for p in online_members:
-                    rank = next((r for n,r in non_recruits if n==p), "recrue")
-                    desc_lines.append(f"• **{p}** — {rank}")
-                e = discord.Embed(
-                    title=f"⚔ ASSAUT POSSIBLE — {name}",
-                    description="
-".join(desc_lines),
-                    color=discord.Color.red(),
-                    timestamp=discord.utils.utcnow()
-                )
-                e.add_field(name="🌐 Serveur", value=f"**{server.upper()}**", inline=True)
-                e.add_field(name="👥 Connectés", value=f"**{len(online_members)}**", inline=True)
-                e.add_field(name="⚔ Non-recrues", value=f"**{len(non_recruits)}**", inline=True)
-                e.set_footer(text=f"Surveillance pays · {len(non_recruits)} officier(s) détecté(s)")
-                await ch.send(embed=e)
-        elif not can_assault:
+                await ch.send(f"⚔ **ASSAUT POSSIBLE** — **{name}** sur **{server.upper()}**")
+        elif not can_assault and watch.get("last_alert"):
             watch["last_alert"] = False
+            ch = client.get_channel(CH_PAYS)
+            if ch:
+                await ch.send(f"✅ **PLUS POSSIBLE** — **{name}** sur **{server.upper()}** (moins de 2 membres ou que des recrues)")
     except Exception as e:
         print(f"❌ CW scan {watch}: {e}", flush=True)
 
