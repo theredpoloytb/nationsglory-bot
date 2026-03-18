@@ -495,17 +495,7 @@ select option{background:#040912}
 
 <section class="sec active" id="s-dashboard">
   <div class="sh"><span class="sh-n">01</span><div class="sh-l"></div><span class="sh-t">Vue globale — surveillance temps réel LIME &amp; MOCHA</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-  <!-- BIG CLOCK + WEATHER -->
-  <div class="big-clock-wrap mb" style="position:relative">
-    <div>
-      <div class="big-clock" id="big-clock">--:--:--</div>
-      <div class="big-date" id="big-date">--/--/----</div>
-    </div>
-    <div class="weather-block">
-      <div class="weather-icon" id="weather-icon">🌙</div>
-      <div class="weather-label calm" id="weather-label">CALME</div>
-    </div>
-  </div>
+
   <div class="g4 mb2">
     <div class="stat">
       <div class="stat-icon">🌐</div>
@@ -542,7 +532,7 @@ select option{background:#040912}
   </div>
   <div class="g2 mb">
     <div class="panel"><div class="pacc"></div><div class="ptop"></div><div class="pscan"></div>
-      <div class="ph"><span class="pt">◉ Interserveur</span><div style="display:flex;align-items:center;gap:.5rem"><span class="liveb"><span class="liveled"></span>LIVE</span><span id="last-update" style="font-family:var(--M);font-size:.43rem;color:var(--t3)"></span></div></div>
+      <div class="ph"><span class="pt">◉ Interserveur</span><div style="display:flex;align-items:center;gap:.5rem"><span class="liveb"><span class="liveled"></span>LIVE</span><span id="last-update" style="font-family:var(--M);font-size:.43rem;color:var(--t3)"></span><span id="weather-badge" style="display:inline-flex;align-items:center;gap:.28rem;font-family:var(--M);font-size:.44rem;letter-spacing:.14em;padding:.1rem .45rem;border:1px solid var(--b1);background:rgba(4,9,18,.8)"><span id="weather-icon">🌙</span><span id="weather-label" class="weather-label calm">CALME</span></span></div></div>
       <div class="pb"><div class="sg" id="srv-overview"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div>
     </div>
     <div class="panel"><div class="pacc"></div><div class="ptop"></div>
@@ -1111,15 +1101,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ppOpen)closePlayerP
   if(ldr)obs.observe(ldr,{attributes:true,attributeFilter:['style']});
 })();
 
-/* ═══ BIG CLOCK ═══ */
-function updateBigClock(){
-  const now=new Date();
-  const bc=document.getElementById('big-clock');
-  const bd=document.getElementById('big-date');
-  if(bc)bc.textContent=now.toLocaleTimeString('fr-FR');
-  if(bd)bd.textContent=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
-}
-setInterval(updateBigClock,1000);updateBigClock();
+
 
 /* ═══ WEATHER ACTIVITY ═══ */
 function updateWeather(onlineCount){
