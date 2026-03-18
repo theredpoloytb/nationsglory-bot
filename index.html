@@ -756,8 +756,8 @@ async function cwRefreshOne(idx){
   const w=cwWatches[idx];if(!w)return;
   try{
     const d=await api(`/api/check/${w.server}/${encodeURIComponent(w.country)}`);
-    const online=d.online_total||0;
-    const members=Object.values(d.servers||{}).flat();
+    const members=d.servers?.[w.server]||[];
+    const online=members.length;
     const wasAlert=w.alertFired;
     w.online=online;
     w.members=members;
@@ -826,7 +826,7 @@ async function getPlayerGrade(player, server){
 async function hasNonRecruit(members, server){
   // Check grades in parallel, max 6 at a time to avoid rate limit
   const results=await Promise.allSettled(members.slice(0,12).map(p=>getPlayerGrade(p,server)));
-  return results.some(r=>r.status==='fulfilled'&&r.value&&r.value!=='recruit');
+  return results.some(r=>r.status==='fulfilled'&&r.value&&r.value!==''&&r.value!=='recruit');
 }
 /* ═══ INIT ═══ */
 async function init(){
