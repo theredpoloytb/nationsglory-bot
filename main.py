@@ -263,6 +263,21 @@ async def api_plages(r):
     hm, DAYS = res
     return cors({"player":r.match_info["player"],"days":DAYS,"heatmap":hm})
 
+async def api_grade(r):
+    player = r.match_info["player"]
+    server = r.match_info["server"].lower()
+    try:
+        headers = {"Authorization": f"Bearer {NG_KEY}", "accept": "application/json"}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8)) as s:
+            async with s.get(f"https://publicapi.nationsglory.fr/user/{player}", headers=headers) as resp:
+                if resp.status != 200:
+                    return cors({"player": player, "server": server, "rank": None})
+                data = await resp.json()
+                rank = data.get("servers", {}).get(server, {}).get("country_rank", None)
+                return cors({"player": player, "server": server, "rank": rank})
+    except Exception as e:
+        return cors({"player": player, "server": server, "rank": None, "error": str(e)})
+
 async def api_known_players(r):
     if not mongo_ok: return cors({"players":[]})
     try:
@@ -427,8 +442,8 @@ async def scan_server(server, alerte_ch):
     for p in pset:
         if not prev.get(p):
             record_connection(p, server)
-            if p in WL and server == "lime" and alerte_ch:
-                e = discord.Embed(title="🟢 CONNEXION", description=f"**{p}** → **LIME**", color=discord.Color.green(), timestamp=ts)
+            if p in WL and alerte_ch:
+                e = discord.Embed(title="🟢 CONNEXION", description=f"**{p}** → **{server.upper()}**", color=discord.Color.green(), timestamp=ts)
                 await alerte_ch.send(embed=e)
             if p in WL_MOCHA and server == "mocha" and mocha_ch:
                 e = discord.Embed(title="🟢 CONNEXION — MOCHA", description=f"**{p}** → **MOCHA**", color=discord.Color.orange(), timestamp=ts)
@@ -436,8 +451,8 @@ async def scan_server(server, alerte_ch):
 
     for p, was in prev.items():
         if was and p not in pset:
-            if p in WL and server == "lime" and alerte_ch:
-                e = discord.Embed(title="🔴 DÉCONNEXION", description=f"**{p}** ← **LIME**", color=discord.Color.red(), timestamp=ts)
+            if p in WL and alerte_ch:
+                e = discord.Embed(title="🔴 DÉCONNEXION", description=f"**{p}** ← **{server.upper()}**", color=discord.Color.red(), timestamp=ts)
                 await alerte_ch.send(embed=e)
             if p in WL_MOCHA and server == "mocha" and mocha_ch:
                 e = discord.Embed(title="🔴 DÉCONNEXION — MOCHA", description=f"**{p}** ← **MOCHA**", color=discord.Color.red(), timestamp=ts)
@@ -508,6 +523,7 @@ async def start_web():
         ("GET",  "/api/pronostic/{player}",        api_pronostic),
         ("GET",  "/api/plages/{player}",           api_plages),
         ("GET",  "/api/known_players",             api_known_players),
+        ("GET",  "/api/grade/{player}/{server}",   api_grade),
     ]
     for method, path, handler in routes:
         app.router.add_route(method, path, handler)
