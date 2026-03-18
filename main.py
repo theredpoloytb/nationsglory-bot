@@ -563,11 +563,11 @@ async def scanner_loop():
             sp = {s: (r if isinstance(r,list) else []) for s,r in zip(SERVERS,results)}
 
             # Country watch check every 6 ticks (30s)
-        if tick % 6 == 0 and COUNTRY_WATCHES:
-            await asyncio.gather(*[check_country_watch(w) for w in COUNTRY_WATCHES], return_exceptions=True)
-            await save_cw()
+            if tick % 6 == 0 and COUNTRY_WATCHES:
+                await asyncio.gather(*[check_country_watch(w) for w in COUNTRY_WATCHES], return_exceptions=True)
+                await save_cw()
 
-        if tick % 5 == 0:
+            if tick % 5 == 0:
                 now = discord.utils.utcnow()
                 ts  = (now + timedelta(hours=1)).strftime("%H:%M:%S")
 
