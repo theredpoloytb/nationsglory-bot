@@ -14,8 +14,13 @@ CH_ALERTE   = 1465309715230888090
 CH_STORAGE  = 1478831933017428070
 CH_M_RAPPORT = 1482879184207347942
 CH_M_ALERTE  = 1482879242416029726
+CH_PAYS      = 1465336287471861771
 
 DEFAULT_WL = ["Canisi","Darkholess","UFO_Thespoot","Franky753","Blakonne","Farsgame","ClashKiller78","Olmat38","FLOTYR2","Raptor51"]
+
+# ── COUNTRY WATCH ──
+COUNTRY_WATCHES = []  # [{server, country, members, last_alert}]
+cw_msg_id = None
 
 WL       = list(DEFAULT_WL)
 WL_MOCHA = list(DEFAULT_WL)
@@ -154,6 +159,14 @@ async def _save_wl(global_name, prefix, channel_id):
     if global_name == "WL": wl_msg_id = msg.id
     else: wl_mocha_msg_id = msg.id
 
+async def load_cw():
+    global COUNTRY_WATCHES
+    v = cfg_get("country_watches")
+    if v: COUNTRY_WATCHES = v
+
+async def save_cw():
+    cfg_set("country_watches", COUNTRY_WATCHES)
+
 async def load_watchlist():       await _load_wl("WL",    "WATCHLIST",       CH_STORAGE)
 async def save_watchlist():       await _save_wl("WL",    "WATCHLIST",       CH_STORAGE)
 async def load_watchlist_mocha(): await _load_wl("MOCHA", "WATCHLIST_MOCHA", CH_M_RAPPORT)
@@ -262,6 +275,33 @@ async def api_plages(r):
     if not res: return cors({"error":"Aucune donnée"},404)
     hm, DAYS = res
     return cors({"player":r.match_info["player"],"days":DAYS,"heatmap":hm})
+
+async def api_cw_get(r):
+    return cors({"watches": COUNTRY_WATCHES})
+
+async def api_cw_add(r):
+    try:
+        body = await r.json()
+        s = body.get("server","").lower()
+        country = body.get("country","").strip()
+        if not s or not country: return cors({"error":"Données manquantes"},400)
+        exists = any(w["server"]==s and w["country"].lower()==country.lower() for w in COUNTRY_WATCHES)
+        if exists: return cors({"error":"Déjà surveillé"},409)
+        COUNTRY_WATCHES.append({"server":s,"country":country,"members":[],"last_alert":False})
+        await save_cw()
+        return cors({"watches":COUNTRY_WATCHES})
+    except Exception as e: return cors({"error":str(e)},400)
+
+async def api_cw_remove(r):
+    try:
+        body = await r.json()
+        s = body.get("server","").lower()
+        country = body.get("country","").strip()
+        global COUNTRY_WATCHES
+        COUNTRY_WATCHES = [w for w in COUNTRY_WATCHES if not (w["server"]==s and w["country"].lower()==country.lower())]
+        await save_cw()
+        return cors({"watches":COUNTRY_WATCHES})
+    except Exception as e: return cors({"error":str(e)},400)
 
 async def api_grade(r):
     player = r.match_info["player"]
@@ -461,12 +501,68 @@ async def scan_server(server, alerte_ch):
     last_states[server] = {p: True for p in pset}
     return players
 
+async def check_country_watch(watch):
+    """Check if a country has >= 2 non-recruit members online on the target server."""
+    try:
+        server = watch["server"]
+        country = watch["country"]
+        members, name = await get_country_members(server, country)
+        if not members: return
+        online_players = await get_online(server)
+        online_members = [m for m in members if m in online_players]
+        if len(online_members) < 2:
+            watch["last_alert"] = False
+            watch["members"] = online_members
+            return
+        # Check grades — need at least 1 non-recruit
+        headers = {"Authorization": f"Bearer {NG_KEY}", "accept": "application/json"}
+        non_recruits = []
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            tasks = [s.get(f"https://publicapi.nationsglory.fr/user/{p}", headers=headers) for p in online_members[:8]]
+            for p, task in zip(online_members[:8], tasks):
+                try:
+                    async with task as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            rank = data.get("servers",{}).get(server,{}).get("country_rank","")
+                            if rank and rank != "recruit":
+                                non_recruits.append((p, rank))
+                except: pass
+        watch["members"] = online_members
+        can_assault = len(online_members) >= 2 and len(non_recruits) >= 1
+        if can_assault and not watch.get("last_alert"):
+            watch["last_alert"] = True
+            ch = client.get_channel(CH_PAYS)
+            if ch:
+                desc_lines = []
+                for p in online_members:
+                    rank = next((r for n,r in non_recruits if n==p), "recrue")
+                    desc_lines.append(f"• **{p}** — {rank}")
+                e = discord.Embed(
+                    title=f"⚔ ASSAUT POSSIBLE — {name}",
+                    description="
+".join(desc_lines),
+                    color=discord.Color.red(),
+                    timestamp=discord.utils.utcnow()
+                )
+                e.add_field(name="🌐 Serveur", value=f"**{server.upper()}**", inline=True)
+                e.add_field(name="👥 Connectés", value=f"**{len(online_members)}**", inline=True)
+                e.add_field(name="⚔ Non-recrues", value=f"**{len(non_recruits)}**", inline=True)
+                e.set_footer(text=f"Surveillance pays · {len(non_recruits)} officier(s) détecté(s)")
+                await ch.send(embed=e)
+        elif not can_assault:
+            watch["last_alert"] = False
+    except Exception as e:
+        print(f"❌ CW scan {watch}: {e}", flush=True)
+
 async def scanner_loop():
     global rapport_msg_id
     await client.wait_until_ready()
     await load_watchlist()
     await load_watchlist_mocha()
     rapport_msg_id = await asyncio.get_running_loop().run_in_executor(None, cfg_get, "rapport_msg_id")
+    await load_cw()
+    print(f"📋 Country watches: {len(COUNTRY_WATCHES)}", flush=True)
     print(f"📋 Rapport ID: {rapport_msg_id}", flush=True)
 
     ch_rapport = client.get_channel(CH_RAPPORT)
@@ -478,7 +574,12 @@ async def scanner_loop():
             results = await asyncio.gather(*[scan_server(s, ch_alerte) for s in SERVERS], return_exceptions=True)
             sp = {s: (r if isinstance(r,list) else []) for s,r in zip(SERVERS,results)}
 
-            if tick % 5 == 0:
+            # Country watch check every 6 ticks (30s)
+        if tick % 6 == 0 and COUNTRY_WATCHES:
+            await asyncio.gather(*[check_country_watch(w) for w in COUNTRY_WATCHES], return_exceptions=True)
+            await save_cw()
+
+        if tick % 5 == 0:
                 now = discord.utils.utcnow()
                 ts  = (now + timedelta(hours=1)).strftime("%H:%M:%S")
 
@@ -524,6 +625,9 @@ async def start_web():
         ("GET",  "/api/plages/{player}",           api_plages),
         ("GET",  "/api/known_players",             api_known_players),
         ("GET",  "/api/grade/{player}/{server}",   api_grade),
+        ("GET",  "/api/country_watches",           api_cw_get),
+        ("POST", "/api/country_watches/add",       api_cw_add),
+        ("POST", "/api/country_watches/remove",    api_cw_remove),
     ]
     for method, path, handler in routes:
         app.router.add_route(method, path, handler)
