@@ -45,6 +45,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--S);min-height:100vh;
 #ldr.out{animation:ldrOut .9s var(--ease) forwards}
 @keyframes ldrOut{0%{opacity:1;filter:none;transform:none}100%{opacity:0;filter:blur(12px);transform:scale(1.08)}}
 
+/* ── MATRIX RAIN ── */
+#matrix-canvas{position:absolute;inset:0;opacity:.55;pointer-events:none}
+
 /* radar ring system */
 .radar{position:relative;width:200px;height:200px;margin-bottom:2.6rem;flex-shrink:0}
 .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(200,168,75,.18);animation:rpulse 3s ease-in-out infinite}
@@ -360,6 +363,8 @@ select option{background:#040912}
 .wi-seen{font-family:var(--M);font-size:.44rem;color:var(--t3);letter-spacing:.06em;margin-left:.5rem;white-space:nowrap}
 .wi-seen.fresh{color:var(--grn)}
 .wi-seen.recent{color:var(--g)}
+.session-timer{font-family:var(--M);font-size:.44rem;color:var(--grn);letter-spacing:.06em;margin-left:auto;padding-left:.5rem;white-space:nowrap}
+.session-timer::before{content:'⏱ ';opacity:.6}
 
 /* ═══ PAGE TRANSITION ═══ */
 .page-flash{position:fixed;inset:0;z-index:8999;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(200,168,75,.06),transparent);opacity:0}
@@ -411,7 +416,7 @@ select option{background:#040912}
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <!-- ══════════ LOADER ══════════ -->
-<div id="ldr">
+<div id="ldr"><canvas id="matrix-canvas"></canvas>
   <div class="lc tl"></div><div class="lc tr"></div><div class="lc bl"></div><div class="lc br"></div>
   <div class="l-scanbeam"></div>
   <div class="radar">
@@ -490,34 +495,49 @@ select option{background:#040912}
 
 <section class="sec active" id="s-dashboard">
   <div class="sh"><span class="sh-n">01</span><div class="sh-l"></div><span class="sh-t">Vue globale — surveillance temps réel LIME &amp; MOCHA</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+  <!-- BIG CLOCK + WEATHER -->
+  <div class="big-clock-wrap mb" style="position:relative">
+    <div>
+      <div class="big-clock" id="big-clock">--:--:--</div>
+      <div class="big-date" id="big-date">--/--/----</div>
+    </div>
+    <div class="weather-block">
+      <div class="weather-icon" id="weather-icon">🌙</div>
+      <div class="weather-label calm" id="weather-label">CALME</div>
+    </div>
+  </div>
   <div class="g4 mb2">
-    <div class="stat"><div class="stat-acc"></div><div class="stat-top"></div>
-      <div class="stat-lbl">Joueurs en ligne</div>
-      <div class="stat-val" id="st-total">—</div>
-      <div class="stat-sub">tous serveurs confondus</div>
-      <canvas class="stat-spark" id="spark-total"></canvas>
-      <div class="stat-ghost">∑</div>
+    <div class="stat">
+      <div class="stat-icon">🌐</div>
+      <div class="stat-info">
+        <div class="stat-val" id="st-total">—</div>
+        <div class="stat-lbl">Joueurs en ligne</div>
+        <canvas class="stat-spark" id="spark-total"></canvas>
+      </div>
     </div>
-    <div class="stat"><div class="stat-acc"></div><div class="stat-top"></div>
-      <div class="stat-lbl">Serveurs actifs</div>
-      <div class="stat-val">11</div>
-      <div class="stat-sub">monitored 24/7</div>
-      <canvas class="stat-spark" id="spark-srv"></canvas>
-      <div class="stat-ghost">◉</div>
+    <div class="stat">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-info">
+        <div class="stat-val">11</div>
+        <div class="stat-lbl">Serveurs actifs</div>
+        <canvas class="stat-spark" id="spark-srv"></canvas>
+      </div>
     </div>
-    <div class="stat"><div class="stat-acc"></div><div class="stat-top"></div>
-      <div class="stat-lbl">Cibles en ligne</div>
-      <div class="stat-val" id="st-wonline">—</div>
-      <div class="stat-sub">watchlist LIME active</div>
-      <canvas class="stat-spark" id="spark-wl"></canvas>
-      <div class="stat-ghost">⊕</div>
+    <div class="stat">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-info">
+        <div class="stat-val" id="st-wonline">—</div>
+        <div class="stat-lbl">Cibles en ligne</div>
+        <canvas class="stat-spark" id="spark-wl"></canvas>
+      </div>
     </div>
-    <div class="stat"><div class="stat-acc"></div><div class="stat-top"></div>
-      <div class="stat-lbl">Cibles surveillées</div>
-      <div class="stat-val" id="st-wcount">—</div>
-      <div class="stat-sub">joueurs tracés</div>
-      <canvas class="stat-spark" id="spark-wc"></canvas>
-      <div class="stat-ghost">◈</div>
+    <div class="stat">
+      <div class="stat-icon">👁</div>
+      <div class="stat-info">
+        <div class="stat-val" id="st-wcount">—</div>
+        <div class="stat-lbl">Cibles surveillées</div>
+        <canvas class="stat-spark" id="spark-wc"></canvas>
+      </div>
     </div>
   </div>
   <div class="g2 mb">
@@ -810,7 +830,7 @@ async function loadDash(){
     animStat('st-total',tot);
     sparkData.total.push(tot);if(sparkData.total.length>30)sparkData.total.shift();drawSpark('spark-total',sparkData.total);
     const wonline=WL.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase())).length;
-    animStat('st-wonline',wonline);
+    animStat('st-wonline',wonline);updateWeather(wonline);
     sparkData.wl.push(wonline);if(sparkData.wl.length>30)sparkData.wl.shift();drawSpark('spark-wl',sparkData.wl);
     const mx=Math.max(...SRV.map(s=>(all[s]||[]).length),1);
     const cards=$('srv-overview').querySelectorAll('.sc');
@@ -824,7 +844,7 @@ async function loadDash(){
     if(document.getElementById('wl-status')&&document.getElementById('wl-status').innerHTML.trim()!=='')wlRS();
   }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne<br/><span style="font-size:.52rem;opacity:.6">${e.message}</span></div>`;}
 }
-function pAlert(t,p,s){ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});if(ALR.length>60)ALR.pop();rAlerts();const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());if(inWL){if(t==='connect'){setLastSeen(p,s);sendBrowserNotif('connect',p,s);}else{sendBrowserNotif('disconnect',p,s);}showPop(t,p,s);}}
+function pAlert(t,p,s){ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});if(ALR.length>60)ALR.pop();rAlerts();const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());if(inWL){if(t==='connect'){setLastSeen(p,s);startSession(p);sendBrowserNotif('connect',p,s);}else{endSession(p);sendBrowserNotif('disconnect',p,s);}showPop(t,p,s);}}
 function rAlerts(){$('alert-badge').textContent=ALR.length+' évts';$('alert-feed').innerHTML=ALR.length?ALR.map(a=>`<div class="fi"><div class="fi-d ${a.type==='connect'?'g':'r'}"></div><span class="fi-t">${a.time}</span><span class="fi-m">${a.type==='connect'?'🟢':'🔴'} <b style="cursor:pointer" onclick="openPlayerPanel('${a.player}')">${a.player}</b><span class="fi-s">${a.server.toUpperCase()}</span></span></div>`).join(''):'<div class="empty">En attente...</div>';}
 
 /* ═══ ONLINE ═══ */
@@ -849,7 +869,7 @@ function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el
 async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
 async function wlRm(name){try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/remove':'/api/watchlist/remove',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} retiré`);}catch(e){showToast('Erreur : '+e.message);}}
 async function switchWl(s){cwl=s;document.querySelectorAll('.wtb').forEach(e=>e.classList.remove('act'));const a=$('wl-tab-'+s);if(a)a.classList.add('act');if($('wl-pt'))$('wl-pt').textContent='◈ Watchlist — '+s.toUpperCase();if($('wl-st'))$('wl-st').textContent='⚡ Statut live — '+s.toUpperCase();$('wl-manage').innerHTML='';$('wl-status').innerHTML='';if(s==='lime')await loadWL();else await loadWLM();wlR();wlRS();}
-async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>setLastSeen(p,s));el.innerHTML=[...on.map(p=>`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div></div>`),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:.${seen?.cls==='fresh'?'7':'27'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
+async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>setLastSeen(p,s));el.innerHTML=[...on.map(p=>`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span></div>`),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
 .join('')||'<div class="empty">Aucune donnée</div>';}catch{el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur</div>`;}}
 
 /* ═══ STATS ═══ */
@@ -1056,6 +1076,87 @@ function closePlayerPanel(){
   document.body.style.overflow='';ppOpen=false;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ppOpen)closePlayerPanel();});
+
+
+/* ═══ MATRIX RAIN ═══ */
+(()=>{
+  const c=document.getElementById('matrix-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const resize=()=>{c.width=window.innerWidth;c.height=window.innerHeight;};
+  resize();window.addEventListener('resize',resize);
+  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF◈⊕◉◎';
+  const fs=14;let cols=Math.floor(c.width/fs);
+  let drops=Array(cols).fill(1);
+  const draw=()=>{
+    ctx.fillStyle='rgba(1,4,8,.08)';ctx.fillRect(0,0,c.width,c.height);
+    cols=Math.floor(c.width/fs);if(drops.length!==cols)drops=Array(cols).fill(1);
+    ctx.font=fs+'px JetBrains Mono,monospace';
+    drops.forEach((y,i)=>{
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const bright=Math.random()>.92;
+      ctx.fillStyle=bright?'#f0c040':`rgba(200,168,75,${Math.random()*.6+.15})`;
+      ctx.fillText(ch,i*fs,y*fs);
+      if(y*fs>c.height&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    });
+  };
+  const interval=setInterval(draw,45);
+  // stop when loader exits
+  const obs=new MutationObserver(()=>{
+    const ldr=document.getElementById('ldr');
+    if(ldr&&ldr.style.display==='none'){clearInterval(interval);obs.disconnect();}
+  });
+  const ldr=document.getElementById('ldr');
+  if(ldr)obs.observe(ldr,{attributes:true,attributeFilter:['style']});
+})();
+
+/* ═══ BIG CLOCK ═══ */
+function updateBigClock(){
+  const now=new Date();
+  const bc=document.getElementById('big-clock');
+  const bd=document.getElementById('big-date');
+  if(bc)bc.textContent=now.toLocaleTimeString('fr-FR');
+  if(bd)bd.textContent=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+}
+setInterval(updateBigClock,1000);updateBigClock();
+
+/* ═══ WEATHER ACTIVITY ═══ */
+function updateWeather(onlineCount){
+  const icon=document.getElementById('weather-icon');
+  const label=document.getElementById('weather-label');
+  if(!icon||!label)return;
+  const wl=WL.length+WLM.length;
+  // based on % of watchlist online
+  const ratio=wl>0?onlineCount/wl:0;
+  let ic,lb,cls;
+  if(onlineCount===0){ic='🌙';lb='CALME';cls='calm';}
+  else if(ratio<.3){ic='🌤';lb='ACTIVITÉ';cls='active';}
+  else if(ratio<.6){ic='⚡';lb='AGITÉ';cls='hot';}
+  else{ic='🔥';lb='CRITIQUE';cls='critical';}
+  if(icon.textContent!==ic){icon.style.transform='scale(1.4)';icon.textContent=ic;setTimeout(()=>icon.style.transform='',300);}
+  label.textContent=lb;
+  label.className='weather-label '+cls;
+}
+
+/* ═══ SESSION TIMERS ═══ */
+const sessionStart={};
+function startSession(player){if(!sessionStart[player])sessionStart[player]=Date.now();}
+function endSession(player){delete sessionStart[player];}
+function getSessionTime(player){
+  if(!sessionStart[player])return null;
+  const sec=Math.floor((Date.now()-sessionStart[player])/1000);
+  if(sec<60)return sec+'s';
+  if(sec<3600)return Math.floor(sec/60)+'min '+String(sec%60).padStart(2,'0')+'s';
+  return Math.floor(sec/3600)+'h '+String(Math.floor(sec%3600/60)).padStart(2,'0')+'min';
+}
+// update session timers every second in watchlist
+setInterval(()=>{
+  document.querySelectorAll('.session-timer[data-player]').forEach(el=>{
+    const t=getSessionTime(el.dataset.player);
+    if(t)el.textContent=t;
+  });
+},1000);
 
 /* ═══ INIT ═══ */
 async function init(){
