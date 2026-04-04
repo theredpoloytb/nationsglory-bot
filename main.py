@@ -326,6 +326,18 @@ async def api_known_players(r):
         return cors({"players":pl})
     except: return cors({"players":[]})
 
+async def api_auth_check(r):
+    try:
+        data = await r.json()
+        password = os.environ.get("SITE_PASSWORD", "")
+        
+        if data.get("password") == password:
+            return cors({"ok": True})
+        
+        return cors({"ok": False}, 401)
+    except:
+        return cors({"ok": False}, 400)
+
 # ── AUTOCOMPLETE ──
 async def srv_ac(i, cur): return [app_commands.Choice(name=s.upper(),value=s) for s in SERVERS if cur.lower() in s][:25]
 async def ctry_ac(i, cur):
@@ -596,27 +608,31 @@ async def scanner_loop():
 async def start_web():
     app = web.Application()
     routes = [
-        ("GET",  "/",                              api_health),
-        ("GET",  "/health",                        api_health),
-        ("GET",  "/api/online/{server}",           api_online),
-        ("GET",  "/api/online_all",                api_online_all),
-        ("GET",  "/api/checkall/{player}",         api_checkall),
-        ("GET",  "/api/countries/{server}",        api_countries),
-        ("GET",  "/api/check/{server}/{country}",  api_check),
-        ("GET",  "/api/watchlist",                 api_wl_get),
-        ("POST", "/api/watchlist/add",             api_wl_add),
-        ("POST", "/api/watchlist/remove",          api_wl_remove),
-        ("GET",  "/api/watchlist_mocha",           api_wl_mocha_get),
-        ("POST", "/api/watchlist_mocha/add",       api_wl_mocha_add),
-        ("POST", "/api/watchlist_mocha/remove",    api_wl_mocha_remove),
-        ("GET",  "/api/pronostic/{player}",        api_pronostic),
-        ("GET",  "/api/plages/{player}",           api_plages),
-        ("GET",  "/api/known_players",             api_known_players),
-        ("GET",  "/api/grade/{player}/{server}",   api_grade),
-        ("GET",  "/api/country_watches",           api_cw_get),
-        ("POST", "/api/country_watches/add",       api_cw_add),
-        ("POST", "/api/country_watches/remove",    api_cw_remove),
-    ]
+    ("GET",  "/",                              api_health),
+    ("GET",  "/health",                        api_health),
+
+    # ✅ AUTH
+    ("POST", "/api/auth-check",                api_auth_check),
+
+    ("GET",  "/api/online/{server}",           api_online),
+    ("GET",  "/api/online_all",                api_online_all),
+    ("GET",  "/api/checkall/{player}",         api_checkall),
+    ("GET",  "/api/countries/{server}",        api_countries),
+    ("GET",  "/api/check/{server}/{country}",  api_check),
+    ("GET",  "/api/watchlist",                 api_wl_get),
+    ("POST", "/api/watchlist/add",             api_wl_add),
+    ("POST", "/api/watchlist/remove",          api_wl_remove),
+    ("GET",  "/api/watchlist_mocha",           api_wl_mocha_get),
+    ("POST", "/api/watchlist_mocha/add",       api_wl_mocha_add),
+    ("POST", "/api/watchlist_mocha/remove",    api_wl_mocha_remove),
+    ("GET",  "/api/pronostic/{player}",        api_pronostic),
+    ("GET",  "/api/plages/{player}",           api_plages),
+    ("GET",  "/api/known_players",             api_known_players),
+    ("GET",  "/api/grade/{player}/{server}",   api_grade),
+    ("GET",  "/api/country_watches",           api_cw_get),
+    ("POST", "/api/country_watches/add",       api_cw_add),
+    ("POST", "/api/country_watches/remove",    api_cw_remove),
+]
     for method, path, handler in routes:
         app.router.add_route(method, path, handler)
     app.router.add_route("OPTIONS", "/{path_info:.*}", handle_options)
