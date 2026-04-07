@@ -497,18 +497,22 @@ async def scan_server(server, alerte_ch):
             if p in WL and alerte_ch:
                 e = discord.Embed(title="🟢 CONNEXION", description=f"**{p}** → **{server.upper()}**", color=discord.Color.green(), timestamp=ts)
                 await alerte_ch.send(embed=e)
+                await asyncio.sleep(0.5)
             if p in WL_MOCHA and server == "mocha" and mocha_ch:
                 e = discord.Embed(title="🟢 CONNEXION — MOCHA", description=f"**{p}** → **MOCHA**", color=discord.Color.orange(), timestamp=ts)
                 await mocha_ch.send(embed=e)
+                await asyncio.sleep(0.5)
 
     for p, was in prev.items():
         if was and p not in pset:
             if p in WL and alerte_ch:
                 e = discord.Embed(title="🔴 DÉCONNEXION", description=f"**{p}** ← **{server.upper()}**", color=discord.Color.red(), timestamp=ts)
                 await alerte_ch.send(embed=e)
+                await asyncio.sleep(0.5)
             if p in WL_MOCHA and server == "mocha" and mocha_ch:
                 e = discord.Embed(title="🔴 DÉCONNEXION — MOCHA", description=f"**{p}** ← **MOCHA**", color=discord.Color.red(), timestamp=ts)
                 await mocha_ch.send(embed=e)
+                await asyncio.sleep(0.5)
 
     last_states[server] = {p: True for p in pset}
     return players
@@ -600,9 +604,16 @@ async def scanner_loop():
                     if not found: await ch_mr.send(embed=mocha_e)
 
             tick += 1
+        except discord.errors.HTTPException as e:
+            if e.status == 429:
+                retry_after = e.retry_after if hasattr(e, 'retry_after') else 30
+                print(f"⚠️ Rate limit, attente {retry_after}s", flush=True)
+                await asyncio.sleep(retry_after)
+            else:
+                print(f"❌ Scanner HTTP: {e}", flush=True)
         except Exception as e:
             print(f"❌ Scanner: {e}", flush=True)
-        await asyncio.sleep(1)
+        await asyncio.sleep(5)
 
 # ── SERVEUR WEB ──
 async def start_web():
