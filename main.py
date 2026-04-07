@@ -12,7 +12,7 @@ CH_STORAGE=0x1485ddced2021066
 CH_M_RAPPORT=0x14943ec2eb8000e6
 CH_M_ALERTE=0x14943ed07902001e
 CH_PAYS=0x1455eb96fb40000b
-DEFAULT_WL=[]
+DEFAULT_WL=['Canisi','Darkholess','UFO_Thespoot','Franky753','Blakonne','Farsgame','ClashKiller78','Olmat38','FLOTYR2','Raptor51']
 COUNTRY_WATCHES=[]
 cw_msg_id=None
 WL=list(DEFAULT_WL)
@@ -205,7 +205,7 @@ async def ctry_ac(i,cur):
 	return[app_commands.Choice(name=c,value=c)for c in await get_country_list(s)if cur.lower()in c.lower()][:25]
 @tree.command(name='check',description="Espionner les membres d'un pays")
 @app_commands.autocomplete(server=srv_ac,country=ctry_ac)
-async def cmd_check(i,server,country):
+async def cmd_check(i:discord.Interaction,server:str,country:str):
 	await i.response.defer()
 	if server not in SERVERS:return await i.followup.send('❌ Serveur invalide')
 	members,name=await get_country_members(server,country)
@@ -221,10 +221,10 @@ async def cmd_check(i,server,country):
 	else:e.description=f"✅ Aucun membre de {name} connecté";e.color=discord.Color.green()
 	await i.followup.send(embed=e)
 @tree.command(name='checkall',description='Localiser un joueur')
-async def cmd_checkall(i,joueur):await i.response.defer();all_=await get_all_online();found=[s for(s,pl)in all_.items()if joueur in pl];e=discord.Embed(title=f"🔍 {joueur}",color=discord.Color.green()if found else discord.Color.red());e.description='\n'.join(f"{SERVERS[s]["emoji"]} **{s.upper()}**"for s in found)if found else f"**{joueur}** hors ligne";await i.followup.send(embed=e)
+async def cmd_checkall(i:discord.Interaction,joueur:str):await i.response.defer();all_=await get_all_online();found=[s for(s,pl)in all_.items()if joueur in pl];e=discord.Embed(title=f"🔍 {joueur}",color=discord.Color.green()if found else discord.Color.red());e.description='\n'.join(f"{SERVERS[s]["emoji"]} **{s.upper()}**"for s in found)if found else f"**{joueur}** hors ligne";await i.followup.send(embed=e)
 @tree.command(name='online',description='Joueurs en ligne sur un serveur')
 @app_commands.autocomplete(server=srv_ac)
-async def cmd_online(i,server):
+async def cmd_online(i:discord.Interaction,server:str):
 	await i.response.defer()
 	if server not in SERVERS:return await i.followup.send('❌ Serveur invalide')
 	pl=await get_online(server);e=discord.Embed(title=f"{SERVERS[server]["emoji"]} {server.upper()}",color=discord.Color.blurple())
@@ -234,7 +234,7 @@ async def cmd_online(i,server):
 	else:e.description='Aucun joueur'
 	await i.followup.send(embed=e)
 @tree.command(name='pronostic',description='Pronostic de connexion')
-async def cmd_pronostic(i,joueur):
+async def cmd_pronostic(i:discord.Interaction,joueur:str):
 	await i.response.defer()
 	if not mongo_ok:return await i.followup.send('❌ MongoDB non connecté',ephemeral=True)
 	res=get_pronostic(joueur)
@@ -243,7 +243,7 @@ async def cmd_pronostic(i,joueur):
 	for(d,avg_h,avg_m,pct)in top:e.add_field(name=f"{DAYS[d]} — {pct}%",value=f"`{"█"*(pct//10)}{"░"*(10-pct//10)}` **{avg_h}h{str(avg_m).zfill(2)}**",inline=False)
 	e.set_footer(text='% = fréquence par jour');await i.followup.send(embed=e)
 @tree.command(name='plages',description="Plages horaires d'un joueur")
-async def cmd_plages(i,joueur):
+async def cmd_plages(i:discord.Interaction,joueur:str):
 	await i.response.defer()
 	if not mongo_ok:return await i.followup.send('❌ MongoDB non connecté',ephemeral=True)
 	res=get_plages(joueur)
@@ -261,15 +261,15 @@ async def cmd_plages(i,joueur):
 def _wl_cmd(name,lst,save_fn,label=''):
 	suffix=f"_{name}"if name else'';tag=f" {label}"if label else''
 	@tree.command(name=f"addwatch{suffix}",description=f"Ajouter à la watchlist{tag}")
-	async def _add(i,joueur):
+	async def _add(i:discord.Interaction,joueur:str):
 		if joueur in lst:return await i.response.send_message(f"⚠️ **{joueur}** déjà dans la watchlist{tag}",ephemeral=True)
 		lst.append(joueur);await save_fn();await i.response.send_message(f"✅ **{joueur}** ajouté{tag}",ephemeral=True)
 	@tree.command(name=f"removewatch{suffix}",description=f"Retirer de la watchlist{tag}")
-	async def _remove(i,joueur):
+	async def _remove(i:discord.Interaction,joueur:str):
 		if joueur not in lst:return await i.response.send_message(f"❌ **{joueur}** pas dans la watchlist{tag}",ephemeral=True)
 		lst.remove(joueur);await save_fn();await i.response.send_message(f"🗑️ **{joueur}** retiré{tag}",ephemeral=True)
 	@tree.command(name=f"watchlist{suffix}",description=f"Afficher la watchlist{tag}")
-	async def _show(i):
+	async def _show(i:discord.Interaction):
 		if not lst:return await i.response.send_message(f"📋 Watchlist{tag} vide",ephemeral=True)
 		e=discord.Embed(title=f"👁️ Watchlist{tag}",color=discord.Color.blurple());e.description='\n'.join(f"• {p}"for p in lst);e.set_footer(text=f"{len(lst)} joueurs");await i.response.send_message(embed=e,ephemeral=True)
 _wl_cmd('',WL,save_watchlist)
