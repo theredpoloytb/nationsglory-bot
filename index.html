@@ -3,419 +3,1863 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
-<title>tasmanien site bot</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<title>MOSSAD GLORY — V2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&family=Bebas+Neue&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
-  <style id="init-lock">
-  .hdr, .nav, .main { display: none !important; }
+<style>
+/* ═══════════════════════════════════════════════════
+   MOSSAD GLORY V2.0 — GLASSMORPHISM DARK OVERHAUL
+═══════════════════════════════════════════════════ */
+:root {
+  --gold: #f0c040;
+  --gold2: #c8a84b;
+  --gold-glow: rgba(240,192,64,.18);
+  --gold-glow2: rgba(240,192,64,.08);
+  --red: #ff4455;
+  --red-glow: rgba(255,68,85,.2);
+  --g: #44ff88;
+  --g-glow: rgba(68,255,136,.15);
+  --blue: #4499ff;
+  --blue-glow: rgba(68,153,255,.15);
+  --bg: #040912;
+  --bg2: rgba(8,16,32,.85);
+  --bg3: rgba(12,22,44,.7);
+  --glass: rgba(255,255,255,.03);
+  --glass2: rgba(255,255,255,.06);
+  --glass-border: rgba(255,255,255,.08);
+  --glass-border2: rgba(240,192,64,.15);
+  --t1: rgba(255,255,255,.92);
+  --t2: rgba(255,255,255,.65);
+  --t3: rgba(255,255,255,.38);
+  --t4: rgba(255,255,255,.18);
+  --b1: rgba(240,192,64,.18);
+  --b2: rgba(240,192,64,.08);
+  --M: 'JetBrains Mono', monospace;
+  --S: 'Space Grotesk', sans-serif;
+  --B: 'Bebas Neue', sans-serif;
+  --SY: 'Syne', sans-serif;
+  --r: 12px;
+  --r2: 8px;
+  --shadow: 0 8px 32px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+  --shadow-gold: 0 0 30px rgba(240,192,64,.12), 0 8px 32px rgba(0,0,0,.6);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height:100%; width:100%;
+  overflow-x:hidden;
+  font-family: var(--S);
+  color: var(--t1);
+  background: var(--bg);
+}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--glass-border2); border-radius:2px; }
+
+/* ═══ BACKGROUND ═══ */
+#bg {
+  position:fixed; inset:0; z-index:0;
+  pointer-events:none;
+}
+
+.noise {
+  position:fixed; inset:0; z-index:1;
+  opacity:.028;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;
+  pointer-events:none;
+}
+
+.grid-bg {
+  position:fixed; inset:0; z-index:1;
+  background-image:
+    linear-gradient(rgba(240,192,64,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240,192,64,.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events:none;
+}
+
+.vignette {
+  position:fixed; inset:0; z-index:2;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(4,9,18,.92) 100%);
+  pointer-events:none;
+}
+
+/* ═══ AURORA ═══ */
+.aurora {
+  position:fixed; inset:0; z-index:1;
+  pointer-events:none;
+  overflow:hidden;
+}
+.aurora-blob {
+  position:absolute;
+  border-radius:50%;
+  filter:blur(120px);
+  opacity:.07;
+}
+.aurora-blob:nth-child(1) {
+  width:600px; height:600px;
+  background:radial-gradient(circle, #f0c040, transparent 70%);
+  top:-200px; left:-100px;
+  animation: auroraMove1 20s ease-in-out infinite alternate;
+}
+.aurora-blob:nth-child(2) {
+  width:500px; height:500px;
+  background:radial-gradient(circle, #4499ff, transparent 70%);
+  bottom:-150px; right:-100px;
+  animation: auroraMove2 25s ease-in-out infinite alternate;
+}
+.aurora-blob:nth-child(3) {
+  width:400px; height:400px;
+  background:radial-gradient(circle, #ff4455, transparent 70%);
+  top:40%; left:60%;
+  animation: auroraMove3 18s ease-in-out infinite alternate;
+  opacity:.04;
+}
+@keyframes auroraMove1 { from{transform:translate(0,0) scale(1)} to{transform:translate(120px,80px) scale(1.2)} }
+@keyframes auroraMove2 { from{transform:translate(0,0) scale(1)} to{transform:translate(-80px,-60px) scale(1.15)} }
+@keyframes auroraMove3 { from{transform:translate(0,0)} to{transform:translate(-100px,50px)} }
+
+/* ═══ CURSOR ═══ */
+#cur {
+  position:fixed; width:20px; height:20px;
+  pointer-events:none; z-index:9999;
+  transition: transform .1s ease;
+}
+#cd {
+  width:100%; height:100%;
+  border:1.5px solid var(--gold);
+  border-radius:50%;
+  background:rgba(240,192,64,.08);
+  transition: all .15s ease;
+}
+
+/* ═══ TOAST ═══ */
+.toast-wrap {
+  position:fixed; top:80px; right:16px;
+  z-index:9000; display:flex; flex-direction:column; gap:.5rem;
+}
+.toast {
+  font-family:var(--M); font-size:.48rem;
+  letter-spacing:.15em;
+  padding:.5rem 1rem;
+  background: rgba(12,22,44,.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border2);
+  border-radius:var(--r2);
+  box-shadow: var(--shadow-gold);
+  color: var(--t1);
+  animation: toastIn .25s ease;
+  max-width:300px;
+}
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+/* ═══ PW GATE ═══ */
+#pw-gate {
+  position:fixed; inset:0; z-index:8000;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: var(--bg);
+  transition: opacity .5s ease, visibility .5s;
+}
+#pw-gate.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+
+.pw-lc {
+  position:absolute; width:24px; height:24px;
+  border:1px solid rgba(240,192,64,.35);
+}
+
+#pw-gate .logo-hero {
+  font-family:var(--B);
+  font-size: clamp(2.5rem,8vw,5rem);
+  letter-spacing:.5em;
+  color: var(--gold);
+  text-shadow: 0 0 80px rgba(240,192,64,.4), 0 0 160px rgba(240,192,64,.15);
+  margin-bottom:.3rem;
+  text-align:center;
+}
+#pw-gate .logo-sub {
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.6em;
+  color:rgba(110,155,185,.45);
+  margin-bottom:3rem;
+  text-align:center;
+}
+
+#pw-gate input {
+  width: min(300px,80vw);
+  padding:.7rem 1.2rem;
+  font-family:var(--M); font-size:.55rem;
+  letter-spacing:.3em;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(240,192,64,.2);
+  border-radius:var(--r2);
+  color:var(--t1);
+  outline:none;
+  transition: border-color .2s, box-shadow .2s;
+  text-align:center;
+}
+#pw-gate input:focus {
+  border-color:rgba(240,192,64,.5);
+  box-shadow:0 0 20px rgba(240,192,64,.1);
+}
+
+#pw-btn {
+  width: min(300px,80vw);
+  padding:.65rem;
+  font-family:var(--M); font-size:.52rem;
+  letter-spacing:.3em;
+  background: linear-gradient(135deg, rgba(240,192,64,.15), rgba(240,192,64,.08));
+  border: 1px solid rgba(240,192,64,.3);
+  border-radius:var(--r2);
+  color:var(--gold);
+  cursor:pointer;
+  transition: all .2s;
+}
+#pw-btn:hover {
+  background: linear-gradient(135deg, rgba(240,192,64,.25), rgba(240,192,64,.12));
+  box-shadow: 0 0 30px rgba(240,192,64,.15);
+}
+
+#pw-err {
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.2em;
+  color:var(--red);
+  opacity:0; margin-top:.5rem;
+  transition:opacity .2s;
+}
+#pw-err.show { opacity:1; }
+
+/* ═══ LOADER ═══ */
+#ldr {
+  position:fixed; inset:0; z-index:7000;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: var(--bg);
+  transition: opacity .6s ease, visibility .6s;
+  gap:1.5rem;
+}
+#ldr.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+
+#matrix-canvas {
+  position:absolute; inset:0;
+  opacity:.12;
+}
+
+.lc { position:absolute; width:28px; height:28px; border:1px solid rgba(240,192,64,.4); }
+.lc.tl { top:20px;left:20px; border-right:0;border-bottom:0; }
+.lc.tr { top:20px;right:20px; border-left:0;border-bottom:0; }
+.lc.bl { bottom:20px;left:20px; border-right:0;border-top:0; }
+.lc.br { bottom:20px;right:20px; border-left:0;border-top:0; }
+
+.radar {
+  position:relative; width:160px; height:160px;
+  display:flex; align-items:center; justify-content:center;
+}
+.radar-ring {
+  position:absolute; border:1px solid rgba(240,192,64,.12);
+  border-radius:50%;
+  animation:radarPulse 3s ease-in-out infinite;
+}
+.radar-ring:nth-child(1) { width:160px;height:160px;animation-delay:0s }
+.radar-ring:nth-child(2) { width:110px;height:110px;animation-delay:.4s }
+.radar-ring:nth-child(3) { width:70px;height:70px;animation-delay:.8s }
+.radar-ring:nth-child(4) { width:35px;height:35px;animation-delay:1.2s }
+@keyframes radarPulse { 0%,100%{opacity:.12;} 50%{opacity:.3;} }
+
+.radar-sweep {
+  position:absolute; width:80px; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(240,192,64,.8));
+  transform-origin:0 50%;
+  left:50%; top:50%;
+  animation:sweep 2.5s linear infinite;
+}
+@keyframes sweep { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.radar-dot {
+  position:absolute;
+  width:5px; height:5px;
+  background:var(--red);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--red);
+  animation:dotBlink 2s ease-in-out infinite;
+}
+.radar-dot:nth-child(5) { top:30px; left:45px; animation-delay:.3s; }
+.radar-dot:nth-child(6) { top:70px; right:25px; animation-delay:.9s; }
+.radar-dot:nth-child(7) { bottom:35px; left:55px; animation-delay:1.5s; }
+@keyframes dotBlink { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
+
+.radar-center { position:relative; z-index:1; }
+
+.l-scanbeam {
+  position:absolute; width:100%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(240,192,64,.2),transparent);
+  animation:scanbeam 3s ease-in-out infinite;
+}
+@keyframes scanbeam { 0%{top:0} 100%{top:100%} }
+
+.l-title {
+  font-family:var(--B);
+  font-size: clamp(1.8rem,5vw,3rem);
+  letter-spacing:.5em;
+  color:var(--gold);
+  text-shadow:0 0 60px rgba(240,192,64,.4);
+  position:relative;
+}
+
+.l-sub {
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.4em;
+  color:rgba(110,155,185,.5);
+}
+
+.l-progress {
+  display:flex; align-items:center; gap:.8rem;
+  width: min(280px,70vw);
+}
+.l-bar {
+  flex:1; height:2px;
+  background:rgba(255,255,255,.06);
+  border-radius:2px; overflow:hidden;
+}
+.l-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg, var(--gold2), var(--gold));
+  border-radius:2px;
+  transition: width .1s ease;
+  box-shadow:0 0 10px rgba(240,192,64,.5);
+}
+.l-pct {
+  font-family:var(--M); font-size:.45rem;
+  color:var(--gold); letter-spacing:.1em; min-width:35px;
+}
+
+.l-msg {
+  font-family:var(--M); font-size:.45rem;
+  letter-spacing:.25em;
+  color:var(--t3);
+}
+.blink { animation:blink 1s step-end infinite; }
+@keyframes blink { 50%{opacity:0} }
+
+#lbtn {
+  display:none;
+  padding:.6rem 2.5rem;
+  font-family:var(--M); font-size:.52rem;
+  letter-spacing:.3em;
+  background: linear-gradient(135deg, rgba(240,192,64,.18), rgba(240,192,64,.08));
+  border:1px solid rgba(240,192,64,.35);
+  border-radius:var(--r2);
+  color:var(--gold);
+  cursor:pointer;
+  transition:all .2s;
+  animation:pulse-btn 2s ease-in-out infinite;
+}
+#lbtn:hover { box-shadow:0 0 30px rgba(240,192,64,.2); }
+@keyframes pulse-btn { 0%,100%{box-shadow:0 0 0px rgba(240,192,64,0)} 50%{box-shadow:0 0 20px rgba(240,192,64,.15)} }
+
+/* ═══ INIT LOCK ═══ */
+#init-lock { /* removed by JS */ }
+
+/* ═══ HEADER ═══ */
+.hdr {
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  height:54px;
+  display:flex; align-items:center;
+  padding:0 1.2rem;
+  background: rgba(4,9,18,.8);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--glass-border);
+  gap:1rem;
+}
+
+.logo {
+  display:flex; align-items:center; gap:.7rem;
+  flex-shrink:0;
+}
+.logo-name {
+  font-family:var(--B);
+  font-size:1.1rem;
+  letter-spacing:.35em;
+  color:var(--gold);
+  text-shadow:0 0 20px rgba(240,192,64,.3);
+}
+.logo-tag {
+  font-family:var(--M); font-size:.38rem;
+  letter-spacing:.25em; color:var(--t3);
+}
+.logo-svg { filter:drop-shadow(0 0 8px rgba(240,192,64,.3)); }
+
+.hdr-mid {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  gap:.7rem;
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.2em; color:var(--t2);
+}
+.hsep {
+  width:40px; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(240,192,64,.3));
+}
+
+.hdr-r {
+  display:flex; align-items:center; gap:.7rem;
+  flex-shrink:0;
+}
+
+.pill {
+  display:flex; align-items:center; gap:.3rem;
+  padding:.2rem .55rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.15em; color:var(--t2);
+}
+.led {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--t4);
+  transition:background .3s, box-shadow .3s;
+}
+.led.on { background:var(--g); box-shadow:0 0 8px var(--g); }
+.led.warn { background:var(--gold); box-shadow:0 0 8px var(--gold); animation:blink 1s step-end infinite; }
+
+#countdown {
+  display:flex; align-items:center; gap:.4rem;
+}
+.cd-bar {
+  width:40px; height:2px;
+  background:rgba(255,255,255,.1);
+  border-radius:2px;
+}
+.cd-fill {
+  height:100%;
+  background:var(--gold);
+  border-radius:2px;
+  transition:width .1s linear;
+}
+#cd-txt {
+  font-family:var(--M); font-size:.42rem;
+  color:var(--t3); letter-spacing:.1em;
+  min-width:24px;
+}
+
+#clock {
+  font-family:var(--M); font-size:.46rem;
+  letter-spacing:.15em; color:var(--t2);
+}
+
+.hbtn {
+  padding:.25rem .7rem;
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.12em;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  color:var(--t2);
+  cursor:pointer;
+  transition:all .2s;
+}
+.hbtn:hover { border-color:var(--glass-border2); color:var(--gold); }
+
+/* ═══ SCP (music player) ═══ */
+.scp {
+  display:flex; align-items:center; gap:.5rem;
+}
+.scpbtn {
+  width:22px; height:22px;
+  background:var(--glass2);
+  border:1px solid var(--glass-border);
+  border-radius:50%;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.scp-tri {
+  width:0; height:0;
+  border-top:5px solid transparent;
+  border-bottom:5px solid transparent;
+  border-left:8px solid var(--gold);
+  margin-left:2px;
+  transition:all .2s;
+}
+.scp-tri.pause {
+  border-left:0; border-top:0; border-bottom:0;
+  width:8px; height:10px;
+  border-left:3px solid var(--gold);
+  border-right:3px solid var(--gold);
+  margin-left:0;
+}
+.scp-meta {
+  display:flex; flex-direction:column; gap:.15rem;
+}
+.scp-title {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.12em; color:var(--t2);
+}
+.scp-bar {
+  width:70px; height:2px;
+  background:rgba(255,255,255,.1);
+  border-radius:2px; overflow:hidden;
+}
+.scp-bar-f {
+  height:100%;
+  background:linear-gradient(90deg,var(--gold2),var(--gold));
+  border-radius:2px;
+  width:0%; transition:width .5s linear;
+}
+.scp-eq {
+  display:flex; align-items:flex-end; gap:2px; height:14px;
+}
+.scp-eq span {
+  display:block; width:2px;
+  background:var(--gold); border-radius:1px;
+  animation:eq 1s ease-in-out infinite;
+}
+.scp-eq span:nth-child(1){height:4px;animation-delay:0s}
+.scp-eq span:nth-child(2){height:8px;animation-delay:.1s}
+.scp-eq span:nth-child(3){height:12px;animation-delay:.2s}
+.scp-eq span:nth-child(4){height:6px;animation-delay:.3s}
+.scp-eq span:nth-child(5){height:10px;animation-delay:.4s}
+@keyframes eq {
+  0%,100%{transform:scaleY(.4)}
+  50%{transform:scaleY(1)}
+}
+.scp-eq.muted span { animation:none; transform:scaleY(.3); opacity:.3; }
+.scp-vol { width:55px; -webkit-appearance:none; height:2px; background:rgba(255,255,255,.12); border-radius:2px; cursor:pointer; }
+.scp-vol::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px; border-radius:50%; background:var(--gold); cursor:pointer; }
+
+/* ═══ WEATHER BADGE ═══ */
+#weather-badge {
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.14em;
+  padding:.12rem .5rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  display:inline-flex; align-items:center; gap:.3rem;
+}
+.weather-label.calm { color:var(--t3); }
+.weather-label.active { color:var(--gold); }
+.weather-label.agitated { color:#ff9944; }
+.weather-label.critical { color:var(--red); animation:blink .5s step-end infinite; }
+
+/* ═══ NAV ═══ */
+.nav {
+  position:fixed; top:54px; left:0; right:0; z-index:400;
+  display:flex; align-items:center; gap:.3rem;
+  padding:.4rem 1.2rem;
+  background: rgba(4,9,18,.75);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--glass-border);
+  overflow-x:auto; scrollbar-width:none;
+}
+.nav::-webkit-scrollbar { display:none; }
+
+.tab {
+  padding:.3rem .85rem;
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.18em;
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:20px;
+  color:var(--t3);
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+  position:relative;
+}
+.tab:hover { color:var(--t2); border-color:var(--glass-border); }
+.tab.active {
+  color:var(--gold);
+  background: rgba(240,192,64,.08);
+  border-color: rgba(240,192,64,.25);
+  box-shadow:0 0 15px rgba(240,192,64,.08);
+}
+.tab .notif-dot {
+  position:absolute; top:3px; right:5px;
+  width:5px; height:5px; border-radius:50%;
+  background:var(--red);
+  box-shadow:0 0 6px var(--red);
+  animation:blink .8s step-end infinite;
+}
+
+.nav-r {
+  margin-left:auto;
+  display:flex; align-items:center; gap:.4rem;
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.15em; color:var(--t3);
+  flex-shrink:0;
+}
+
+/* ═══ MAIN ═══ */
+.main {
+  margin-top:100px;
+  padding:1.2rem 1.4rem 2rem;
+  position:relative; z-index:10;
+  min-height:calc(100vh - 100px);
+}
+
+/* ═══ SECTIONS ═══ */
+.sec { display:none; animation:secIn .3s ease; }
+.sec.active { display:block; }
+@keyframes secIn {
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ═══ SECTION HEADER ═══ */
+.sh {
+  display:flex; align-items:center; gap:.8rem;
+  margin-bottom:1.2rem;
+}
+.sh-n {
+  font-family:var(--M); font-size:.42rem;
+  color:var(--gold); letter-spacing:.2em; opacity:.5;
+}
+.sh-l {
+  flex:1; height:1px;
+  background:linear-gradient(90deg,rgba(240,192,64,.25),transparent);
+  max-width:120px;
+}
+.sh-t {
+  font-family:var(--SY); font-size:.75rem;
+  font-weight:600; letter-spacing:.12em;
+  color:var(--t1);
+}
+
+/* ═══ GRID ═══ */
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; }
+.g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+.mb { margin-bottom:.8rem; }
+.mb2 { margin-bottom:1.2rem; }
+.row { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+
+@media(max-width:900px) { .g4{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:640px) { .g4,.g3,.g2{grid-template-columns:1fr} }
+
+/* ═══ PANEL (glassmorphism) ═══ */
+.panel {
+  position:relative;
+  background: rgba(8,16,32,.6);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r);
+  overflow:hidden;
+  transition:border-color .3s;
+}
+.panel:hover { border-color:rgba(240,192,64,.12); }
+
+.panel-glow {
+  position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(240,192,64,.03),transparent 60%);
+  pointer-events:none;
+}
+
+.ptop {
+  position:absolute; top:0; left:16px; right:16px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(240,192,64,.35),transparent);
+}
+
+.ph {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.65rem 1rem .5rem;
+  border-bottom:1px solid var(--glass-border);
+}
+.pt {
+  font-family:var(--SY); font-size:.55rem;
+  font-weight:600; letter-spacing:.18em;
+  color:var(--t1);
+}
+.pts {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.12em; color:var(--t3);
+}
+.pb { padding:.7rem 1rem; }
+
+/* ═══ STAT CARDS ═══ */
+.stat {
+  background: rgba(8,16,32,.7);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r);
+  padding:.7rem .9rem;
+  display:flex; align-items:center; gap:.7rem;
+  position:relative; overflow:hidden;
+  transition:all .3s;
+}
+.stat::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(240,192,64,.04),transparent);
+}
+.stat:hover { border-color:rgba(240,192,64,.2); transform:translateY(-1px); }
+.stat-icon { font-size:1.4rem; filter:grayscale(.3); }
+.stat-info { flex:1; min-width:0; }
+.stat-val {
+  font-family:var(--SY); font-size:1.3rem;
+  font-weight:700; color:var(--gold);
+  line-height:1; margin-bottom:.18rem;
+}
+.stat-lbl {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.18em; color:var(--t3);
+}
+.stat-spark {
+  display:block; width:60px; height:22px;
+  margin-top:.2rem;
+}
+
+/* ═══ BADGE / LIVE ═══ */
+.badge {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.15em;
+  padding:.15rem .5rem;
+  background:rgba(240,192,64,.08);
+  border:1px solid rgba(240,192,64,.2);
+  border-radius:20px;
+  color:var(--gold);
+}
+.liveb {
+  display:inline-flex; align-items:center; gap:.3rem;
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.18em; color:var(--g);
+  padding:.12rem .45rem;
+  background:rgba(68,255,136,.08);
+  border:1px solid rgba(68,255,136,.2);
+  border-radius:20px;
+}
+.liveled {
+  width:5px; height:5px; border-radius:50%;
+  background:var(--g); box-shadow:0 0 6px var(--g);
+  animation:blink .8s step-end infinite;
+}
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  padding:.3rem .8rem;
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.15em;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  color:var(--t2);
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.btn:hover {
+  background:rgba(240,192,64,.1);
+  border-color:rgba(240,192,64,.3);
+  color:var(--gold);
+}
+.btn-g {
+  background:rgba(68,255,136,.08);
+  border-color:rgba(68,255,136,.25);
+  color:var(--g);
+}
+.btn-g:hover {
+  background:rgba(68,255,136,.15);
+  border-color:rgba(68,255,136,.4);
+}
+.btn-r {
+  background:rgba(255,68,85,.08);
+  border-color:rgba(255,68,85,.25);
+  color:var(--red);
+}
+.btn-r:hover {
+  background:rgba(255,68,85,.15);
+  border-color:rgba(255,68,85,.4);
+}
+
+/* ═══ INPUTS ═══ */
+input, select {
+  padding:.4rem .75rem;
+  font-family:var(--M); font-size:.48rem;
+  letter-spacing:.12em;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  color:var(--t1);
+  outline:none;
+  transition:all .2s;
+  width:100%;
+}
+input::placeholder { color:var(--t4); }
+input:focus, select:focus {
+  border-color:rgba(240,192,64,.35);
+  background:rgba(240,192,64,.04);
+  box-shadow:0 0 15px rgba(240,192,64,.06);
+}
+select option { background:#0a1428; }
+
+/* ═══ AUTOCOMPLETE ═══ */
+.acw { position:relative; flex:1; min-width:0; }
+.acl {
+  position:absolute; top:100%; left:0; right:0; z-index:200;
+  background:rgba(8,16,32,.97);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border2);
+  border-radius:var(--r2);
+  max-height:160px; overflow-y:auto;
+  display:none; margin-top:3px;
+  box-shadow:var(--shadow);
+}
+.acl.show { display:block; }
+.acl-item {
+  padding:.35rem .75rem;
+  font-family:var(--M); font-size:.46rem;
+  letter-spacing:.1em; color:var(--t2);
+  cursor:pointer;
+  transition:background .15s;
+}
+.acl-item:hover, .acl-item.sel {
+  background:rgba(240,192,64,.08);
+  color:var(--gold);
+}
+
+/* ═══ TAGS ═══ */
+.tags { display:flex; flex-wrap:wrap; gap:.3rem; }
+.tag {
+  display:inline-flex; align-items:center; gap:.3rem;
+  padding:.18rem .55rem;
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.1em;
+  background:rgba(240,192,64,.08);
+  border:1px solid rgba(240,192,64,.2);
+  border-radius:20px;
+  color:var(--t2);
+}
+.tag .rm {
+  cursor:pointer; color:var(--t3);
+  transition:color .2s; font-size:.6rem;
+}
+.tag .rm:hover { color:var(--red); }
+
+/* ═══ SERVER OVERVIEW ═══ */
+.sg {
+  display:flex; flex-wrap:wrap; gap:.5rem;
+}
+.srv-card {
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  padding:.45rem .75rem;
+  min-width:100px;
+  transition:all .25s;
+  cursor:default;
+}
+.srv-card:hover {
+  background:rgba(240,192,64,.06);
+  border-color:rgba(240,192,64,.2);
+}
+.srv-name {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.2em; color:var(--t3);
+  margin-bottom:.2rem;
+}
+.srv-count {
+  font-family:var(--SY); font-size:.85rem;
+  font-weight:700; color:var(--gold);
+}
+.srv-bar {
+  height:2px; border-radius:2px;
+  background:rgba(255,255,255,.08);
+  margin-top:.3rem; overflow:hidden;
+}
+.srv-bar-f {
+  height:100%; border-radius:2px;
+  background:linear-gradient(90deg,var(--gold2),var(--gold));
+  transition:width .5s ease;
+}
+
+/* ═══ FEED ═══ */
+.feed {
+  max-height:200px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:.3rem;
+}
+.feed-item {
+  display:flex; align-items:flex-start; gap:.5rem;
+  padding:.3rem .5rem;
+  background:var(--glass);
+  border-radius:var(--r2);
+  border-left:2px solid var(--glass-border);
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.08em; color:var(--t2);
+  animation:feedIn .2s ease;
+}
+@keyframes feedIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+.feed-item.online { border-left-color:var(--g); }
+.feed-item.offline { border-left-color:var(--red); }
+.feed-item.warn { border-left-color:var(--gold); }
+.feed-time { color:var(--t3); flex-shrink:0; font-size:.4rem; }
+
+/* ═══ GRAPH ═══ */
+.graph-wrap {
+  position:relative; width:100%; height:120px;
+}
+.graph-wrap canvas { width:100%; height:100%; }
+.graph-labels {
+  display:flex; justify-content:space-between;
+  font-family:var(--M); font-size:.38rem;
+  color:var(--t4); letter-spacing:.08em;
+  padding:0 2px; margin-top:.3rem;
+}
+
+/* ═══ WATCHLIST STATUS ═══ */
+.wl-row {
+  display:flex; align-items:center; gap:.6rem;
+  padding:.45rem .6rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  margin-bottom:.3rem;
+  transition:all .2s;
+  cursor:pointer;
+}
+.wl-row:hover { border-color:rgba(240,192,64,.2); background:rgba(240,192,64,.04); }
+.wl-row.on { border-left:2px solid var(--g); }
+.wl-row.off { border-left:2px solid var(--red); opacity:.7; }
+.wl-avatar { width:28px; height:28px; border-radius:4px; background:var(--glass2); overflow:hidden; flex-shrink:0; }
+.wl-avatar img { width:100%; height:100%; object-fit:cover; }
+.wl-name {
+  font-family:var(--SY); font-size:.52rem;
+  font-weight:600; color:var(--t1); flex:1;
+}
+.wl-server {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.15em; color:var(--t3);
+}
+.wl-timer {
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.1em; color:var(--g);
+}
+.wl-lastseen {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.08em;
+}
+.wl-lastseen.fresh { color:var(--g); }
+.wl-lastseen.recent { color:var(--gold); }
+.wl-lastseen.old { color:var(--t3); }
+.wl-eta {
+  font-family:var(--M); font-size:.4rem;
+  letter-spacing:.08em;
+}
+.wl-eta.safe { color:var(--blue); }
+.wl-eta.warn { color:#ff9944; }
+.wl-eta.crit { color:var(--red); animation:blink .5s step-end infinite; }
+
+/* ═══ WLT TABS ═══ */
+.wlt { display:flex; align-items:center; gap:.5rem; margin-bottom:.8rem; }
+.wtb {
+  padding:.3rem .9rem;
+  font-family:var(--M); font-size:.45rem;
+  letter-spacing:.18em;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  color:var(--t3);
+  cursor:pointer;
+  transition:all .2s;
+}
+.wtb.act {
+  background:rgba(240,192,64,.1);
+  border-color:rgba(240,192,64,.3);
+  color:var(--gold);
+}
+
+/* ═══ PLAYER PANEL ═══ */
+.pp-overlay {
+  position:fixed; inset:0; z-index:600;
+  background:rgba(4,9,18,.7);
+  backdrop-filter:blur(4px);
+  display:none; opacity:0;
+  transition:opacity .25s;
+}
+.pp-overlay.show { display:block; opacity:1; }
+
+#player-panel {
+  position:fixed; right:0; top:0; bottom:0;
+  width: min(400px,100vw); z-index:700;
+  background:rgba(6,14,28,.97);
+  backdrop-filter:blur(30px);
+  border-left:1px solid var(--glass-border2);
+  display:flex; flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:-20px 0 60px rgba(0,0,0,.5);
+}
+#player-panel.open { transform:translateX(0); }
+
+.pp-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.8rem 1rem;
+  border-bottom:1px solid var(--glass-border);
+  flex-shrink:0;
+}
+.pp-name {
+  font-family:var(--SY); font-size:1rem;
+  font-weight:700; color:var(--gold);
+  letter-spacing:.08em;
+}
+.pp-close {
+  padding:.25rem .7rem;
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.15em;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  color:var(--t3);
+  cursor:pointer;
+  transition:all .2s;
+}
+.pp-close:hover { border-color:var(--red); color:var(--red); }
+.pp-body { flex:1; overflow-y:auto; padding:1rem; }
+.pp-loading {
+  font-family:var(--M); font-size:.48rem;
+  letter-spacing:.2em; color:var(--t3);
+  text-align:center; padding:2rem;
+}
+
+/* ═══ STATS HEATMAP ═══ */
+.heatmap-wrap { display:grid; grid-template-columns:repeat(24,1fr); gap:2px; }
+.hm-cell {
+  height:18px; border-radius:2px;
+  background:rgba(255,255,255,.04);
+  transition:all .2s;
+  cursor:default;
+  position:relative;
+}
+.hm-cell:hover::after {
+  content:attr(data-tip);
+  position:absolute; bottom:120%; left:50%; transform:translateX(-50%);
+  background:rgba(8,16,32,.97);
+  border:1px solid var(--glass-border2);
+  border-radius:4px;
+  font-family:var(--M); font-size:.38rem;
+  color:var(--t1); padding:.2rem .4rem;
+  white-space:nowrap; z-index:100;
+}
+.hm-labels {
+  display:grid; grid-template-columns:repeat(24,1fr);
+  gap:2px; margin-top:3px;
+  font-family:var(--M); font-size:.34rem;
+  color:var(--t4); text-align:center;
+}
+
+/* ═══ PRONOSTIC ═══ */
+.prono-bar { height:6px; border-radius:3px; overflow:hidden; background:rgba(255,255,255,.06); margin-top:.3rem; }
+.prono-fill { height:100%; border-radius:3px; transition:width .8s ease; }
+
+/* ═══ TIMELINE (NEW V2.0) ═══ */
+.timeline {
+  position:relative;
+  padding-left:1.5rem;
+}
+.timeline::before {
+  content:''; position:absolute;
+  left:6px; top:0; bottom:0; width:1px;
+  background:linear-gradient(180deg,var(--gold2),transparent);
+}
+.tl-event {
+  position:relative;
+  margin-bottom:.6rem;
+  animation:feedIn .2s ease;
+}
+.tl-event::before {
+  content:''; position:absolute;
+  left:-1.18rem; top:.35rem;
+  width:6px; height:6px; border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 6px var(--gold);
+}
+.tl-event.offline::before { background:var(--red); box-shadow:0 0 6px var(--red); }
+.tl-time { font-family:var(--M); font-size:.38rem; color:var(--t3); letter-spacing:.08em; }
+.tl-text { font-family:var(--M); font-size:.44rem; color:var(--t2); letter-spacing:.08em; }
+.tl-duration { font-family:var(--M); font-size:.4rem; color:var(--blue); letter-spacing:.08em; }
+
+/* ═══ MULTI-SEARCH (NEW V2.0) ═══ */
+.ms-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:.5rem;
+}
+.ms-chip {
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  padding:.4rem .7rem;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:.4rem;
+}
+.ms-chip.found { border-color:rgba(68,255,136,.25); }
+.ms-chip.notfound { border-color:rgba(255,68,85,.2); opacity:.6; }
+.ms-chip-name { font-family:var(--SY); font-size:.5rem; font-weight:600; color:var(--t1); }
+.ms-chip-loc { font-family:var(--M); font-size:.4rem; color:var(--g); letter-spacing:.1em; }
+.ms-chip-no { font-family:var(--M); font-size:.4rem; color:var(--red); letter-spacing:.1em; }
+
+/* ═══ COUNTRY WATCH ═══ */
+.cw-card {
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r);
+  padding:.6rem .9rem;
+  margin-bottom:.5rem;
+  transition:all .2s;
+}
+.cw-card.alert {
+  border-color:rgba(255,68,85,.4);
+  background:rgba(255,68,85,.05);
+  animation:alertPulse 1s ease-in-out infinite;
+}
+@keyframes alertPulse { 0%,100%{box-shadow:0 0 0 rgba(255,68,85,0)} 50%{box-shadow:0 0 20px rgba(255,68,85,.15)} }
+.cw-empty {
+  font-family:var(--M); font-size:.46rem;
+  letter-spacing:.15em; color:var(--t4);
+  text-align:center; padding:1.5rem;
+}
+
+/* ═══ LOADING ═══ */
+.ld {
+  font-family:var(--M); font-size:.46rem;
+  letter-spacing:.2em; color:var(--t3);
+  display:flex; align-items:center; gap:.2rem;
+}
+.ldd span {
+  animation:ldd 1.2s ease-in-out infinite;
+  opacity:0;
+}
+.ldd span:nth-child(1){animation-delay:0s}
+.ldd span:nth-child(2){animation-delay:.2s}
+.ldd span:nth-child(3){animation-delay:.4s}
+@keyframes ldd { 0%,100%{opacity:0} 50%{opacity:1} }
+
+/* ═══ EMPTY ═══ */
+.empty {
+  font-family:var(--M); font-size:.46rem;
+  letter-spacing:.18em; color:var(--t4);
+  text-align:center; padding:1.2rem;
+}
+
+/* ═══ ONLINE TABLE ═══ */
+.player-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:.4rem;
+}
+.player-chip {
+  display:flex; align-items:center; gap:.5rem;
+  padding:.4rem .6rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  cursor:pointer;
+  transition:all .2s;
+}
+.player-chip:hover {
+  border-color:rgba(240,192,64,.2);
+  background:rgba(240,192,64,.05);
+}
+.player-chip-avatar { width:22px; height:22px; border-radius:3px; overflow:hidden; background:var(--glass2); flex-shrink:0; }
+.player-chip-avatar img { width:100%; height:100%; object-fit:cover; }
+.player-chip-name { font-family:var(--SY); font-size:.48rem; font-weight:500; color:var(--t1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ═══ CHANGELOG V2.0 ═══ */
+.cl-wrap { max-width:1000px; margin:0 auto; }
+.cl-header {
+  text-align:center; margin-bottom:2rem;
+  position:relative; padding:2rem;
+  background: rgba(8,16,32,.6);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.cl-header::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(240,192,64,.06),transparent);
+}
+.cl-transmission {
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.3em; color:var(--t3);
+  margin-bottom:.5rem;
+}
+.cl-title {
+  font-family:var(--B); font-size:clamp(1.5rem,4vw,2.5rem);
+  letter-spacing:.35em; color:var(--gold);
+  text-shadow:0 0 40px rgba(240,192,64,.3);
+  margin-bottom:.5rem;
+}
+.cl-title-deco { color:var(--gold2); font-size:.8em; }
+.cl-intro {
+  font-family:var(--S); font-size:.55rem;
+  color:var(--t2); line-height:1.7;
+}
+.cl-intro strong { color:var(--gold); }
+
+.cl-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:.7rem; margin-bottom:1.5rem;
+}
+.cl-card {
+  background: rgba(8,16,32,.7);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r);
+  padding:.9rem 1.1rem;
+  position:relative; overflow:hidden;
+  transition:all .3s;
+}
+.cl-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-gold); }
+.cl-card.new { border-top:2px solid var(--g); }
+.cl-card.new::before { content:''; position:absolute; top:0; left:0; right:0; height:30px; background:linear-gradient(180deg,rgba(68,255,136,.05),transparent); }
+.cl-card.visual { border-top:2px solid var(--blue); }
+.cl-card.visual::before { content:''; position:absolute; top:0; left:0; right:0; height:30px; background:linear-gradient(180deg,rgba(68,153,255,.05),transparent); }
+.cl-card.fix { border-top:2px solid var(--gold); }
+.cl-card.fix::before { content:''; position:absolute; top:0; left:0; right:0; height:30px; background:linear-gradient(180deg,rgba(240,192,64,.05),transparent); }
+
+.cl-card-title {
+  font-family:var(--SY); font-size:.55rem;
+  font-weight:700; letter-spacing:.12em;
+  color:var(--t1); margin-bottom:.4rem;
+  display:flex; align-items:center; gap:.5rem;
+}
+.cl-card-body {
+  font-family:var(--S); font-size:.48rem;
+  color:var(--t2); line-height:1.7;
+}
+
+.cl-checklist {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:.35rem; margin-bottom:1.5rem;
+}
+.cl-check {
+  font-family:var(--M); font-size:.44rem;
+  letter-spacing:.1em; color:var(--t2);
+  padding:.3rem .6rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  display:flex; align-items:center; gap:.5rem;
+}
+.cl-check::before {
+  content:'✓'; color:var(--g);
+  font-size:.5rem; flex-shrink:0;
+}
+
+.cl-footer {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;
+  padding:.7rem 1rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r2);
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.15em; color:var(--t3);
+}
+.cl-footer a {
+  color:var(--gold); text-decoration:none;
+  transition:color .2s;
+}
+.cl-footer a:hover { color:var(--t1); }
+.cl-version-badge {
+  padding:.15rem .5rem;
+  background:rgba(240,192,64,.1);
+  border:1px solid rgba(240,192,64,.2);
+  border-radius:20px;
+  color:var(--gold);
+}
+
+/* ═══ RED MATTER ═══ */
+.rm-formula {
+  font-family:var(--M); font-size:.42rem;
+  letter-spacing:.1em; color:var(--t3);
+  text-align:center; margin-top:.5rem;
+}
+
+/* ═══ PAGE FLASH ═══ */
+.page-flash {
+  position:fixed; inset:0; z-index:9998;
+  pointer-events:none;
+  background:rgba(240,192,64,.08);
+  opacity:0;
+  transition:opacity .15s ease;
+}
+.page-flash.on { opacity:1; }
+
+/* ═══ APOP ═══ */
+#apop {
+  position:fixed; inset:0; z-index:5000;
+  background:rgba(4,9,18,.85);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center; justify-content:center;
+}
+#apop.show { display:flex; }
+.apop-box {
+  background:rgba(8,16,32,.97);
+  border:1px solid rgba(255,68,85,.3);
+  border-radius:var(--r);
+  padding:1.5rem 2rem;
+  max-width:400px; width:90%;
+  box-shadow:0 0 60px rgba(255,68,85,.1);
+  text-align:center;
+}
+.apop-title {
+  font-family:var(--B); font-size:1.4rem;
+  letter-spacing:.3em; color:var(--red);
+  margin-bottom:.5rem;
+}
+.apop-msg {
+  font-family:var(--M); font-size:.48rem;
+  color:var(--t2); line-height:1.7;
+  margin-bottom:1rem;
+}
+
+/* ═══ HEATMAP HOURS ═══ */
+.hm-hour-label {
+  font-family:var(--M); font-size:.34rem;
+  color:var(--t4); letter-spacing:.05em;
+}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:640px) {
+  .hdr { padding:0 .7rem; gap:.5rem; }
+  .hdr-mid { display:none; }
+  .logo-tag { display:none; }
+  .main { padding:.7rem .7rem 2rem; }
+  .scp-meta, .scp-vol { display:none; }
+  #player-panel { width:100vw; }
+}
+@media(max-width:380px) {
+  .g4 { grid-template-columns:1fr 1fr; }
+  .hdr-r > :not(#clock):not(#sound-btn) { display:none; }
+}
+</style>
+<style id="init-lock">
+.hdr,.nav,.main{display:none !important}
 </style>
 </head>
 <body>
-<div id="pw-gate">
-<div class="pw-lc" style="top:24px;left:24px;border-width:1px 0 0 1px"></div>
-<div class="pw-lc" style="top:24px;right:24px;border-width:1px 1px 0 0"></div>
-<div class="pw-lc" style="bottom:24px;left:24px;border-width:0 0 1px 1px"></div>
-<div class="pw-lc" style="bottom:24px;right:24px;border-width:0 1px 1px 0"></div>
-<div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,6vw,4.5rem);letter-spacing:.55em;color:#f0c040;text-shadow:0 0 60px rgba(240,192,64,.3);margin-bottom:.4rem;text-align:center">MOSSAD GLORY</div>
-<div style="font-family:'JetBrains Mono',monospace;font-size:.46rem;letter-spacing:.55em;color:rgba(110,155,185,.52);margin-bottom:3rem;text-align:center">ACCÈS RESTREINT — CLASSIFIÉ</div>
-<div style="display:flex;flex-direction:column;align-items:center;gap:.8rem;width:min(320px,80vw)">
-<div style="font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:.35em;color:rgba(130,175,205,.6);margin-bottom:.2rem">ENTREZ LE CODE D'ACCÈS</div>
-<input id="pw-input-el" type="password" placeholder="••••••••••••" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')pwCheck()"/>
-<button id="pw-btn" onclick="pwCheck()">▶ &nbsp; ACCÉDER</button>
-<div id="pw-err">CODE INVALIDE — ACCÈS REFUSÉ</div>
-</div>
-</div>
-<canvas id="bg"></canvas>
-<div class="grain"></div>
-<div class="scanlines"></div>
-<div class="vig"></div>
-<div id="cur"><div id="cd"></div></div>
-<canvas id="trl"></canvas>
-<div id="apop"></div>
-<div class="toast-wrap" id="toast-wrap"></div>
-<div id="ldr">
-<canvas id="matrix-canvas"></canvas>
-<div class="lc tl"></div>
-<div class="lc tr"></div>
-<div class="lc bl"></div>
-<div class="lc br"></div>
-<div class="l-scanbeam"></div>
-<div class="radar">
-<div class="radar-ring"></div>
-<div class="radar-ring"></div>
-<div class="radar-ring"></div>
-<div class="radar-ring"></div>
-<div class="radar-sweep"></div>
-<div class="radar-dot"></div>
-<div class="radar-dot"></div>
-<div class="radar-dot"></div>
-<div class="radar-center">
-<svg viewBox="0 0 40 40" width="50" height="50" fill="none">
-<polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/>
-<polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".22"/>
-<polygon points="20,37 6,8 34,8" stroke="#c8a84b" stroke-width=".4" opacity=".22"/>
-<circle cx="20" cy="20" r="2.2" fill="rgba(240,192,64,.6)"/>
-<circle cx="20" cy="20" r="7" fill="none" stroke="rgba(240,192,64,.1)" stroke-width=".5"/>
-</svg>
-</div>
-</div>
-<div class="l-title">MOSSAD GLORY</div>
-<div class="l-sub">INTELLIGENCE · NATIONSGLORY · SURVEILLANCE</div>
-<div class="l-progress">
-<div class="l-bar"><div class="l-fill"></div></div>
-<div class="l-pct" id="l-pct">0%</div>
-</div>
-<div class="l-msg blink" id="l-msg">INITIALISATION DU SYSTÈME...</div>
-<button id="lbtn" onclick="enterSite()">▶ &nbsp; ENTRER</button>
-</div>
-<header class="hdr">
-<div class="logo">
-<svg class="logo-svg" viewBox="0 0 40 40" width="34" height="34" fill="none">
-<polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/>
-<polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".2"/>
-<circle cx="20" cy="20" r="1.5" fill="rgba(240,192,64,.5)"/>
-</svg>
-<div>
-<div class="logo-name">MOSSAD GLORY</div>
-<div class="logo-tag">Intelligence Terminal</div>
-</div>
-</div>
-<div class="hdr-mid">
-<div class="hsep"></div>
-<span id="hdr-date">--/--/----</span>
-<span style="opacity:.18">◆</span>
-<span style="color:var(--g)">OPÉRATION ACTIVE</span>
-<div class="hsep" style="transform:scaleX(-1)"></div>
-</div>
-<div class="hdr-r">
-<div class="scp">
-<button class="scpbtn" onclick="scToggle()"><div class="scp-tri" id="scp-tri"></div></button>
-<div class="scp-meta">
-<span class="scp-title">Tel Aviv — Omer Adam</span>
-<div class="scp-bar"><div class="scp-bar-f" id="scp-bf"></div></div>
-</div>
-<div class="scp-eq" id="scp-eq"><span></span><span></span><span></span><span></span><span></span></div>
-<input class="scp-vol" type="range" min="0" max="100" value="70" oninput="scVol(this.value)">
-</div>
-<div class="pill"><div class="led" id="api-led"></div><span id="api-txt">API</span></div>
-<div class="pill"><div class="led" id="scan-led"></div><span>SCAN</span></div>
-<div id="countdown">
-<div class="cd-bar"><div class="cd-fill" id="cd-fill" style="width:100%"></div></div>
-<span id="cd-txt">5s</span>
-</div>
-<span id="clock">--:--:--</span>
-<button class="hbtn" id="sound-btn" onclick="toggleSound()">🔊 SON</button>
-<span style="font-family:var(--M);font-size:.5rem;color:var(--t3);opacity:.1;letter-spacing:.08em">מוסד</span>
-</div>
-</header>
-<nav class="nav">
-<button class="tab active" onclick="nav('dashboard',this)">◈ Dashboard</button>
-<button class="tab" onclick="nav('online',this)">◉ En Ligne</button>
-<button class="tab" onclick="nav('checkall',this)">⊕ Localiser</button>
-<button class="tab" onclick="nav('check',this)">◎ Espionner</button>
-<button class="tab" onclick="nav('watchlist',this)">◈ Watchlist</button>
-<button class="tab" onclick="nav('stats',this)">◐ Stats</button>
-<button class="tab" onclick="nav('countrywatch',this)">⚠ PAYS</button>
-<button class="tab" onclick="nav('changelog',this)">◎ V1.9</button>
-<button class="tab" onclick="nav('redmatter',this)">☢ Red Matter</button>
-<div class="nav-r"><span class="blink">■</span><span>SYSTÈME OPÉRATIONNEL</span></div>
-</nav>
-<main class="main">
-<section class="sec active" id="s-dashboard">
-<div class="sh"><span class="sh-n">01</span><div class="sh-l"></div><span class="sh-t">Vue globale — surveillance temps réel LIME &amp; MOCHA</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="g4 mb2">
-<div class="stat"><div class="stat-icon">🌐</div><div class="stat-info"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Joueurs en ligne</div><canvas class="stat-spark" id="spark-total"></canvas></div></div>
-<div class="stat"><div class="stat-icon">⚡</div><div class="stat-info"><div class="stat-val">11</div><div class="stat-lbl">Serveurs actifs</div><canvas class="stat-spark" id="spark-srv"></canvas></div></div>
-<div class="stat"><div class="stat-icon">🎯</div><div class="stat-info"><div class="stat-val" id="st-wonline">—</div><div class="stat-lbl">Cibles en ligne</div><canvas class="stat-spark" id="spark-wl"></canvas></div></div>
-<div class="stat"><div class="stat-icon">👁</div><div class="stat-info"><div class="stat-val" id="st-wcount">—</div><div class="stat-lbl">Cibles surveillées</div><canvas class="stat-spark" id="spark-wc"></canvas></div></div>
-</div>
-<div class="g2 mb">
-<div class="panel">
-<div class="pacc"></div><div class="ptop"></div><div class="pscan"></div>
-<div class="ph">
-<span class="pt">◉ Interserveur</span>
-<div style="display:flex;align-items:center;gap:.5rem">
-<span class="liveb"><span class="liveled"></span>LIVE</span>
-<span id="last-update" style="font-family:var(--M);font-size:.43rem;color:var(--t3)"></span>
-<span id="weather-badge" style="display:inline-flex;align-items:center;gap:.28rem;font-family:var(--M);font-size:.44rem;letter-spacing:.14em;padding:.1rem .45rem;border:1px solid var(--b1);background:rgba(4,9,18,.8)"><span id="weather-icon">🌙</span><span id="weather-label" class="weather-label calm">CALME</span></span>
-</div>
-</div>
-<div class="pb"><div class="sg" id="srv-overview"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div>
-</div>
-<div class="panel">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0 évts</span></div>
-<div style="padding:.35rem 1.15rem"><div class="feed" id="alert-feed"><div class="empty">En attente d'activité...</div></div></div>
-</div>
-</div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">📈 Activité — Joueurs en ligne</span></div>
-<div class="pb"><div class="graph-wrap"><canvas id="activity-graph"></canvas></div><div class="graph-labels" id="graph-labels"></div></div>
-</div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">👁 Watchlist — Statut live</span><button class="btn" onclick="loadDash()">↺ Actualiser</button></div>
-<div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
-</div>
-</section>
-<section class="sec" id="s-online">
-<div class="sh"><span class="sh-n">02</span><div class="sh-l"></div><span class="sh-t">Joueurs connectés par serveur</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph">
-<span class="pt">◉ Joueurs en ligne</span>
-<div class="row" style="flex-wrap:nowrap">
-<select id="ol-srv" style="max-width:145px" onchange="$('ol-body').innerHTML=ld2();loadOnline()">
-<option value="">Tous les serveurs</option>
-<option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
-<option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
-<option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
-<option value="cyan">CYAN</option><option value="lime">LIME</option>
-</select>
-<button class="btn" onclick="loadOnline()">↺</button>
-</div>
-</div>
-<div class="pb" id="ol-body"><div class="empty">Sélectionnez un serveur</div></div>
-</div>
-</section>
-<section class="sec" id="s-checkall">
-<div class="sh"><span class="sh-n">03</span><div class="sh-l"></div><span class="sh-t">Localiser un joueur sur tous les serveurs</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="g2">
-<div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">⊕ Localiser</span></div>
-<div class="pb">
-<div class="row">
-<div class="acw">
-<input id="ca-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('ca-input','ca-list',oP);fPT('ca-input','ca-pl')" onkeydown="acK(event,'ca-list',doCA)"/>
-<div class="acl" id="ca-list"></div>
-</div>
-<button class="btn" onclick="doCA()">→ Go</button>
-</div>
-<div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-top:.22rem">⚠ Case sensitive — <span style="color:var(--g)">Kyzzer_</span> ≠ <span style="color:var(--red)">kyzzer_</span></div>
-<div id="ca-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div>
-<div id="ca-result"></div>
-</div>
-</div>
-<div class="panel">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">◷ Historique</span></div>
-<div class="pb" id="ca-history"><div class="empty">Aucune recherche</div></div>
-</div>
-</div>
-<div id="ca-side"></div>
-</div>
-</section>
-<section class="sec" id="s-check">
-<div class="sh"><span class="sh-n">04</span><div class="sh-l"></div><span class="sh-t">Espionner un pays — membres connectés</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">◎ Espionner un pays</span><span class="pts">Serveur → Pays → Espionner</span></div>
-<div class="pb">
-<div class="row">
-<select id="ck-srv" style="max-width:145px" onchange="loadCS()">
-<option value="">Serveur...</option>
-<option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
-<option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
-<option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
-<option value="cyan">CYAN</option><option value="lime">LIME</option>
-</select>
-<div class="acw">
-<input id="ck-country" placeholder="Nom du pays..." autocomplete="off" oninput="acFC()" onkeydown="acK(event,'ck-list',doCheck)"/>
-<div class="acl" id="ck-list"></div>
-</div>
-<button class="btn" onclick="doCheck()">→ Espionner</button>
-</div>
-<div id="ck-suggest" class="tags" style="margin-top:.32rem;max-height:110px;overflow-y:auto"></div>
-<div id="ck-result"></div>
-</div>
-</div>
-</section>
-<section class="sec" id="s-watchlist">
-<div class="sh"><span class="sh-n">05</span><div class="sh-l"></div><span class="sh-t">Gérer les cibles — alertes Discord automatiques</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="wlt">
-<span style="font-family:var(--M);font-size:.46rem;color:var(--t3);letter-spacing:.2em">SERVEUR :</span>
-<span class="wtb act" id="wl-tab-lime" onclick="switchWl('lime')">🟢 LIME</span>
-<span class="wtb" id="wl-tab-mocha" onclick="switchWl('mocha')">🟤 MOCHA</span>
-</div>
-<div class="g2">
-<div class="panel">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt" id="wl-pt">◈ Watchlist — LIME</span></div>
-<div class="pb">
-<div id="wl-pl" class="tags" style="max-height:80px;overflow-y:auto;margin-bottom:.36rem"></div>
-<div class="row mb" style="margin-bottom:.7rem">
-<div class="acw">
-<input id="wl-add" placeholder="Ajouter un joueur..." autocomplete="off" oninput="acF('wl-add','wl-acl',oP);fPT('wl-add','wl-pl')" onkeydown="acK(event,'wl-acl',wlAdd)"/>
-<div class="acl" id="wl-acl"></div>
-</div>
-<button class="btn btn-g" onclick="wlAdd()">+ Ajouter</button>
-</div>
-<div id="wl-manage"></div>
-</div>
-</div>
-<div class="panel">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt" id="wl-st">⚡ Statut live — LIME</span><button class="btn" onclick="wlRS()">↺</button></div>
-<div class="pb" id="wl-status"></div>
-</div>
-</div>
-</section>
-<section class="sec" id="s-stats">
-<div class="sh"><span class="sh-n">06</span><div class="sh-l"></div><span class="sh-t">Analyse comportementale — pronostic · heatmap · historique</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">◐ Analyser un joueur</span></div>
-<div class="pb">
-<div class="row">
-<div class="acw">
-<input id="st-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('st-input','st-list',oP);fPT('st-input','st-pl')" onkeydown="acK(event,'st-list',loadStats)"/>
-<div class="acl" id="st-list"></div>
-</div>
-<button class="btn" onclick="loadStats()">→ Analyser</button>
-</div>
-<div id="st-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div>
-</div>
-</div>
-<div id="st-result"></div>
-</section>
-<section class="sec" id="s-countrywatch">
-<div class="sh"><span class="sh-n">07</span><div class="sh-l"></div><span class="sh-t">Surveillance pays — alerte assaut possible (≥ 2 membres connectés)</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="panel mb">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">+ Surveiller un pays ennemi</span></div>
-<div class="pb">
-<div class="row" style="flex-wrap:wrap;gap:.5rem">
-<select id="cw-srv" style="max-width:130px" onchange="cwLoadCountries()">
-<option value="">Serveur...</option>
-<option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
-<option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
-<option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
-<option value="cyan">CYAN</option><option value="lime">LIME</option>
-</select>
-<div class="acw" style="min-width:150px">
-<input id="cw-country" placeholder="Nom du pays..." autocomplete="off" oninput="cwFilterCountries()" onkeydown="acK(event,'cw-acl',cwAdd)"/>
-<div class="acl" id="cw-acl"></div>
-</div>
-<button class="btn btn-g" onclick="cwAdd()">+ Surveiller</button>
-</div>
-<div id="cw-suggest" class="tags" style="margin-top:.38rem;max-height:90px;overflow-y:auto"></div>
-</div>
-</div>
-<div class="panel">
-<div class="pacc"></div><div class="ptop"></div><div class="pscan"></div>
-<div class="ph">
-<span class="pt">◉ Pays surveillés</span>
-<div style="display:flex;align-items:center;gap:.5rem">
-<span class="liveb"><span class="liveled"></span>LIVE</span>
-<button class="btn" onclick="cwRefreshAll()" style="padding:.2rem .6rem;font-size:.46rem">↺</button>
-</div>
-</div>
-<div class="pb" id="cw-list"><div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div></div>
-</div>
-</section>
-<section class="sec" id="s-changelog">
-<div class="cl-wrap">
-<div class="cl-header">
-<div class="cl-transmission">// TRANSMISSION OFFICIELLE — MISE À JOUR</div>
-<div class="cl-title"><span class="cl-title-deco">◈</span> VERSION 1.9 — UPGRADE MAJEUR <span class="cl-title-deco">◈</span></div>
-<div class="cl-intro">Depuis la V1.6, le dashboard a été massivement enrichi.<br>Plus intelligent, plus vivant — et maintenant <strong>avec profil joueur intégré</strong>.</div>
-</div>
-<div class="cl-grid">
-<div class="cl-card new"><div class="cl-card-title"><span>📡</span> RADAR LOADER</div><div class="cl-card-body">Loader entièrement refait — système radar militaire avec sweep rotatif, anneaux pulsants et points ennemis animés. Pluie de code dorée style Matrix en fond.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>👤</span> PROFIL JOUEUR</div><div class="cl-card-body">Clic sur n'importe quel pseudo = panel latéral avec avatar Minecraft, statut live, pronostic, heatmap horaire et lien profil NationsGlory. Fermeture à la touche Échap.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>⏱</span> TIMER DE SESSION</div><div class="cl-card-body">Dans la watchlist statut live, chaque joueur connecté affiche depuis combien de temps il est en ligne en temps réel — "4min 32s", "1h 12min". Se lance dès la détection de connexion.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>🔔</span> NOTIFICATIONS BROWSER</div><div class="cl-card-body">Alertes natives Windows/Mac quand une cible se connecte ou déconnecte — même si l'onglet est en arrière-plan ou le site réduit. Permission demandée au démarrage.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>📊</span> GRAPHE D'ACTIVITÉ</div><div class="cl-card-body">Courbe canvas temps réel des joueurs en ligne sur les 30 derniers points. Gradient, grille, point doré sur la dernière valeur, labels horaires automatiques.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>🕐</span> DERNIÈRE CONNEXION</div><div class="cl-card-body">Dans la watchlist et le dashboard — "vu il y a 4min" en vert, "vu il y a 1h" en doré. Mis à jour à chaque refresh automatique.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>🌤</span> MÉTÉO D'ACTIVITÉ</div><div class="cl-card-body">Badge intelligent à côté du badge LIVE — 🌙 CALME, 🌤 ACTIVITÉ, ⚡ AGITÉ, 🔥 CRITIQUE selon le % de ta watchlist en ligne. Clignote en rouge en mode critique.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>⏳</span> COMPTE À REBOURS</div><div class="cl-card-body">Barre dorée dans le header avec timer décomptant jusqu'au prochain refresh automatique. Se recharge à chaque cycle de 5 secondes.</div></div>
-<div class="cl-card visual"><div class="cl-card-title"><span>✦</span> TRANSITIONS CINÉMATIQUES</div><div class="cl-card-body">Flash lumineux doré qui balaie l'écran à chaque changement d'onglet. Combiné au slide/scale des sections pour une navigation fluide et premium.</div></div>
-<div class="cl-card visual"><div class="cl-card-title"><span>◈</span> CLIP-PATH UNIVERSEL</div><div class="cl-card-body">Coins coupés en diagonale sur absolument tous les éléments — panels, stats, boutons, inputs, tags, popups, watchlist. Cohérence esthétique totale, style militaire/mecha.</div></div>
-<div class="cl-card fix"><div class="cl-card-title"><span>⚡</span> WATCHLIST AUTO-REFRESH</div><div class="cl-card-body">Le statut live de la watchlist se met maintenant à jour automatiquement à chaque refresh du dashboard sans avoir à cliquer manuellement.</div></div>
-<div class="cl-card fix"><div class="cl-card-title"><span>👁</span> CONTRASTE AMÉLIORÉ</div><div class="cl-card-body">Tous les textes gris sur fond sombre ont été rendus plus lisibles — t1 .72→.88, t2 .42→.62, t3 .36→.52. Titres de panels, labels, feed, placeholders.</div></div>
-<div class="cl-card fix"><div class="cl-card-title"><span>⌨</span> RACCOURCIS CLAVIER</div><div class="cl-card-body">Touches 1–7 pour naviguer entre les onglets. Ctrl+K ou / pour ouvrir directement la recherche. Escape pour fermer le panel joueur.</div></div>
-<div class="cl-card fix"><div class="cl-card-title"><span>🎯</span> ALERTES LIME/MOCHA ONLY</div><div class="cl-card-body">Corrigé — le bot Discord et le site n'envoient plus d'alertes pour les autres serveurs. WL → LIME uniquement, WLM → MOCHA uniquement.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>⏳</span> HEURE DE DÉCO PRÉVUE</div><div class="cl-card-body">Basé sur l'historique des sessions — estime combien de temps il reste avant la déconnexion. "~45min restantes" en bleu, orange si &lt;30min, rouge clignotant si &lt;10min. Affiché dans la watchlist et le profil joueur.</div></div>
-<div class="cl-card fix"><div class="cl-card-title"><span>📱</span> RESPONSIVE MOBILE</div><div class="cl-card-body">Site entièrement adapté mobile — header compact, nav scrollable, panel joueur plein écran, toasts pleine largeur. Breakpoints 640px et 380px.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>🚨</span> SURVEILLANCE PAYS</div><div class="cl-card-body">Nouvel onglet dédié — choisis un pays + serveur + seuil. Alerte popup + son + notification browser dès que le nombre de membres connectés dépasse ton seuil. Refresh automatique toutes les 30s.</div></div>
-<div class="cl-card new"><div class="cl-card-title"><span>☢</span> RED MATTER</div><div class="cl-card-body">Simulateur d'impact missile — calcule le power perdu, le power restant et les claims restants après un Red Matter. Verdict immédiat : sous-power ou safe.</div></div>
-</div>
-<div class="cl-checklist">
-<div class="cl-check">Radar loader + pluie de code Matrix dorée</div>
-<div class="cl-check">Panel profil joueur avec avatar, stats, heatmap</div>
-<div class="cl-check">Timer de session en temps réel dans la watchlist</div>
-<div class="cl-check">Notifications browser natives (arrière-plan)</div>
-<div class="cl-check">Graphe d'activité canvas avec historique 30 points</div>
-<div class="cl-check">Météo d'activité — CALME / ACTIVITÉ / AGITÉ / CRITIQUE</div>
-<div class="cl-check">Compte à rebours prochain refresh dans le header</div>
-<div class="cl-check">Transitions cinématiques entre onglets</div>
-<div class="cl-check">Clip-path universel sur tous les composants</div>
-<div class="cl-check">Watchlist statut live auto-refresh</div>
-<div class="cl-check">Contraste texte amélioré sur 16 éléments</div>
-<div class="cl-check">Raccourcis clavier 1–7 + Ctrl+K</div>
-<div class="cl-check">Prédiction heure de déconnexion en temps réel</div>
-<div class="cl-check">Responsive mobile complet (640px + 380px)</div>
-<div class="cl-check">Surveillance pays — alerte assaut possible (≥ 2 membres connectés)</div>
-<div class="cl-check">Simulateur Red Matter — power / claims / verdict</div>
-</div>
-<div class="cl-footer">
-<span>מוסד גלורי · CLASSIFIED INTEL</span>
-<a href="https://theredpoloytb.github.io/nationsglory-bot" target="_blank">theredpoloytb.github.io/nationsglory-bot →</a>
-<span class="cl-version-badge">V1.9 — 2026</span>
-</div>
-</div>
-</section>
 
-<!-- ═══ RED MATTER ═══ -->
-<section class="sec" id="s-redmatter">
-<div class="sh"><span class="sh-n">09</span><div class="sh-l"></div><span class="sh-t">Simulateur d'impact missile — Red Matter</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="panel mb" style="max-width:520px">
-<div class="pacc"></div><div class="ptop"></div>
-<div class="ph"><span class="pt">☢ Red Matter — Simulateur</span><span class="pts">0.96^18 × (power − warzone) · −8 claims</span></div>
-<div class="pb">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem">
-    <div>
-      <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">POWER TOTAL <span style="color:var(--t3)">— du pays</span></div>
-      <input id="rm-power" type="number" min="0" placeholder="ex : 5000" oninput="rmCalc()"/>
-    </div>
-    <div>
-      <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">POWER WARZONE <span style="color:var(--t3)">— retiré</span></div>
-      <input id="rm-warzone" type="number" min="0" placeholder="ex : 0" value="0" oninput="rmCalc()"/>
-    </div>
-  </div>
-  <div style="margin-bottom:.8rem">
-    <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">CLAIMS ACTUELS <span style="color:var(--t3)">— avant impact</span></div>
-    <input id="rm-claims" type="number" min="0" placeholder="ex : 120" value="0" oninput="rmCalc()"/>
-  </div>
-  <button class="btn" onclick="rmCalc()" style="width:100%;padding:.5rem 0">▶ &nbsp; SIMULER L'IMPACT</button>
-  <div id="rm-results" style="display:none;margin-top:.8rem">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem">
-      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-lost" style="color:var(--red);font-size:1.05rem">—</div><div class="stat-lbl">Power perdu</div></div></div>
-      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-remain" style="font-size:1.05rem">—</div><div class="stat-lbl">Power restant</div></div></div>
-      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-claims-out" style="color:#4499ff;font-size:1.05rem">—</div><div class="stat-lbl">Claims restants</div></div></div>
-    </div>
-    <div id="rm-alert" style="display:none;padding:.65rem 1rem;font-family:var(--M);font-size:.5rem;letter-spacing:.12em;line-height:1.8;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))"></div>
-    <div style="font-family:var(--M);font-size:.42rem;color:var(--t3);text-align:center;margin-top:.5rem;letter-spacing:.1em">0.96^18 × (power − warzone) · −8 claims</div>
+<!-- ═══ BG LAYERS ═══ -->
+<canvas id="bg"></canvas>
+<div class="aurora"><div class="aurora-blob"></div><div class="aurora-blob"></div><div class="aurora-blob"></div></div>
+<div class="grid-bg"></div>
+<div class="noise"></div>
+<div class="vignette"></div>
+
+<!-- ═══ CURSOR ═══ -->
+<div id="cur"><div id="cd"></div></div>
+
+<!-- ═══ TOASTS ═══ -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ═══ PAGE FLASH ═══ -->
+<div class="page-flash" id="page-flash"></div>
+
+<!-- ═══ APOP ═══ -->
+<div id="apop"></div>
+
+<!-- ═══ PW GATE ═══ -->
+<div id="pw-gate">
+  <div class="pw-lc" style="top:24px;left:24px"></div>
+  <div class="pw-lc" style="top:24px;right:24px;border-left:0;border-right:1px solid rgba(240,192,64,.35)"></div>
+  <div class="pw-lc" style="bottom:24px;left:24px;border-top:0;border-bottom:1px solid rgba(240,192,64,.35)"></div>
+  <div class="pw-lc" style="bottom:24px;right:24px;border-top:0;border-left:0;border-right:1px solid rgba(240,192,64,.35);border-bottom:1px solid rgba(240,192,64,.35)"></div>
+  <div class="logo-hero">MOSSAD GLORY</div>
+  <div class="logo-sub">ACCÈS RESTREINT — CLASSIFIÉ</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.7rem;width:min(320px,80vw)">
+    <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.35em;color:var(--t3);margin-bottom:.2rem">ENTREZ LE CODE D'ACCÈS</div>
+    <input id="pw-input-el" type="password" placeholder="••••••••••••" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')pwCheck()"/>
+    <button id="pw-btn" onclick="pwCheck()">▶ &nbsp; ACCÉDER</button>
+    <div id="pw-err">CODE INVALIDE — ACCÈS REFUSÉ</div>
   </div>
 </div>
+
+<!-- ═══ LOADER ═══ -->
+<div id="ldr">
+  <canvas id="matrix-canvas"></canvas>
+  <div class="lc tl"></div><div class="lc tr"></div>
+  <div class="lc bl"></div><div class="lc br"></div>
+  <div class="l-scanbeam"></div>
+  <div class="radar">
+    <div class="radar-ring"></div><div class="radar-ring"></div>
+    <div class="radar-ring"></div><div class="radar-ring"></div>
+    <div class="radar-sweep"></div>
+    <div class="radar-dot"></div><div class="radar-dot"></div><div class="radar-dot"></div>
+    <div class="radar-center">
+      <svg viewBox="0 0 40 40" width="50" height="50" fill="none">
+        <polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/>
+        <polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".22"/>
+        <polygon points="20,37 6,8 34,8" stroke="#c8a84b" stroke-width=".4" opacity=".22"/>
+        <circle cx="20" cy="20" r="2.2" fill="rgba(240,192,64,.6)"/>
+        <circle cx="20" cy="20" r="7" fill="none" stroke="rgba(240,192,64,.1)" stroke-width=".5"/>
+      </svg>
+    </div>
+  </div>
+  <div class="l-title">MOSSAD GLORY</div>
+  <div class="l-sub">INTELLIGENCE · NATIONSGLORY · V2.0</div>
+  <div class="l-progress">
+    <div class="l-bar"><div class="l-fill" id="l-fill-bar"></div></div>
+    <div class="l-pct" id="l-pct">0%</div>
+  </div>
+  <div class="l-msg blink" id="l-msg">INITIALISATION DU SYSTÈME...</div>
+  <button id="lbtn" onclick="enterSite()">▶ &nbsp; ENTRER</button>
 </div>
-</section>
+
+<!-- ═══ HEADER ═══ -->
+<header class="hdr">
+  <div class="logo">
+    <svg class="logo-svg" viewBox="0 0 40 40" width="32" height="32" fill="none">
+      <polygon points="20,1 24,12 36,12 27,19 30,31 20,24 10,31 13,19 4,12 16,12" stroke="#f0c040" stroke-width=".9"/>
+      <polygon points="20,3 34,32 6,32" stroke="#c8a84b" stroke-width=".4" opacity=".2"/>
+      <circle cx="20" cy="20" r="1.5" fill="rgba(240,192,64,.5)"/>
+    </svg>
+    <div>
+      <div class="logo-name">MOSSAD GLORY</div>
+      <div class="logo-tag">Intelligence Terminal V2.0</div>
+    </div>
+  </div>
+  <div class="hdr-mid">
+    <div class="hsep"></div>
+    <span id="hdr-date">--/--/----</span>
+    <span style="opacity:.18">◆</span>
+    <span style="color:var(--g)">OPÉRATION ACTIVE</span>
+    <div class="hsep" style="transform:scaleX(-1)"></div>
+  </div>
+  <div class="hdr-r">
+    <div class="scp">
+      <button class="scpbtn" onclick="scToggle()"><div class="scp-tri" id="scp-tri"></div></button>
+      <div class="scp-meta">
+        <span class="scp-title">Tel Aviv — Omer Adam</span>
+        <div class="scp-bar"><div class="scp-bar-f" id="scp-bf"></div></div>
+      </div>
+      <div class="scp-eq" id="scp-eq"><span></span><span></span><span></span><span></span><span></span></div>
+      <input class="scp-vol" type="range" min="0" max="100" value="70" oninput="scVol(this.value)">
+    </div>
+    <div class="pill"><div class="led" id="api-led"></div><span id="api-txt">API</span></div>
+    <div class="pill"><div class="led" id="scan-led"></div><span>SCAN</span></div>
+    <div id="countdown">
+      <div class="cd-bar"><div class="cd-fill" id="cd-fill" style="width:100%"></div></div>
+      <span id="cd-txt">5s</span>
+    </div>
+    <span id="clock">--:--:--</span>
+    <button class="hbtn" id="sound-btn" onclick="toggleSound()">🔊 SON</button>
+    <span style="font-family:var(--M);font-size:.46rem;color:var(--t3);opacity:.15;letter-spacing:.08em">מוסד</span>
+  </div>
+</header>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav">
+  <button class="tab active" onclick="nav('dashboard',this)">◈ Dashboard</button>
+  <button class="tab" onclick="nav('online',this)">◉ En Ligne</button>
+  <button class="tab" onclick="nav('checkall',this)">⊕ Localiser</button>
+  <button class="tab" onclick="nav('multisearch',this)">⊞ Multi-Search</button>
+  <button class="tab" onclick="nav('check',this)">◎ Espionner</button>
+  <button class="tab" onclick="nav('watchlist',this)">◈ Watchlist</button>
+  <button class="tab" onclick="nav('stats',this)">◐ Stats</button>
+  <button class="tab" onclick="nav('countrywatch',this)">⚠ PAYS</button>
+  <button class="tab" onclick="nav('redmatter',this)">☢ Red Matter</button>
+  <button class="tab" onclick="nav('changelog',this)">◎ V2.0</button>
+  <div class="nav-r"><span class="blink">■</span><span>SYSTÈME OPÉRATIONNEL</span></div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- 01 DASHBOARD -->
+  <section class="sec active" id="s-dashboard">
+    <div class="sh"><span class="sh-n">01</span><div class="sh-l"></div><span class="sh-t">Vue globale — surveillance temps réel LIME &amp; MOCHA</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="g4 mb2">
+      <div class="stat"><div class="stat-icon">🌐</div><div class="stat-info"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Joueurs en ligne</div><canvas class="stat-spark" id="spark-total"></canvas></div></div>
+      <div class="stat"><div class="stat-icon">⚡</div><div class="stat-info"><div class="stat-val">11</div><div class="stat-lbl">Serveurs actifs</div><canvas class="stat-spark" id="spark-srv"></canvas></div></div>
+      <div class="stat"><div class="stat-icon">🎯</div><div class="stat-info"><div class="stat-val" id="st-wonline">—</div><div class="stat-lbl">Cibles en ligne</div><canvas class="stat-spark" id="spark-wl"></canvas></div></div>
+      <div class="stat"><div class="stat-icon">👁</div><div class="stat-info"><div class="stat-val" id="st-wcount">—</div><div class="stat-lbl">Cibles surveillées</div><canvas class="stat-spark" id="spark-wc"></canvas></div></div>
+    </div>
+    <div class="g2 mb">
+      <div class="panel">
+        <div class="panel-glow"></div><div class="ptop"></div>
+        <div class="ph">
+          <span class="pt">◉ Interserveur</span>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span class="liveb"><span class="liveled"></span>LIVE</span>
+            <span id="last-update" style="font-family:var(--M);font-size:.43rem;color:var(--t3)"></span>
+            <span id="weather-badge"><span id="weather-icon">🌙</span><span id="weather-label" class="weather-label calm">CALME</span></span>
+          </div>
+        </div>
+        <div class="pb"><div class="sg" id="srv-overview"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-glow"></div><div class="ptop"></div>
+        <div class="ph"><span class="pt">⚡ Flux alertes</span><span class="badge" id="alert-badge">0 évts</span></div>
+        <div style="padding:.35rem 1rem"><div class="feed" id="alert-feed"><div class="empty">En attente d'activité...</div></div></div>
+      </div>
+    </div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">📈 Activité — Joueurs en ligne</span></div>
+      <div class="pb"><div class="graph-wrap"><canvas id="activity-graph"></canvas></div><div class="graph-labels" id="graph-labels"></div></div>
+    </div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">👁 Watchlist — Statut live</span><button class="btn" onclick="loadDash()">↺ Actualiser</button></div>
+      <div class="pb" id="wl-quick"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
+    </div>
+  </section>
+
+  <!-- 02 EN LIGNE -->
+  <section class="sec" id="s-online">
+    <div class="sh"><span class="sh-n">02</span><div class="sh-l"></div><span class="sh-t">Joueurs connectés par serveur</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph">
+        <span class="pt">◉ Joueurs en ligne</span>
+        <div class="row" style="flex-wrap:nowrap">
+          <select id="ol-srv" style="max-width:145px" onchange="$('ol-body').innerHTML=ld2();loadOnline()">
+            <option value="">Tous les serveurs</option>
+            <option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
+            <option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+            <option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
+            <option value="cyan">CYAN</option><option value="lime">LIME</option>
+          </select>
+          <button class="btn" onclick="loadOnline()">↺</button>
+        </div>
+      </div>
+      <div class="pb" id="ol-body"><div class="empty">Sélectionnez un serveur</div></div>
+    </div>
+  </section>
+
+  <!-- 03 LOCALISER -->
+  <section class="sec" id="s-checkall">
+    <div class="sh"><span class="sh-n">03</span><div class="sh-l"></div><span class="sh-t">Localiser un joueur sur tous les serveurs</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="g2">
+      <div>
+        <div class="panel mb">
+          <div class="panel-glow"></div><div class="ptop"></div>
+          <div class="ph"><span class="pt">⊕ Localiser</span></div>
+          <div class="pb">
+            <div class="row">
+              <div class="acw">
+                <input id="ca-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('ca-input','ca-list',oP);fPT('ca-input','ca-pl')" onkeydown="acK(event,'ca-list',doCA)"/>
+                <div class="acl" id="ca-list"></div>
+              </div>
+              <button class="btn" onclick="doCA()">→ Go</button>
+            </div>
+            <div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-top:.22rem">⚠ Case sensitive — <span style="color:var(--g)">Kyzzer_</span> ≠ <span style="color:var(--red)">kyzzer_</span></div>
+            <div id="ca-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div>
+            <div id="ca-result"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-glow"></div><div class="ptop"></div>
+          <div class="ph"><span class="pt">◷ Historique</span></div>
+          <div class="pb" id="ca-history"><div class="empty">Aucune recherche</div></div>
+        </div>
+      </div>
+      <div id="ca-side"></div>
+    </div>
+  </section>
+
+  <!-- 04 MULTI-SEARCH (NEW V2.0) -->
+  <section class="sec" id="s-multisearch">
+    <div class="sh"><span class="sh-n">04</span><div class="sh-l"></div><span class="sh-t">Multi-Search — Localiser plusieurs joueurs simultanément</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">⊞ Recherche simultanée</span><span class="pts">Jusqu'à 20 joueurs</span></div>
+      <div class="pb">
+        <div style="margin-bottom:.6rem">
+          <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.18em;color:var(--t2);margin-bottom:.4rem">PSEUDOS — un par ligne</div>
+          <textarea id="ms-input" placeholder="Joueur1&#10;Joueur2&#10;Joueur3..." rows="6" style="width:100%;padding:.5rem .8rem;font-family:var(--M);font-size:.48rem;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:var(--r2);color:var(--t1);resize:vertical;outline:none;letter-spacing:.1em;transition:border-color .2s"
+            onfocus="this.style.borderColor='rgba(240,192,64,.35)'" onblur="this.style.borderColor='var(--glass-border)'"></textarea>
+        </div>
+        <div class="row">
+          <select id="ms-srv" style="max-width:160px">
+            <option value="">Tous serveurs</option>
+            <option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
+            <option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+            <option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
+            <option value="cyan">CYAN</option><option value="lime">LIME</option>
+          </select>
+          <button class="btn" onclick="doMultiSearch()" style="background:rgba(240,192,64,.1);border-color:rgba(240,192,64,.3);color:var(--gold)">⊞ Lancer la recherche</button>
+          <button class="btn btn-r" onclick="$('ms-input').value='';$('ms-results').innerHTML=''">✕ Vider</button>
+        </div>
+      </div>
+    </div>
+    <div id="ms-results"></div>
+  </section>
+
+  <!-- 05 ESPIONNER -->
+  <section class="sec" id="s-check">
+    <div class="sh"><span class="sh-n">05</span><div class="sh-l"></div><span class="sh-t">Espionner un pays — membres connectés</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">◎ Espionner un pays</span><span class="pts">Serveur → Pays → Espionner</span></div>
+      <div class="pb">
+        <div class="row">
+          <select id="ck-srv" style="max-width:145px" onchange="loadCS()">
+            <option value="">Serveur...</option>
+            <option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
+            <option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+            <option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
+            <option value="cyan">CYAN</option><option value="lime">LIME</option>
+          </select>
+          <div class="acw">
+            <input id="ck-country" placeholder="Nom du pays..." autocomplete="off" oninput="acFC()" onkeydown="acK(event,'ck-list',doCheck)"/>
+            <div class="acl" id="ck-list"></div>
+          </div>
+          <button class="btn" onclick="doCheck()">→ Espionner</button>
+        </div>
+        <div id="ck-suggest" class="tags" style="margin-top:.32rem;max-height:110px;overflow-y:auto"></div>
+        <div id="ck-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 WATCHLIST -->
+  <section class="sec" id="s-watchlist">
+    <div class="sh"><span class="sh-n">06</span><div class="sh-l"></div><span class="sh-t">Gérer les cibles — alertes Discord automatiques</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="wlt">
+      <span style="font-family:var(--M);font-size:.46rem;color:var(--t3);letter-spacing:.2em">SERVEUR :</span>
+      <span class="wtb act" id="wl-tab-lime" onclick="switchWl('lime')">🟢 LIME</span>
+      <span class="wtb" id="wl-tab-mocha" onclick="switchWl('mocha')">🟤 MOCHA</span>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-glow"></div><div class="ptop"></div>
+        <div class="ph"><span class="pt" id="wl-pt">◈ Watchlist — LIME</span></div>
+        <div class="pb">
+          <div id="wl-pl" class="tags" style="max-height:80px;overflow-y:auto;margin-bottom:.36rem"></div>
+          <div class="row mb" style="margin-bottom:.7rem">
+            <div class="acw">
+              <input id="wl-add" placeholder="Ajouter un joueur..." autocomplete="off" oninput="acF('wl-add','wl-acl',oP);fPT('wl-add','wl-pl')" onkeydown="acK(event,'wl-acl',wlAdd)"/>
+              <div class="acl" id="wl-acl"></div>
+            </div>
+            <button class="btn btn-g" onclick="wlAdd()">+ Ajouter</button>
+          </div>
+          <div id="wl-manage"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-glow"></div><div class="ptop"></div>
+        <div class="ph"><span class="pt" id="wl-st">⚡ Statut live — LIME</span><button class="btn" onclick="wlRS()">↺</button></div>
+        <div class="pb" id="wl-status"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 STATS -->
+  <section class="sec" id="s-stats">
+    <div class="sh"><span class="sh-n">07</span><div class="sh-l"></div><span class="sh-t">Analyse comportementale — pronostic · heatmap · historique · timeline</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">◐ Analyser un joueur</span></div>
+      <div class="pb">
+        <div class="row">
+          <div class="acw">
+            <input id="st-input" placeholder="Pseudo exact..." autocomplete="off" oninput="acF('st-input','st-list',oP);fPT('st-input','st-pl')" onkeydown="acK(event,'st-list',loadStats)"/>
+            <div class="acl" id="st-list"></div>
+          </div>
+          <button class="btn" onclick="loadStats()">→ Analyser</button>
+        </div>
+        <div id="st-pl" class="tags" style="margin-top:.32rem;max-height:95px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div id="st-result"></div>
+  </section>
+
+  <!-- 08 PAYS -->
+  <section class="sec" id="s-countrywatch">
+    <div class="sh"><span class="sh-n">08</span><div class="sh-l"></div><span class="sh-t">Surveillance pays — alerte assaut possible (≥ 2 membres connectés)</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="panel mb">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">+ Surveiller un pays ennemi</span></div>
+      <div class="pb">
+        <div class="row" style="flex-wrap:wrap;gap:.5rem">
+          <select id="cw-srv" style="max-width:130px" onchange="cwLoadCountries()">
+            <option value="">Serveur...</option>
+            <option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
+            <option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+            <option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
+            <option value="cyan">CYAN</option><option value="lime">LIME</option>
+          </select>
+          <div class="acw" style="min-width:150px">
+            <input id="cw-country" placeholder="Nom du pays..." autocomplete="off" oninput="cwFilterCountries()" onkeydown="acK(event,'cw-acl',cwAdd)"/>
+            <div class="acl" id="cw-acl"></div>
+          </div>
+          <button class="btn btn-g" onclick="cwAdd()">+ Surveiller</button>
+        </div>
+        <div id="cw-suggest" class="tags" style="margin-top:.38rem;max-height:90px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph">
+        <span class="pt">◉ Pays surveillés</span>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="liveb"><span class="liveled"></span>LIVE</span>
+          <button class="btn" onclick="cwRefreshAll()" style="padding:.2rem .6rem;font-size:.46rem">↺</button>
+        </div>
+      </div>
+      <div class="pb" id="cw-list"><div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div></div>
+    </div>
+  </section>
+
+  <!-- 09 RED MATTER -->
+  <section class="sec" id="s-redmatter">
+    <div class="sh"><span class="sh-n">09</span><div class="sh-l"></div><span class="sh-t">Simulateur d'impact missile — Red Matter</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+    <div class="panel mb" style="max-width:540px">
+      <div class="panel-glow"></div><div class="ptop"></div>
+      <div class="ph"><span class="pt">☢ Red Matter — Simulateur</span><span class="pts">0.96^18 × (power − warzone) · −8 claims</span></div>
+      <div class="pb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem">
+          <div>
+            <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">POWER TOTAL <span style="color:var(--t3)">— du pays</span></div>
+            <input id="rm-power" type="number" min="0" placeholder="ex : 5000" oninput="rmCalc()"/>
+          </div>
+          <div>
+            <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">POWER WARZONE <span style="color:var(--t3)">— retiré</span></div>
+            <input id="rm-warzone" type="number" min="0" placeholder="ex : 0" value="0" oninput="rmCalc()"/>
+          </div>
+        </div>
+        <div style="margin-bottom:.8rem">
+          <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">CLAIMS ACTUELS <span style="color:var(--t3)">— avant impact</span></div>
+          <input id="rm-claims" type="number" min="0" placeholder="ex : 120" value="0" oninput="rmCalc()"/>
+        </div>
+        <button class="btn" onclick="rmCalc()" style="width:100%;padding:.55rem 0;background:rgba(255,68,85,.08);border-color:rgba(255,68,85,.3);color:var(--red)">▶ &nbsp; SIMULER L'IMPACT</button>
+        <div id="rm-results" style="display:none;margin-top:.8rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem">
+            <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-lost" style="color:var(--red);font-size:1.05rem">—</div><div class="stat-lbl">Power perdu</div></div></div>
+            <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-remain" style="font-size:1.05rem">—</div><div class="stat-lbl">Power restant</div></div></div>
+            <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-claims-out" style="color:var(--blue);font-size:1.05rem">—</div><div class="stat-lbl">Claims restants</div></div></div>
+          </div>
+          <div id="rm-alert" style="display:none;padding:.65rem 1rem;font-family:var(--M);font-size:.5rem;letter-spacing:.12em;line-height:1.8;border-radius:var(--r2)"></div>
+          <div class="rm-formula">0.96^18 × (power − warzone) · −8 claims</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 CHANGELOG V2.0 -->
+  <section class="sec" id="s-changelog">
+    <div class="cl-wrap">
+      <div class="cl-header">
+        <div class="cl-transmission">// TRANSMISSION OFFICIELLE — MISE À JOUR MAJEURE</div>
+        <div class="cl-title"><span class="cl-title-deco">◈</span> VERSION 2.0 — REFONTE TOTALE <span class="cl-title-deco">◈</span></div>
+        <div class="cl-intro">Glassmorphism dark, nouveaux outils, timeline d'activité, multi-search.<br>Le dashboard le plus avancé du serveur — <strong>entièrement refait de zéro.</strong></div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card new"><div class="cl-card-title"><span>🎨</span> REFONTE VISUELLE TOTALE</div><div class="cl-card-body">Abandon du style militaire clippath au profit d'un glassmorphism dark premium — panels flous, aurora dynamique, grid de fond, bordures lumineuses. Ambiance agence de renseignement next-gen.</div></div>
+        <div class="cl-card new"><div class="cl-card-title"><span>⊞</span> MULTI-SEARCH</div><div class="cl-card-body">Nouvel onglet dédié — collez jusqu'à 20 pseudos d'un coup. Le système localise chacun en parallèle et affiche les résultats en grille de chips colorées : vert si trouvé avec serveur, rouge si absent.</div></div>
+        <div class="cl-card new"><div class="cl-card-title"><span>📅</span> TIMELINE D'ACTIVITÉ</div><div class="cl-card-body">Dans la section Stats, une timeline verticale affiche chronologiquement toutes les connexions/déconnexions du joueur avec horodatage et durée de session calculée automatiquement.</div></div>
+        <div class="cl-card new"><div class="cl-card-title"><span>🌌</span> AURORA DYNAMIQUE</div><div class="cl-card-body">Trois blobs lumineux animés (or, bleu, rouge) flottent en arrière-plan avec blur 120px. Respirent lentement et se déplacent en boucle — atmosphère vivante et premium sans peser sur les perfs.</div></div>
+        <div class="cl-card new"><div class="cl-card-title"><span>✦</span> GRID DE FOND</div><div class="cl-card-body">Grille fine 60×60px en or très transparent derrière tout le contenu. Cohérence visuelle renforcée, profondeur accrue — rappel discret de l'esthétique terminal.</div></div>
+        <div class="cl-card visual"><div class="cl-card-title"><span>💎</span> PANELS GLASSMORPHISM</div><div class="cl-card-body">Tous les panels utilisent backdrop-filter:blur(20px) avec background rgba translucide. Bordures lumineuses, lueur dorée au hover, gradient interne subtil. Aucun élément opaque.</div></div>
+        <div class="cl-card visual"><div class="cl-card-title"><span>🏷</span> CHIPS JOUEURS</div><div class="cl-card-body">Section En Ligne entièrement refaite — les joueurs sont affichés en grille de chips avec avatar Minecraft, nom et transitions hover. Plus dense, plus lisible, plus rapide à scanner.</div></div>
+        <div class="cl-card visual"><div class="cl-card-title"><span>🔵</span> TABS ARRONDIES</div><div class="cl-card-body">Navigation redessinée : tabs en capsules arrondies avec fond gold subtil pour l'onglet actif. Indicateur de notification rouge pour les alertes non lues. Scrollable mobile.</div></div>
+        <div class="cl-card fix"><div class="cl-card-title"><span>🔢</span> ORDRE DES ONGLETS CORRIGÉ</div><div class="cl-card-body">Red Matter repositionné avant le Changelog — numérotation cohérente 01→10. Navigation logique : Dashboard → En Ligne → Localiser → Multi-Search → Espionner → Watchlist → Stats → Pays → Red Matter → V2.0.</div></div>
+        <div class="cl-card fix"><div class="cl-card-title"><span>📱</span> RESPONSIVE AMÉLIORÉ</div><div class="cl-card-body">Breakpoints 640px et 380px refondus. Header adaptatif, player panel plein écran mobile, grilles 1 colonne sur petit écran. Scrollbars custom minimalistes.</div></div>
+        <div class="cl-card fix"><div class="cl-card-title"><span>⚡</span> PERFORMANCES CSS</div><div class="cl-card-body">Variables CSS unifiées, suppression des clip-path lourds, transitions GPU-only (transform/opacity). Animations aurora via CSS pur sans JS.</div></div>
+        <div class="cl-card new"><div class="cl-card-title"><span>🖱</span> CURSOR CUSTOM</div><div class="cl-card-body">Curseur circulaire doré qui suit la souris avec légère inertie. Fond semi-transparent, bordure gold — cohérent avec l'identité visuelle du site.</div></div>
+      </div>
+      <div class="cl-checklist">
+        <div class="cl-check">Refonte glassmorphism dark complète</div>
+        <div class="cl-check">Multi-Search — 20 joueurs simultanés</div>
+        <div class="cl-check">Timeline d'activité chronologique</div>
+        <div class="cl-check">Aurora dynamique 3 blobs animés</div>
+        <div class="cl-check">Grid de fond 60×60px</div>
+        <div class="cl-check">Panels blur + bordures lumineuses</div>
+        <div class="cl-check">Chips joueurs avec avatar</div>
+        <div class="cl-check">Tabs capsules arrondies</div>
+        <div class="cl-check">Ordre onglets corrigé (Red Matter avant V2.0)</div>
+        <div class="cl-check">Cursor custom doré</div>
+        <div class="cl-check">Responsive mobile refait</div>
+        <div class="cl-check">Héritage complet V1.9 (radar, profil, watchlist...)</div>
+      </div>
+      <div class="cl-footer">
+        <span>מוסד גלורי · CLASSIFIED INTEL</span>
+        <a href="https://theredpoloytb.github.io/nationsglory-bot" target="_blank">theredpoloytb.github.io/nationsglory-bot →</a>
+        <span class="cl-version-badge">V2.0 — 2026</span>
+      </div>
+    </div>
+  </section>
 
 </main>
-<div class="page-flash" id="page-flash"></div>
+
+<!-- ═══ PLAYER PANEL ═══ -->
 <div class="pp-overlay" id="pp-overlay" onclick="closePlayerPanel()"></div>
 <div id="player-panel">
-<div class="pp-hdr">
-<div id="pp-name" class="pp-name">—</div>
-<button class="pp-close" onclick="closePlayerPanel()">✕ FERMER</button>
+  <div class="pp-hdr">
+    <div id="pp-name" class="pp-name">—</div>
+    <button class="pp-close" onclick="closePlayerPanel()">✕ FERMER</button>
+  </div>
+  <div class="pp-body" id="pp-body"><div class="pp-loading">Chargement...</div></div>
 </div>
-<div class="pp-body" id="pp-body">
-<div class="pp-loading">Chargement...</div>
-</div>
-</div>
+
 <script src="script.js"></script>
+<script>
+// ═══ V2.0 CURSOR ═══
+const curEl = document.getElementById('cur');
+if(window.matchMedia('(pointer:fine)').matches){
+  document.body.style.cursor='none';
+  document.addEventListener('mousemove',e=>{
+    curEl.style.left=(e.clientX-10)+'px';
+    curEl.style.top=(e.clientY-10)+'px';
+  });
+  document.addEventListener('mousedown',()=>{ curEl.style.transform='scale(.7)'; });
+  document.addEventListener('mouseup',()=>{ curEl.style.transform='scale(1)'; });
+}
+
+// ═══ V2.0 MULTI-SEARCH ═══
+async function doMultiSearch(){
+  const raw = document.getElementById('ms-input').value.trim();
+  const srv = document.getElementById('ms-srv').value;
+  if(!raw){ showToast('⚠ Entrez au moins un pseudo','warn'); return; }
+  const names = [...new Set(raw.split('\n').map(n=>n.trim()).filter(Boolean))].slice(0,20);
+  const res = document.getElementById('ms-results');
+  res.innerHTML=`<div class="panel"><div class="panel-glow"></div><div class="ptop"></div><div class="ph"><span class="pt">⊞ Résultats — ${names.length} joueurs</span><span class="badge" id="ms-badge">...</span></div><div class="pb"><div class="ms-grid" id="ms-grid">${names.map(n=>`<div class="ms-chip" id="msc-${CSS.escape(n)}"><div class="ms-chip-name">${n}</div><div class="ld" style="font-size:.38rem">...<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>`).join('')}</div></div></div>`;
+  let found=0,done=0;
+  const update=()=>{ const el=document.getElementById('ms-badge'); if(el) el.textContent=`${found} trouvés / ${done}/${names.length}`; };
+  await Promise.all(names.map(async name=>{
+    try{
+      // Appel script.js si checkAllServers existe, sinon mock
+      const r = typeof checkAllServers==='function' ? await checkAllServers(name,srv) : null;
+      const chip=document.getElementById('msc-'+CSS.escape(name));
+      if(!chip){done++;update();return;}
+      if(r && r.server){
+        chip.className='ms-chip found';
+        chip.innerHTML=`<div class="ms-chip-name">${name}</div><div class="ms-chip-loc">📍 ${r.server.toUpperCase()}${r.country?' · '+r.country:''}</div>`;
+        found++;
+      } else {
+        chip.className='ms-chip notfound';
+        chip.innerHTML=`<div class="ms-chip-name">${name}</div><div class="ms-chip-no">Hors ligne</div>`;
+      }
+    }catch{
+      const chip=document.getElementById('msc-'+CSS.escape(name));
+      if(chip){chip.className='ms-chip notfound';chip.innerHTML=`<div class="ms-chip-name">${name}</div><div class="ms-chip-no">Erreur</div>`;}
+    }
+    done++; update();
+  }));
+  showToast(`⊞ Terminé — ${found}/${names.length} trouvés`,'ok');
+}
+
+// ═══ INIT LOCK REMOVE ═══
+// Géré par script.js après enterSite()
+
+// Helper toast (fallback si script.js pas chargé)
+function showToast(msg,type='info'){
+  if(typeof window._showToast==='function'){ window._showToast(msg,type); return; }
+  const w=document.getElementById('toast-wrap');
+  if(!w)return;
+  const t=document.createElement('div');
+  t.className='toast';
+  t.style.borderColor=type==='ok'?'rgba(68,255,136,.3)':type==='warn'?'rgba(240,192,64,.3)':'rgba(255,68,85,.3)';
+  t.textContent=msg;
+  w.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+</script>
 </body>
 </html>
