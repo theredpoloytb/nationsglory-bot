@@ -319,7 +319,7 @@
 <!-- ═══ RED MATTER ═══ -->
 <section class="sec" id="s-redmatter">
 <div class="sh"><span class="sh-n">08</span><div class="sh-l"></div><span class="sh-t">Simulateur d'impact missile — Red Matter</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-<div class="panel mb" style="max-width:520px">
+<div class="panel mb" style="max-width:520px;overflow:visible;clip-path:none;border-radius:2px">
 <div class="pacc"></div><div class="ptop"></div>
 <div class="ph"><span class="pt">☢ Red Matter — Simulateur</span><span class="pts">0.96^18 × (power − warzone) · −8 claims</span></div>
 <div class="pb">
@@ -340,12 +340,21 @@
   <button class="btn" onclick="rmCalc()" style="width:100%;padding:.5rem 0">▶ &nbsp; SIMULER L'IMPACT</button>
   <div id="rm-results" style="display:none;margin-top:.8rem">
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem">
-      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-lost" style="color:var(--red);font-size:1.05rem">—</div><div class="stat-lbl">Power perdu</div></div></div>
-      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-remain" style="font-size:1.05rem">—</div><div class="stat-lbl">Power restant</div></div></div>
-      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-claims-out" style="color:#4499ff;font-size:1.05rem">—</div><div class="stat-lbl">Claims restants</div></div></div>
+      <div style="background:rgba(2,7,20,.96);border:1px solid rgba(200,168,75,.1);padding:.7rem .8rem;text-align:center">
+        <div id="rm-lost" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#ff1840;line-height:1;text-shadow:0 0 15px rgba(255,24,64,.5)">—</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.42rem;letter-spacing:.25em;color:rgba(130,175,205,.6);margin-top:.3rem">POWER PERDU</div>
+      </div>
+      <div style="background:rgba(2,7,20,.96);border:1px solid rgba(200,168,75,.1);padding:.7rem .8rem;text-align:center">
+        <div id="rm-remain" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#f0c040;line-height:1;text-shadow:0 0 15px rgba(240,192,64,.4)">—</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.42rem;letter-spacing:.25em;color:rgba(130,175,205,.6);margin-top:.3rem">POWER RESTANT</div>
+      </div>
+      <div style="background:rgba(2,7,20,.96);border:1px solid rgba(200,168,75,.1);padding:.7rem .8rem;text-align:center">
+        <div id="rm-claims-out" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#00aaff;line-height:1;text-shadow:0 0 15px rgba(0,170,255,.4)">—</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.42rem;letter-spacing:.25em;color:rgba(130,175,205,.6);margin-top:.3rem">CLAIMS RESTANTS</div>
+      </div>
     </div>
-    <div id="rm-alert" style="display:none;padding:.65rem 1rem;font-family:var(--M);font-size:.5rem;letter-spacing:.12em;line-height:1.8;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))"></div>
-    <div style="font-family:var(--M);font-size:.42rem;color:var(--t3);text-align:center;margin-top:.5rem;letter-spacing:.1em">0.96^18 × (power − warzone) · −8 claims</div>
+    <div id="rm-alert" style="display:none;padding:.65rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.5rem;letter-spacing:.12em;line-height:1.8;border-radius:2px"></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.42rem;color:rgba(110,155,185,.5);text-align:center;margin-top:.5rem;letter-spacing:.1em">0.96^18 × (power − warzone) · −8 claims</div>
   </div>
 </div>
 </div>
