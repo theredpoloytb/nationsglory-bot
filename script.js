@@ -767,9 +767,9 @@ function rmCalc() {
   const elClaims = document.getElementById('rm-claims-out');
   const elAlert  = document.getElementById('rm-alert');
 
-  if (elLost)   { elLost.textContent   = powerLost.toLocaleString('fr-FR');   elLost.classList.add('bump'); setTimeout(()=>elLost.classList.remove('bump'),400); }
-  if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.classList.add('bump'); setTimeout(()=>elRemain.classList.remove('bump'),400); }
-  if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.classList.add('bump'); setTimeout(()=>elClaims.classList.remove('bump'),400); }
+  if (elLost)   { elLost.textContent   = powerLost.toLocaleString('fr-FR');   elLost.style.animation='none'; setTimeout(()=>{elLost.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
+  if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.style.animation='none'; setTimeout(()=>{elRemain.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
+  if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.style.animation='none'; setTimeout(()=>{elClaims.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
 
   // Verdict sous-power ou safe
   if (elAlert) {
