@@ -737,3 +737,78 @@ async function init(){
   }
 }
 init();
+
+// ═══════════════════════════════════════════════════════════
+// RED MATTER SIMULATOR — FONCTION MANQUANTE AJOUTÉE EN V2
+// ═══════════════════════════════════════════════════════════
+function rmCalc() {
+  const power   = parseFloat(document.getElementById('rm-power')?.value)   || 0;
+  const warzone = parseFloat(document.getElementById('rm-warzone')?.value)  || 0;
+  const claims  = parseFloat(document.getElementById('rm-claims')?.value)   || 0;
+
+  if (power <= 0) {
+    showToast('⚠ Entre un power total valide');
+    return;
+  }
+
+  // Formule officielle Red Matter : 0.96^18 × (power − warzone)
+  const factor     = Math.pow(0.96, 18);          // ≈ 0.4796
+  const effectivePow = power - warzone;
+  const powerAfter   = Math.round(effectivePow * factor);
+  const powerLost    = Math.round(power - warzone - powerAfter);
+  const claimsAfter  = Math.max(0, claims - 8);
+
+  // Affichage résultats
+  const results = document.getElementById('rm-results');
+  if (results) results.style.display = 'block';
+
+  const elLost   = document.getElementById('rm-lost');
+  const elRemain = document.getElementById('rm-remain');
+  const elClaims = document.getElementById('rm-claims-out');
+  const elAlert  = document.getElementById('rm-alert');
+
+  if (elLost)   { elLost.textContent   = powerLost.toLocaleString('fr-FR');   elLost.classList.add('bump'); setTimeout(()=>elLost.classList.remove('bump'),400); }
+  if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.classList.add('bump'); setTimeout(()=>elRemain.classList.remove('bump'),400); }
+  if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.classList.add('bump'); setTimeout(()=>elClaims.classList.remove('bump'),400); }
+
+  // Verdict sous-power ou safe
+  if (elAlert) {
+    // Règle NationsGlory : sous-power si claims > power / 10
+    const needed    = Math.ceil(claimsAfter * 10);
+    const isSafe    = powerAfter >= needed;
+    const ratio     = powerAfter > 0 ? Math.round((powerAfter / Math.max(needed,1)) * 100) : 0;
+
+    elAlert.style.display = 'block';
+    if (isSafe) {
+      elAlert.style.background    = 'rgba(0,240,122,.06)';
+      elAlert.style.border        = '1px solid rgba(0,240,122,.25)';
+      elAlert.style.color         = '#00f07a';
+      elAlert.innerHTML = `
+        ✅ &nbsp;<strong>SAFE</strong> — Le pays survit au Red Matter<br>
+        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Requis pour ${claimsAfter} claims : <strong>${needed.toLocaleString('fr-FR')}</strong> · Ratio : <strong>${ratio}%</strong></span>
+      `;
+    } else {
+      elAlert.style.background    = 'rgba(255,24,64,.06)';
+      elAlert.style.border        = '1px solid rgba(255,24,64,.25)';
+      elAlert.style.color         = '#ff1840';
+      const deficit = needed - powerAfter;
+      elAlert.innerHTML = `
+        ☢ &nbsp;<strong>SOUS-POWER</strong> — Le pays sera en sous-power !<br>
+        <span style="opacity:.7">Déficit : <strong>${deficit.toLocaleString('fr-FR')}</strong> power · Requis : <strong>${needed.toLocaleString('fr-FR')}</strong> · Actuel après impact : <strong>${powerAfter.toLocaleString('fr-FR')}</strong></span>
+      `;
+    }
+  }
+
+  // Son impact
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(80, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.3);
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
