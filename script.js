@@ -16,6 +16,8 @@
 
   // Révèle le contenu seulement après auth validée
   function unlockContent() {
+    const lock = document.getElementById('init-lock');
+    if(lock) lock.remove();
     if(MAIN) MAIN.style.display = '';
     if(HDR)  HDR.style.display  = '';
     if(NAV)  NAV.style.display  = '';
