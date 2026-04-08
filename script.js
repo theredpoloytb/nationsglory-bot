@@ -21,7 +21,7 @@ body:JSON.stringify({password:val})
 });
 const d=await r.json();
 if(d.ok){
-sessionStorage.setItem(SESSION_KEY,'ok');
+sessionStorage.setItem(SESSION_KEY,"ok");init();
 const gate=document.getElementById('pw-gate');
 gate.style.transition='opacity .6s';
 gate.style.opacity='0';
@@ -603,4 +603,4 @@ setInterval(tickCountdown,1000);
 setInterval(async()=>{await loadWL();await loadDash();},5000);
 }
 }
-init();
+if(sessionStorage.getItem("mg_auth_v2")==="ok")init();
