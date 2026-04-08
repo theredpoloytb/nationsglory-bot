@@ -21,7 +21,7 @@ body:JSON.stringify({password:val})
 });
 const d=await r.json();
 if(d.ok){
-sessionStorage.setItem(SESSION_KEY,"ok");init();
+sessionStorage.setItem(SESSION_KEY,'ok');
 const gate=document.getElementById('pw-gate');
 gate.style.transition='opacity .6s';
 gate.style.opacity='0';
@@ -141,7 +141,7 @@ let scW=null,scOn=false,scBarT=null;
 (()=>{
 const ifr=document.createElement('iframe');ifr.allow='autoplay';
 ifr.style.cssText='position:absolute;width:0;height:0;border:none;opacity:0;pointer-events:none';
-ifr.src='https://w.soundcloud.com/player/?url=https%3A
+ifr.src='https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user-164072391-103154989/omer-adam-feat-arisa-tel-aviv&color=%23f0c040&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false';
 document.body.appendChild(ifr);
 const s=document.createElement('script');s.src='https://w.soundcloud.com/player/api.js';
 s.onload=()=>{
@@ -603,4 +603,4 @@ setInterval(tickCountdown,1000);
 setInterval(async()=>{await loadWL();await loadDash();},5000);
 }
 }
-if(sessionStorage.getItem("mg_auth_v2")==="ok")init();
+init();
