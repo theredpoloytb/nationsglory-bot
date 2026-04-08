@@ -117,6 +117,7 @@
 <button class="tab" onclick="nav('stats',this)">◐ Stats</button>
 <button class="tab" onclick="nav('countrywatch',this)">⚠ PAYS</button>
 <button class="tab" onclick="nav('changelog',this)">◎ V1.9</button>
+<button class="tab" onclick="nav('redmatter',this)">☢ Red Matter</button>
 <div class="nav-r"><span class="blink">■</span><span>SYSTÈME OPÉRATIONNEL</span></div>
 </nav>
 <main class="main">
@@ -335,11 +336,12 @@
 <div class="cl-card visual"><div class="cl-card-title"><span>◈</span> CLIP-PATH UNIVERSEL</div><div class="cl-card-body">Coins coupés en diagonale sur absolument tous les éléments — panels, stats, boutons, inputs, tags, popups, watchlist. Cohérence esthétique totale, style militaire/mecha.</div></div>
 <div class="cl-card fix"><div class="cl-card-title"><span>⚡</span> WATCHLIST AUTO-REFRESH</div><div class="cl-card-body">Le statut live de la watchlist se met maintenant à jour automatiquement à chaque refresh du dashboard sans avoir à cliquer manuellement.</div></div>
 <div class="cl-card fix"><div class="cl-card-title"><span>👁</span> CONTRASTE AMÉLIORÉ</div><div class="cl-card-body">Tous les textes gris sur fond sombre ont été rendus plus lisibles — t1 .72→.88, t2 .42→.62, t3 .36→.52. Titres de panels, labels, feed, placeholders.</div></div>
-<div class="cl-card fix"><div class="cl-card-title"><span>⌨</span> RACCOURCIS CLAVIER</div><div class="cl-card-body">Touches 1–6 pour naviguer entre les onglets. Ctrl+K ou / pour ouvrir directement la recherche. Escape pour fermer le panel joueur.</div></div>
+<div class="cl-card fix"><div class="cl-card-title"><span>⌨</span> RACCOURCIS CLAVIER</div><div class="cl-card-body">Touches 1–7 pour naviguer entre les onglets. Ctrl+K ou / pour ouvrir directement la recherche. Escape pour fermer le panel joueur.</div></div>
 <div class="cl-card fix"><div class="cl-card-title"><span>🎯</span> ALERTES LIME/MOCHA ONLY</div><div class="cl-card-body">Corrigé — le bot Discord et le site n'envoient plus d'alertes pour les autres serveurs. WL → LIME uniquement, WLM → MOCHA uniquement.</div></div>
 <div class="cl-card new"><div class="cl-card-title"><span>⏳</span> HEURE DE DÉCO PRÉVUE</div><div class="cl-card-body">Basé sur l'historique des sessions — estime combien de temps il reste avant la déconnexion. "~45min restantes" en bleu, orange si &lt;30min, rouge clignotant si &lt;10min. Affiché dans la watchlist et le profil joueur.</div></div>
 <div class="cl-card fix"><div class="cl-card-title"><span>📱</span> RESPONSIVE MOBILE</div><div class="cl-card-body">Site entièrement adapté mobile — header compact, nav scrollable, panel joueur plein écran, toasts pleine largeur. Breakpoints 640px et 380px.</div></div>
 <div class="cl-card new"><div class="cl-card-title"><span>🚨</span> SURVEILLANCE PAYS</div><div class="cl-card-body">Nouvel onglet dédié — choisis un pays + serveur + seuil. Alerte popup + son + notification browser dès que le nombre de membres connectés dépasse ton seuil. Refresh automatique toutes les 30s.</div></div>
+<div class="cl-card new"><div class="cl-card-title"><span>☢</span> RED MATTER</div><div class="cl-card-body">Simulateur d'impact missile — calcule le power perdu, le power restant et les claims restants après un Red Matter. Verdict immédiat : sous-power ou safe.</div></div>
 </div>
 <div class="cl-checklist">
 <div class="cl-check">Radar loader + pluie de code Matrix dorée</div>
@@ -353,10 +355,11 @@
 <div class="cl-check">Clip-path universel sur tous les composants</div>
 <div class="cl-check">Watchlist statut live auto-refresh</div>
 <div class="cl-check">Contraste texte amélioré sur 16 éléments</div>
-<div class="cl-check">Raccourcis clavier 1–6 + Ctrl+K</div>
+<div class="cl-check">Raccourcis clavier 1–7 + Ctrl+K</div>
 <div class="cl-check">Prédiction heure de déconnexion en temps réel</div>
 <div class="cl-check">Responsive mobile complet (640px + 380px)</div>
 <div class="cl-check">Surveillance pays — alerte assaut possible (≥ 2 membres connectés)</div>
+<div class="cl-check">Simulateur Red Matter — power / claims / verdict</div>
 </div>
 <div class="cl-footer">
 <span>מוסד גלורי · CLASSIFIED INTEL</span>
@@ -365,6 +368,42 @@
 </div>
 </div>
 </section>
+
+<!-- ═══ RED MATTER ═══ -->
+<section class="sec" id="s-redmatter">
+<div class="sh"><span class="sh-n">09</span><div class="sh-l"></div><span class="sh-t">Simulateur d'impact missile — Red Matter</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+<div class="panel mb" style="max-width:520px">
+<div class="pacc"></div><div class="ptop"></div>
+<div class="ph"><span class="pt">☢ Red Matter — Simulateur</span><span class="pts">0.96^18 × (power − warzone) · −8 claims</span></div>
+<div class="pb">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem">
+    <div>
+      <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">POWER TOTAL <span style="color:var(--t3)">— du pays</span></div>
+      <input id="rm-power" type="number" min="0" placeholder="ex : 5000" oninput="rmCalc()"/>
+    </div>
+    <div>
+      <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">POWER WARZONE <span style="color:var(--t3)">— retiré</span></div>
+      <input id="rm-warzone" type="number" min="0" placeholder="ex : 0" value="0" oninput="rmCalc()"/>
+    </div>
+  </div>
+  <div style="margin-bottom:.8rem">
+    <div style="font-family:var(--M);font-size:.46rem;letter-spacing:.2em;color:var(--t2);margin-bottom:.28rem">CLAIMS ACTUELS <span style="color:var(--t3)">— avant impact</span></div>
+    <input id="rm-claims" type="number" min="0" placeholder="ex : 120" value="0" oninput="rmCalc()"/>
+  </div>
+  <button class="btn" onclick="rmCalc()" style="width:100%;padding:.5rem 0">▶ &nbsp; SIMULER L'IMPACT</button>
+  <div id="rm-results" style="display:none;margin-top:.8rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem">
+      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-lost" style="color:var(--red);font-size:1.05rem">—</div><div class="stat-lbl">Power perdu</div></div></div>
+      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-remain" style="font-size:1.05rem">—</div><div class="stat-lbl">Power restant</div></div></div>
+      <div class="stat" style="padding:.55rem .7rem"><div class="stat-info"><div class="stat-val" id="rm-claims-out" style="color:#4499ff;font-size:1.05rem">—</div><div class="stat-lbl">Claims restants</div></div></div>
+    </div>
+    <div id="rm-alert" style="display:none;padding:.65rem 1rem;font-family:var(--M);font-size:.5rem;letter-spacing:.12em;line-height:1.8;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))"></div>
+    <div style="font-family:var(--M);font-size:.42rem;color:var(--t3);text-align:center;margin-top:.5rem;letter-spacing:.1em">0.96^18 × (power − warzone) · −8 claims</div>
+  </div>
+</div>
+</div>
+</section>
+
 </main>
 <div class="page-flash" id="page-flash"></div>
 <div class="pp-overlay" id="pp-overlay" onclick="closePlayerPanel()"></div>
