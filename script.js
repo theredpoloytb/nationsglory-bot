@@ -1,45 +1,123 @@
 // ═══════════════════════════════════════════════════════════
-// PASSWORD GATE
+// PASSWORD GATE — protection renforcée
 // ═══════════════════════════════════════════════════════════
 (function(){
-  const SESSION_KEY='mg_auth_v2';
-  if(sessionStorage.getItem(SESSION_KEY)==='ok'){
-    document.getElementById('pw-gate').style.display='none';
-    return;
-  }
-  setTimeout(()=>{
-    const el=document.getElementById('pw-input-el');
-    if(el)el.focus();
-  },100);
+  const SESSION_KEY = 'mg_auth_v2';
+  const MAIN = document.querySelector('.main');
+  const HDR  = document.querySelector('.hdr');
+  const NAV  = document.querySelector('.nav');
 
-  window.pwCheck=async function(){
-    const inp=document.getElementById('pw-input-el');
-    const err=document.getElementById('pw-err');
-    const val=inp.value;
-    if(!val)return;
+  // Cache le contenu réel dès le départ
+  function lockContent() {
+    if(MAIN) MAIN.style.display = 'none';
+    if(HDR)  HDR.style.display  = 'none';
+    if(NAV)  NAV.style.display  = 'none';
+  }
+
+  // Révèle le contenu seulement après auth validée
+  function unlockContent() {
+    if(MAIN) MAIN.style.display = '';
+    if(HDR)  HDR.style.display  = '';
+    if(NAV)  NAV.style.display  = '';
+  }
+
+  // Vérifie en permanence que le gate est toujours là (anti-inspecteur)
+  function watchGate() {
+    const gate = document.getElementById('pw-gate');
+    // Si quelqu'un supprime le gate sans être authentifié → troll
+    if(!gate && sessionStorage.getItem(SESSION_KEY) !== 'ok') {
+      trollUser();
+    }
+  }
+
+  function trollUser() {
+    lockContent();
+    document.body.innerHTML = `
+      <div style="
+        position:fixed;inset:0;background:#000;
+        display:flex;flex-direction:column;
+        align-items:center;justify-content:center;
+        font-family:monospace;color:#f0c040;text-align:center;gap:2rem;
+        z-index:99999;
+      ">
+        <div style="font-size:5rem">🕵️</div>
+        <div style="font-size:1.6rem;letter-spacing:.2em">INTRUSION DÉTECTÉE</div>
+        <div style="font-size:.85rem;color:rgba(240,192,64,.5);letter-spacing:.15em;max-width:420px;line-height:1.8">
+          La tentative de contournement a été enregistrée.<br>
+          IP transmise à l'unité de surveillance.<br>
+          <span style="color:#f04040">Accès définitivement révoqué.</span>
+        </div>
+        <div style="font-size:.7rem;color:rgba(200,100,100,.4);letter-spacing:.1em" id="fake-ip">
+          Identification en cours...
+        </div>
+        <div style="font-size:.6rem;color:rgba(240,192,64,.2);margin-top:1rem">
+          מוסד גלורי — CLASSIFIED
+        </div>
+      </div>
+    `;
+    // Fausse IP pour faire peur
+    setTimeout(() => {
+      const fake = `${rand(1,254)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`;
+      document.getElementById('fake-ip').textContent =
+        `Adresse identifiée : ${fake} — signalement en cours...`;
+    }, 1800);
+  }
+
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+  // Auth déjà validée en session → débloquer directement
+  if(sessionStorage.getItem(SESSION_KEY) === 'ok'){
+    const gate = document.getElementById('pw-gate');
+    if(gate) gate.style.display = 'none';
+    unlockContent();
+  } else {
+    lockContent();
+    setTimeout(() => {
+      const el = document.getElementById('pw-input-el');
+      if(el) el.focus();
+    }, 100);
+    // Surveille toutes les 500ms si le gate est supprimé
+    const observer = setInterval(watchGate, 500);
+    // On arrête de surveiller une fois authentifié
+    window._stopGateWatch = () => clearInterval(observer);
+  }
+
+  window.pwCheck = async function(){
+    const inp = document.getElementById('pw-input-el');
+    const err = document.getElementById('pw-err');
+    const val = inp.value;
+    if(!val) return;
     try{
       const r = await fetch('https://nationsglory-spy.onrender.com/api/auth-check', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({password:val})
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: val})
       });
-      const d=await r.json();
+      const d = await r.json();
       if(d.ok){
-        sessionStorage.setItem(SESSION_KEY,'ok');
-        const gate=document.getElementById('pw-gate');
-        gate.style.transition='opacity .6s';
-        gate.style.opacity='0';
-        setTimeout(()=>{gate.style.display='none';},600);
+        sessionStorage.setItem(SESSION_KEY, 'ok');
+        if(window._stopGateWatch) window._stopGateWatch();
+        unlockContent();
+        const gate = document.getElementById('pw-gate');
+        gate.style.transition = 'opacity .6s';
+        gate.style.opacity = '0';
+        setTimeout(() => { gate.style.display = 'none'; }, 600);
       } else {
-        err.style.opacity='1';
-        inp.value='';
-        inp.style.borderColor='rgba(255,24,64,.5)';
-        setTimeout(()=>{err.style.opacity='0';inp.style.borderColor='rgba(200,168,75,.2)';},2500);
+        err.style.opacity = '1';
+        inp.value = '';
+        inp.style.borderColor = 'rgba(255,24,64,.5)';
+        setTimeout(() => {
+          err.style.opacity = '0';
+          inp.style.borderColor = 'rgba(200,168,75,.2)';
+        }, 2500);
       }
-    }catch(e){
-      err.textContent='ERREUR SERVEUR';
-      err.style.opacity='1';
-      setTimeout(()=>{err.style.opacity='0';err.textContent='CODE INVALIDE — ACCÈS REFUSÉ';},2500);
+    } catch(e){
+      err.textContent = 'ERREUR SERVEUR';
+      err.style.opacity = '1';
+      setTimeout(() => {
+        err.style.opacity = '0';
+        err.textContent = 'CODE INVALIDE — ACCÈS REFUSÉ';
+      }, 2500);
     }
   };
 })();
