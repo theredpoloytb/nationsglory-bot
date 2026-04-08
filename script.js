@@ -214,8 +214,8 @@ function showToast(msg,duration=3000){
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
   const tabs=document.querySelectorAll('.tab');
-  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5};
-  if(map[e.key]!==undefined){tabs[map[e.key]].click();showToast(`Onglet ${e.key} — ${tabs[map[e.key]].textContent.trim()}`);return;}
+  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8};
+  if(map[e.key]!==undefined&&tabs[map[e.key]]){tabs[map[e.key]].click();showToast(`Onglet ${e.key} — ${tabs[map[e.key]].textContent.trim()}`);return;}
   if(e.key==='/'||e.key==='k'&&(e.ctrlKey||e.metaKey)){e.preventDefault();tabs[2].click();setTimeout(()=>$('ca-input').focus(),300);}
 });
 
