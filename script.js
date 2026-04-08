@@ -7,14 +7,12 @@
   const HDR  = document.querySelector('.hdr');
   const NAV  = document.querySelector('.nav');
 
-  // Cache le contenu réel dès le départ
   function lockContent() {
     if(MAIN) MAIN.style.display = 'none';
     if(HDR)  HDR.style.display  = 'none';
     if(NAV)  NAV.style.display  = 'none';
   }
 
-  // Révèle le contenu seulement après auth validée
   function unlockContent() {
     const lock = document.getElementById('init-lock');
     if(lock) lock.remove();
@@ -23,10 +21,8 @@
     if(NAV)  NAV.style.display  = '';
   }
 
-  // Vérifie en permanence que le gate est toujours là (anti-inspecteur)
   function watchGate() {
     const gate = document.getElementById('pw-gate');
-    // Si quelqu'un supprime le gate sans être authentifié → troll
     if(!gate && sessionStorage.getItem(SESSION_KEY) !== 'ok') {
       trollUser();
     }
@@ -57,7 +53,6 @@
         </div>
       </div>
     `;
-    // Fausse IP pour faire peur
     setTimeout(() => {
       const fake = `${rand(1,254)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`;
       document.getElementById('fake-ip').textContent =
@@ -67,7 +62,6 @@
 
   function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
-  // Auth déjà validée en session → débloquer directement
   if(sessionStorage.getItem(SESSION_KEY) === 'ok'){
     const gate = document.getElementById('pw-gate');
     if(gate) gate.style.display = 'none';
@@ -78,9 +72,7 @@
       const el = document.getElementById('pw-input-el');
       if(el) el.focus();
     }, 100);
-    // Surveille toutes les 500ms si le gate est supprimé
     const observer = setInterval(watchGate, 500);
-    // On arrête de surveiller une fois authentifié
     window._stopGateWatch = () => clearInterval(observer);
   }
 
@@ -214,8 +206,8 @@ function showToast(msg,duration=3000){
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
   const tabs=document.querySelectorAll('.tab');
-  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5};
-  if(map[e.key]!==undefined){tabs[map[e.key]].click();showToast(`Onglet ${e.key} — ${tabs[map[e.key]].textContent.trim()}`);return;}
+  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8};
+  if(map[e.key]!==undefined&&tabs[map[e.key]]){tabs[map[e.key]].click();showToast(`Onglet ${e.key} — ${tabs[map[e.key]].textContent.trim()}`);return;}
   if(e.key==='/'||e.key==='k'&&(e.ctrlKey||e.metaKey)){e.preventDefault();tabs[2].click();setTimeout(()=>$('ca-input').focus(),300);}
 });
 
@@ -722,6 +714,38 @@ async function getPlayerGrade(player,server){
 async function hasNonRecruit(members,server){
   const results=await Promise.allSettled(members.slice(0,12).map(p=>getPlayerGrade(p,server)));
   return results.some(r=>r.status==='fulfilled'&&r.value&&r.value!==''&&r.value!=='recruit');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RED MATTER — Simulateur d'impact missile
+// ═══════════════════════════════════════════════════════════
+function rmCalc(){
+  const power=parseFloat(document.getElementById('rm-power').value)||0;
+  let warzone=parseFloat(document.getElementById('rm-warzone').value)||0;
+  const claims=parseFloat(document.getElementById('rm-claims').value)||0;
+  if(!power)return;
+  if(warzone>power)warzone=power;
+  const restant=Math.round((power-warzone)*Math.pow(0.96,18));
+  const perdu=Math.floor(power-restant);
+  const claimsRestants=Math.max(0,Math.floor(claims-8));
+  const diff=restant-claimsRestants;
+  document.getElementById('rm-lost').textContent='−'+perdu.toLocaleString();
+  document.getElementById('rm-remain').textContent=restant.toLocaleString();
+  document.getElementById('rm-claims-out').textContent=claimsRestants.toLocaleString();
+  const alertEl=document.getElementById('rm-alert');
+  alertEl.style.display='block';
+  if(diff<0){
+    alertEl.style.background='rgba(200,30,30,.12)';
+    alertEl.style.border='1px solid rgba(200,30,30,.35)';
+    alertEl.style.color='#ff5555';
+    alertEl.innerHTML='<strong>⚠ SOUS-POWER CONFIRMÉ</strong><br>Power : '+restant.toLocaleString()+' / Claims : '+claimsRestants+' — manque '+Math.abs(diff).toLocaleString()+' power';
+  }else{
+    alertEl.style.background='rgba(30,180,80,.08)';
+    alertEl.style.border='1px solid rgba(30,180,80,.3)';
+    alertEl.style.color='#44cc77';
+    alertEl.innerHTML='<strong>✓ PAYS SAFE</strong><br>Power : '+restant.toLocaleString()+' / Claims : '+claimsRestants+' — marge de '+diff.toLocaleString()+' power';
+  }
+  document.getElementById('rm-results').style.display='block';
 }
 
 async function init(){
