@@ -8,7 +8,7 @@ Bot Discord et Site Web de renseignement  pour NationsGlory. Développé par **t
 
 ## 🚨 Disclaimer
 
-Ce projet est **100% sérieux**. Nous sommes des professionnels. Notre équipe de 1 développeur et son chat travaillent sans relâche pour assurer la sécurité nationale de notre Tasmanie Lime.
+Ce projet est **100% sérieux**. Nous sommes des professionnels. Notre équipe de 1 développeur et son chat (le chat gpt) travaillent sans relâche pour assurer la sécurité nationale de notre Tasmanie Lime.
 
 Toute ressemblance avec un projet fait à 3h du matin en écoutant du phonk est purement fortuite.
 
@@ -61,6 +61,7 @@ Render.com. Gratuit. Ça dort toutes les 15 minutes mais blc
 
 Propriété intellectuelle de theredpolotb et de son ego.
 Utilisation non autorisée passible de `/check` immédiat.
+Jrigole démerdé vous avec mon code de merde mais si vous le modifier pas aproprier vous pas le truc tagué moi en bas de page ou jsp
 
 ---
 
