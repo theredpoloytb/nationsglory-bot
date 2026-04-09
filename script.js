@@ -306,10 +306,24 @@ async function loadDash(){
     $('wl-quick').innerHTML=(mk(lp,WL,'var(--grn)','🟢 LIME')||'')+(mk(mp,WLM,'var(--org)','🟤 MOCHA')||'')||'<div class="empty">Watchlists vides</div>';
     if($('last-update'))$('last-update').textContent=new Date().toLocaleTimeString('fr-FR');
     pushActivity(tot);startCountdown(5);
+    _firstCycle=false;
     if(document.getElementById('wl-status')&&document.getElementById('wl-status').innerHTML.trim()!=='')wlRS();
   }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne<br/><span style="font-size:.52rem;opacity:.6">${e.message}</span></div>`;}
 }
-function pAlert(t,p,s){ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});if(ALR.length>60)ALR.pop();rAlerts();const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());if(inWL){if(t==='connect'){setLastSeen(p,s);startSession(p);sendBrowserNotif('connect',p,s);}else{endSession(p);sendBrowserNotif('disconnect',p,s);}showPop(t,p,s);}}
+const _authed=()=>sessionStorage.getItem('mg_auth_v2')==='ok';
+let _firstCycle=true;
+function pAlert(t,p,s){
+  ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});
+  if(ALR.length>60)ALR.pop();
+  rAlerts();
+  if(!_authed()||_firstCycle)return;
+  const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());
+  if(inWL){
+    if(t==='connect'){setLastSeen(p,s);startSession(p);sendBrowserNotif('connect',p,s);}
+    else{endSession(p);sendBrowserNotif('disconnect',p,s);}
+    showPop(t,p,s);
+  }
+}
 function rAlerts(){$('alert-badge').textContent=ALR.length+' évts';$('alert-feed').innerHTML=ALR.length?ALR.map(a=>`<div class="fi"><div class="fi-d ${a.type==='connect'?'g':'r'}"></div><span class="fi-t">${a.time}</span><span class="fi-m">${a.type==='connect'?'🟢':'🔴'} <b style="cursor:pointer" onclick="openPlayerPanel('${a.player}')">${a.player}</b><span class="fi-s">${a.server.toUpperCase()}</span></span></div>`).join(''):'<div class="empty">En attente...</div>';}
 
 function gOL(s){document.querySelectorAll('.tab')[1].click();$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
@@ -727,7 +741,6 @@ async function hasNonRecruit(members,server){
 
 async function init(){
   const b=$('sound-btn');if(b&&!snd){b.textContent='🔇 SON';b.style.color='var(--t3)';}
-  // Notifs uniquement après authentification
   if(sessionStorage.getItem('mg_auth_v2')==='ok') requestNotifPerms();
   api('/api/country_watches').then(d=>{cwWatches=d.watches||[];const stored=JSON.parse(localStorage.getItem('mg_cw')||'[]');stored.forEach(w=>{if(!cwWatches.find(x=>x.server===w.server&&x.country===w.country))cwWatches.push(w);});cwRender();}).catch(()=>{cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');cwRender();});
   rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
