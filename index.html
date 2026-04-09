@@ -402,18 +402,24 @@ select option{background:var(--bg2);color:var(--t1)}
 .rt{font-family:var(--M);font-size:.62rem;letter-spacing:.14em;color:var(--t2);margin-bottom:.5rem}
 
 /* SERVER GRID */
-.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:.7rem}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.85rem}
 .sc{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
-  padding:.85rem .9rem;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:.4rem}
+  padding:1rem 1.1rem;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:.5rem}
 .sc:hover{border-color:var(--b3);background:var(--bg3);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,40,140,.3)}
 .sc-top{display:flex;align-items:center;justify-content:space-between}
-.sc-name{font-family:var(--M);font-size:.55rem;letter-spacing:.14em;color:var(--t3)}
-.sc-emo{font-size:.85rem}
-.sc-n{font-family:var(--D);font-size:2rem;color:#edf2ff;line-height:1;transition:opacity .12s}
-.sc-lbl{font-family:var(--M);font-size:.5rem;letter-spacing:.12em;color:var(--t4)}
+.sc-name{font-family:var(--M);font-size:.62rem;letter-spacing:.14em;color:var(--t3)}
+.sc-emo{font-size:1rem}
+.sc-n{font-family:var(--D);font-size:2.4rem;color:#edf2ff;line-height:1;transition:opacity .12s}
+.sc-lbl{font-family:var(--M);font-size:.54rem;letter-spacing:.12em;color:var(--t4)}
 .sc-lbl.warn{color:var(--org)}
-.sbar{height:3px;background:rgba(7,20,40,.8);border-radius:3px;overflow:hidden}
+.sbar{height:3px;background:rgba(7,20,40,.8);border-radius:3px;overflow:hidden;margin-top:auto}
 .sbar-f{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-lt));transition:width .35s;border-radius:3px}
+/* Scrollbar dans les cards serveur */
+.sc .tags{scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(7,20,40,.5)}
+.sc .tags::-webkit-scrollbar{width:4px;height:4px}
+.sc .tags::-webkit-scrollbar-track{background:rgba(7,20,40,.5);border-radius:4px}
+.sc .tags::-webkit-scrollbar-thumb{background:rgba(91,163,255,.35);border-radius:4px}
+.sc .tags::-webkit-scrollbar-thumb:hover{background:rgba(91,163,255,.65)}
 
 /* ALERT FEED */
 .feed{display:flex;flex-direction:column;gap:.35rem;max-height:240px;overflow-y:auto;
