@@ -281,7 +281,7 @@ def _status_text(wl,players):
 	if on:txt+=f"🟢 **En ligne ({len(on)}) :**\n"+''.join(f"• {p}\n"for p in on)
 	if off:txt+=('\n'if txt else'')+f"⚪ **Hors ligne ({len(off)}) :**\n"+''.join(f"• {p}\n"for p in off)
 	return txt or'Aucun joueur surveillé en ligne'
-def _rapport_embed(title,count,time_str,status_text,color):e=discord.Embed(title=title,color=color,timestamp=discord.utils.utcnow());e.add_field(name='👥 Connectés',value=f"**{count}**",inline=True);e.add_field(name='⏱️ Relevé',value=f"**{time_str+1}**",inline=True);e.add_field(name='👁️ Surveillance',value=status_text,inline=False);e.set_footer(text=f"Scanner • MongoDB {"✅"if mongo_ok else"❌"}");return e
+def _rapport_embed(title,count,time_str,status_text,color):e=discord.Embed(title=title,color=color,timestamp=discord.utils.utcnow());e.add_field(name='👥 Connectés',value=f"**{count}**",inline=True);e.add_field(name='⏱️ Relevé', value=f"**{time_str}**", inline=True);e.add_field(name='👁️ Surveillance',value=status_text,inline=False);e.set_footer(text=f"Scanner • MongoDB {"✅"if mongo_ok else"❌"}");return e
 async def _update_rapport(channel,msg_id_ref,embed,save_fn):
 	if not channel:return msg_id_ref
 	if msg_id_ref:
