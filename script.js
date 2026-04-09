@@ -784,7 +784,7 @@ init();
 // ═══════════════════════════════════════════════════════════
 function rmCalc() {
   const power   = parseFloat(document.getElementById('rm-power')?.value)   || 0;
-  const warzone = parseFloat(document.getElementById('rm-warzone')?.value)  || 0;
+  let   warzone = parseFloat(document.getElementById('rm-warzone')?.value)  || 0;
   const claims  = parseFloat(document.getElementById('rm-claims')?.value)   || 0;
 
   if (power <= 0) {
@@ -792,12 +792,21 @@ function rmCalc() {
     return;
   }
 
-  // Formule officielle Red Matter : 0.96^18 × (power − warzone)
-  const factor     = Math.pow(0.96, 18);          // ≈ 0.4796
-  const effectivePow = power - warzone;
-  const powerAfter   = Math.round(effectivePow * factor);
-  const powerLost    = Math.round(power - warzone - powerAfter);
-  const claimsAfter  = Math.max(0, claims - 8);
+  // Sécurité : warzone ne peut pas dépasser le total
+  if (warzone > power) warzone = power;
+
+  // Formule exacte (identique au script Python officiel)
+  // 1. Power soumis au poison = total - warzone
+  // 2. Multiplicateur = 0.96^18 ≈ 0.4796
+  // 3. Power restant = arrondi(soumis × multiplicateur)
+  // 4. Perte = total - power_restant  (pas juste soumis - restant)
+  // 5. Claims restants = claims - 8 (min 0)
+  // 6. Sous-power si power_restant < claims_restants
+  const factor      = Math.pow(0.96, 18);
+  const soumis      = power - warzone;
+  const powerAfter  = Math.round(soumis * factor);
+  const powerLost   = power - powerAfter;          // perte depuis le TOTAL
+  const claimsAfter = Math.max(0, claims - 8);
 
   // Affichage résultats
   const results = document.getElementById('rm-results');
@@ -812,30 +821,28 @@ function rmCalc() {
   if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.style.animation='none'; setTimeout(()=>{elRemain.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
   if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.style.animation='none'; setTimeout(()=>{elClaims.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
 
-  // Verdict sous-power ou safe
+  // Verdict : sous-power si power_restant < claims_restants (règle exacte NationsGlory)
   if (elAlert) {
-    // Règle NationsGlory : sous-power si claims > power / 10
-    const needed    = Math.ceil(claimsAfter * 10);
-    const isSafe    = powerAfter >= needed;
-    const ratio     = powerAfter > 0 ? Math.round((powerAfter / Math.max(needed,1)) * 100) : 0;
-
     elAlert.style.display = 'block';
+    const diff = powerAfter - claimsAfter;
+    const isSafe = powerAfter >= claimsAfter;
+
     if (isSafe) {
-      elAlert.style.background    = 'rgba(0,240,122,.06)';
-      elAlert.style.border        = '1px solid rgba(0,240,122,.25)';
-      elAlert.style.color         = '#00f07a';
+      elAlert.style.background = 'rgba(0,240,122,.06)';
+      elAlert.style.border     = '1px solid rgba(0,240,122,.25)';
+      elAlert.style.color      = '#00f07a';
       elAlert.innerHTML = `
         ✅ &nbsp;<strong>SAFE</strong> — Le pays survit au Red Matter<br>
-        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Requis pour ${claimsAfter} claims : <strong>${needed.toLocaleString('fr-FR')}</strong> · Ratio : <strong>${ratio}%</strong></span>
+        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Claims restants : <strong>${claimsAfter.toLocaleString('fr-FR')}</strong> · Avance : <strong>+${diff.toLocaleString('fr-FR')}</strong> power</span>
       `;
     } else {
-      elAlert.style.background    = 'rgba(255,24,64,.06)';
-      elAlert.style.border        = '1px solid rgba(255,24,64,.25)';
-      elAlert.style.color         = '#ff1840';
-      const deficit = needed - powerAfter;
+      elAlert.style.background = 'rgba(255,24,64,.06)';
+      elAlert.style.border     = '1px solid rgba(255,24,64,.25)';
+      elAlert.style.color      = '#ff1840';
+      const manquant = Math.abs(diff);
       elAlert.innerHTML = `
         ☢ &nbsp;<strong>SOUS-POWER</strong> — Le pays sera en sous-power !<br>
-        <span style="opacity:.7">Déficit : <strong>${deficit.toLocaleString('fr-FR')}</strong> power · Requis : <strong>${needed.toLocaleString('fr-FR')}</strong> · Actuel après impact : <strong>${powerAfter.toLocaleString('fr-FR')}</strong></span>
+        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Claims restants : <strong>${claimsAfter.toLocaleString('fr-FR')}</strong> · Il manque : <strong>${manquant.toLocaleString('fr-FR')}</strong> power</span>
       `;
     }
   }
