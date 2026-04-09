@@ -53,12 +53,9 @@ body{
   background:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 50%,rgba(0,4,18,.65) 100%)}
 
 /* ═══ CURSOR ═══ */
-#cur{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%);
-  width:24px;height:24px;border:2px solid var(--blue-pale);border-radius:50%;
-  transition:transform .1s;mix-blend-mode:screen}
-#cur.c{transform:translate(-50%,-50%) scale(.5)}
-#cd{position:absolute;inset:50%;width:4px;height:4px;transform:translate(-50%,-50%);
-  background:var(--blue-pale);border-radius:50%}
+body{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%235ba3ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%235ba3ff'/%3E%3C/svg%3E") 12 12,crosshair}
+a,button,.tab,.tag,.sc,.btn,.wtb,.wi,.tbl td,.scpbtn,.pp-close,.pp-ng-link,.an,.cl-footer a{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='rgba(91%2C163%2C255%2C.18)' stroke='%235ba3ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%235ba3ff'/%3E%3C/svg%3E") 12 12,pointer}
+input,select{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%235ba3ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%235ba3ff'/%3E%3C/svg%3E") 12 12,text}
 #trl{position:fixed;inset:0;z-index:9998;pointer-events:none}
 
 /* ═══ TOAST ═══ */
@@ -609,8 +606,6 @@ select option{background:var(--bg2);color:var(--t1)}
 <div class="grain"></div>
 <div class="scanlines"></div>
 <div class="vig"></div>
-<div id="cur"><div id="cd"></div></div>
-<canvas id="trl"></canvas>
 <div id="apop"></div>
 <div class="toast-wrap" id="toast-wrap"></div>
 
