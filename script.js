@@ -186,20 +186,27 @@ function drawSpark(canvasId,data,color='rgba(0,80,216,.55)'){
 })();
 
 (()=>{
-  const cur=$('cur'),dot=$('cd');
-  const tc=$('trl'),tc2=tc.getContext('2d');
-  const sync=()=>{tc.width=innerWidth;tc.height=innerHeight};sync();window.addEventListener('resize',sync);
-  let trail=[],MAX=16;
+  // Trail canvas uniquement — le curseur SVG est géré nativement en CSS
+  const tc=document.createElement('canvas');
+  tc.id='trl';tc.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none';
+  document.body.appendChild(tc);
+  const ctx=tc.getContext('2d');
+  const sync=()=>{tc.width=innerWidth;tc.height=innerHeight};sync();
+  window.addEventListener('resize',sync);
+  let trail=[],MAX=14;
   document.addEventListener('mousemove',e=>{
-    dot.style.left=e.clientX+'px';dot.style.top=e.clientY+'px';
-    trail.push({x:e.clientX,y:e.clientY,t:Date.now()});if(trail.length>MAX)trail.shift();
+    trail.push({x:e.clientX,y:e.clientY,t:Date.now()});
+    if(trail.length>MAX)trail.shift();
   });
-  document.addEventListener('mousedown',()=>cur.classList.add('c'));
-  document.addEventListener('mouseup',()=>cur.classList.remove('c'));
   const draw=()=>{
-    tc2.clearRect(0,0,tc.width,tc.height);
+    ctx.clearRect(0,0,tc.width,tc.height);
     const now=Date.now();
-    trail.forEach((p,i)=>{const s=(i+1)/MAX*(1-(now-p.t)/200);if(s<=0)return;tc2.beginPath();tc2.arc(p.x,p.y,1.2*s,0,Math.PI*2);tc2.fillStyle=`rgba(26,111,255,${s*.16})`;tc2.fill();});
+    trail.forEach((p,i)=>{
+      const s=(i+1)/MAX*(1-(now-p.t)/220);
+      if(s<=0)return;
+      ctx.beginPath();ctx.arc(p.x,p.y,1.4*s,0,Math.PI*2);
+      ctx.fillStyle=`rgba(26,111,255,${s*.14})`;ctx.fill();
+    });
     requestAnimationFrame(draw);
   };draw();
 })();
@@ -224,10 +231,29 @@ let pct=0;
 const pctT=setInterval(()=>{pct=Math.min(pct+(Math.random()*8+2),92);if($('l-pct'))$('l-pct').textContent=Math.floor(pct)+'%';},85);
 const msgs=['CHARGEMENT DES MODULES...','CONNEXION API SÉCURISÉE...','SYNCHRONISATION SERVEURS...','VÉRIFICATION INTÉGRITÉ...','CHIFFREMENT CANAL...','SYSTÈME PRÊT À DÉMARRER...'];
 let mi=0;const msgT=setInterval(()=>{if(mi<msgs.length-1&&$('l-msg'))$('l-msg').textContent=msgs[mi++];},500);
-window.addEventListener('load',()=>{
-  clearInterval(pctT);clearInterval(msgT);if($('l-pct'))$('l-pct').textContent='100%';
-  setTimeout(()=>{const m=$('l-msg');if(m){m.textContent='SYSTÈME PRÊT — CLIQUEZ POUR ENTRER';m.classList.remove('blink');m.classList.add('rdy');}const b=$('lbtn');if(b)b.style.display='block';},300);
-});
+
+function _loaderReady(){
+  clearInterval(pctT);clearInterval(msgT);
+  if($('l-pct'))$('l-pct').textContent='100%';
+  if($('l-fill'))$('l-fill').style.width='100%';
+  setTimeout(()=>{
+    const m=$('l-msg');
+    if(m){m.textContent='SYSTÈME PRÊT — CLIQUEZ POUR ENTRER';m.classList.remove('blink');m.classList.add('rdy');}
+    const b=$('lbtn');if(b)b.style.display='block';
+  },300);
+}
+// DOMContentLoaded = dès que le HTML est parsé, sans attendre iframes/images
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',_loaderReady);
+}else{
+  // Déjà prêt (script chargé en defer ou page déjà interactive)
+  setTimeout(_loaderReady,200);
+}
+// Fallback absolu : si au bout de 4s c'est toujours pas ready, on force
+setTimeout(()=>{
+  const b=$('lbtn');
+  if(b&&b.style.display==='none'||b&&!b.style.display){_loaderReady();}
+},4000);
 function enterSite(){
   try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}
   _au=true;window.scrollTo(0,0);
