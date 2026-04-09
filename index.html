@@ -414,16 +414,18 @@ select option{background:var(--bg2);color:var(--t1)}
 .sc-lbl.warn{color:var(--org)}
 .sbar{height:3px;background:rgba(7,20,40,.8);border-radius:3px;overflow:hidden;margin-top:auto}
 .sbar-f{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-lt));transition:width .35s;border-radius:3px}
-/* Scrollbar dans les cards serveur */
-.sc .tags{scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(7,20,40,.5)}
-.sc .tags::-webkit-scrollbar{width:4px;height:4px}
-.sc .tags::-webkit-scrollbar-track{background:rgba(7,20,40,.5);border-radius:4px}
-.sc .tags::-webkit-scrollbar-thumb{background:rgba(91,163,255,.35);border-radius:4px}
-.sc .tags::-webkit-scrollbar-thumb:hover{background:rgba(91,163,255,.65)}
+/* ═══ SCROLLBARS GLOBALES ═══ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:rgba(1,10,26,.7);border-radius:6px}
+::-webkit-scrollbar-thumb{background:rgba(91,163,255,.35);border-radius:6px;border:1px solid rgba(91,163,255,.1)}
+::-webkit-scrollbar-thumb:hover{background:rgba(91,163,255,.7)}
+::-webkit-scrollbar-corner{background:transparent}
+/* Garder la nav sans scrollbar */
+.nav::-webkit-scrollbar{display:none}
 
 /* ALERT FEED */
-.feed{display:flex;flex-direction:column;gap:.35rem;max-height:240px;overflow-y:auto;
-  scrollbar-width:thin;scrollbar-color:var(--b1) transparent}
+.feed{display:flex;flex-direction:column;gap:.35rem;max-height:280px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)}
 .fi{display:flex;align-items:center;gap:.65rem;padding:.4rem .65rem;
   border-radius:4px;background:var(--bg2);font-family:var(--M);font-size:.6rem}
 .fi-d{width:6px;height:6px;border-radius:50%;flex-shrink:0}
@@ -881,7 +883,7 @@ select option{background:var(--bg2);color:var(--t1)}
         </div>
         <button class="btn" onclick="doCheck()">→ Espionner</button>
       </div>
-      <div id="ck-suggest" class="tags" style="margin-top:.4rem;max-height:120px;overflow-y:auto"></div>
+      <div id="ck-suggest" class="tags" style="margin-top:.4rem;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)"></div>
       <div id="ck-result"></div>
     </div>
   </div>
@@ -900,7 +902,7 @@ select option{background:var(--bg2);color:var(--t1)}
       <div class="ptop"></div>
       <div class="ph"><span class="pt" id="wl-pt">◈ Watchlist — LIME</span></div>
       <div class="pb">
-        <div id="wl-pl" class="tags" style="max-height:90px;overflow-y:auto;margin-bottom:.45rem"></div>
+        <div id="wl-pl" class="tags" style="max-height:160px;overflow-y:auto;margin-bottom:.45rem;scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)"></div>
         <div class="row mb" style="margin-bottom:.8rem">
           <div class="acw">
             <input id="wl-add" placeholder="Ajouter un joueur..." autocomplete="off"
@@ -940,7 +942,7 @@ select option{background:var(--bg2);color:var(--t1)}
         </div>
         <button class="btn" onclick="loadStats()">→ Analyser</button>
       </div>
-      <div id="st-pl" class="tags" style="margin-top:.4rem;max-height:100px;overflow-y:auto"></div>
+      <div id="st-pl" class="tags" style="margin-top:.4rem;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)"></div>
     </div>
   </div>
   <div id="st-result"></div>
@@ -968,7 +970,7 @@ select option{background:var(--bg2);color:var(--t1)}
         </div>
         <button class="btn btn-g" onclick="cwAdd()">+ Surveiller</button>
       </div>
-      <div id="cw-suggest" class="tags" style="margin-top:.45rem;max-height:100px;overflow-y:auto"></div>
+      <div id="cw-suggest" class="tags" style="margin-top:.45rem;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)"></div>
     </div>
   </div>
   <div class="panel">
