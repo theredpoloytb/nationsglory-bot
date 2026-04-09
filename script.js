@@ -39,12 +39,12 @@
         position:fixed;inset:0;background:#000;
         display:flex;flex-direction:column;
         align-items:center;justify-content:center;
-        font-family:monospace;color:#f0c040;text-align:center;gap:2rem;
+        font-family:monospace;color:#4d9fff;text-align:center;gap:2rem;
         z-index:99999;
       ">
         <div style="font-size:5rem">🕵️</div>
         <div style="font-size:1.6rem;letter-spacing:.2em">INTRUSION DÉTECTÉE</div>
-        <div style="font-size:.85rem;color:rgba(240,192,64,.5);letter-spacing:.15em;max-width:420px;line-height:1.8">
+        <div style="font-size:.85rem;color:rgba(26,111,255,.5);letter-spacing:.15em;max-width:420px;line-height:1.8">
           La tentative de contournement a été enregistrée.<br>
           IP transmise à l'unité de surveillance.<br>
           <span style="color:#f04040">Accès définitivement révoqué.</span>
@@ -52,7 +52,7 @@
         <div style="font-size:.7rem;color:rgba(200,100,100,.4);letter-spacing:.1em" id="fake-ip">
           Identification en cours...
         </div>
-        <div style="font-size:.6rem;color:rgba(240,192,64,.2);margin-top:1rem">
+        <div style="font-size:.6rem;color:rgba(26,111,255,.2);margin-top:1rem">
           מוסד גלורי — CLASSIFIED
         </div>
       </div>
@@ -110,7 +110,7 @@
         inp.style.borderColor = 'rgba(255,24,64,.5)';
         setTimeout(() => {
           err.style.opacity = '0';
-          inp.style.borderColor = 'rgba(200,168,75,.2)';
+          inp.style.borderColor = 'rgba(0,80,216,.2)';
         }, 2500);
       }
     } catch(e){
@@ -141,7 +141,7 @@ const ld2=()=>ld();
 const rP=(i,p)=>p.find(x=>x.toLowerCase()===i.toLowerCase())||i;
 
 const sparkData={total:[],wl:[],wc:[]};
-function drawSpark(canvasId,data,color='rgba(200,168,75,.5)'){
+function drawSpark(canvasId,data,color='rgba(0,80,216,.55)'){
   const c=$(canvasId);if(!c||!data.length)return;
   const W=c.offsetWidth,H=c.offsetHeight;c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
   const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
@@ -150,7 +150,7 @@ function drawSpark(canvasId,data,color='rgba(200,168,75,.5)'){
   ctx.beginPath();
   data.forEach((v,i)=>{const x=i/(data.length-1)*W,y=H-(v-mn)/range*H*.8-H*.1;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.strokeStyle=color;ctx.lineWidth=1;ctx.stroke();
-  const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'rgba(200,168,75,.1)');grad.addColorStop(1,'transparent');
+  const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'rgba(0,80,216,.1)');grad.addColorStop(1,'transparent');
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
 }
 
@@ -160,7 +160,7 @@ function drawSpark(canvasId,data,color='rgba(200,168,75,.5)'){
   const pts=Array.from({length:55},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*.9+.2,a:Math.random()*.2+.04}));
   let mx=innerWidth/2,my=innerHeight/2,t=0;
   document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
-  const orbs=[[.14,.1,200,168,75,.042,.44],[.86,.84,0,187,255,.022,.38],[.5,.44,157,111,255,.016,.32]];
+  const orbs=[[.14,.1,0,56,184,.055,.44],[.86,.84,26,111,255,.038,.42],[.5,.44,77,159,255,.025,.36]];
   const draw=()=>{
     t+=.003;ctx.clearRect(0,0,c.width,c.height);
     orbs.forEach(([ox,oy,r,g,b,a,s])=>{
@@ -174,11 +174,11 @@ function drawSpark(canvasId,data,color='rgba(200,168,75,.5)'){
       if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
       const d=Math.hypot(p.x-mx,p.y-my),br=d<90?1-d/90:0;
       ctx.beginPath();ctx.arc(p.x,p.y,p.r+br*1.2,0,Math.PI*2);
-      ctx.fillStyle=`rgba(200,168,75,${p.a+br*.16})`;ctx.fill();
+      ctx.fillStyle=`rgba(26,111,255,${p.a+br*.16})`;ctx.fill();
     });
     for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
       const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
-      if(d<80){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(200,168,75,${.028*(1-d/80)})`;ctx.lineWidth=.5;ctx.stroke();}
+      if(d<80){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,80,216,${.028*(1-d/80)})`;ctx.lineWidth=.5;ctx.stroke();}
     }
     requestAnimationFrame(draw);
   };draw();
@@ -198,7 +198,7 @@ function drawSpark(canvasId,data,color='rgba(200,168,75,.5)'){
   const draw=()=>{
     tc2.clearRect(0,0,tc.width,tc.height);
     const now=Date.now();
-    trail.forEach((p,i)=>{const s=(i+1)/MAX*(1-(now-p.t)/200);if(s<=0)return;tc2.beginPath();tc2.arc(p.x,p.y,1.2*s,0,Math.PI*2);tc2.fillStyle=`rgba(240,192,64,${s*.16})`;tc2.fill();});
+    trail.forEach((p,i)=>{const s=(i+1)/MAX*(1-(now-p.t)/200);if(s<=0)return;tc2.beginPath();tc2.arc(p.x,p.y,1.2*s,0,Math.PI*2);tc2.fillStyle=`rgba(26,111,255,${s*.16})`;tc2.fill();});
     requestAnimationFrame(draw);
   };draw();
 })();
@@ -346,7 +346,7 @@ async function loadStats(){
   else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Insuffisantes (min. 3)</span></div>`;
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">🕐 Heatmap horaire</div>`;
-  if(plg?.heatmap){const hm=plg.heatmap,days=plg.days,mx=Math.max(...hm.flat(),1);h+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--M);font-size:.47rem;width:100%"><tr><td style="color:var(--t3);padding-right:.34rem;white-space:nowrap">H→</td>`;for(let i=0;i<24;i++)h+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem">${i}</td>`;h+='</tr>';days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.34rem;white-space:nowrap">${day}</td>`;hm[di].forEach(v=>{const intensity=v?(.04+v/mx*.82).toFixed(2):0;const bg=v?`rgba(200,168,75,${intensity})`:'rgba(2,5,12,.9)';const glow=v&&v/mx>.6?`box-shadow:0 0 4px rgba(200,168,75,${(v/mx*.3).toFixed(2)})`:'';h+=`<td style="width:14px;height:13px;background:${bg};border-radius:1px;padding:0;${glow}"></td>`;});h+='</tr>';});h+='</table></div>';}
+  if(plg?.heatmap){const hm=plg.heatmap,days=plg.days,mx=Math.max(...hm.flat(),1);h+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--M);font-size:.47rem;width:100%"><tr><td style="color:var(--t3);padding-right:.34rem;white-space:nowrap">H→</td>`;for(let i=0;i<24;i++)h+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem">${i}</td>`;h+='</tr>';days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.34rem;white-space:nowrap">${day}</td>`;hm[di].forEach(v=>{const intensity=v?(.04+v/mx*.82).toFixed(2):0;const bg=v?`rgba(0,56,184,${intensity})`:'rgba(2,5,12,.9)';const glow=v&&v/mx>.6?`box-shadow:0 0 4px rgba(0,56,184,${(v/mx*.3).toFixed(2)})`:'';h+=`<td style="width:14px;height:13px;background:${bg};border-radius:1px;padding:0;${glow}"></td>`;});h+='</tr>';});h+='</table></div>';}
   else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>`;
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">◷ Historique</div>`;
@@ -398,18 +398,18 @@ function drawActivityGraph(){
   const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
   const mn=Math.min(...actHistory),mx=Math.max(...actHistory,1),range=mx-mn||1;
   const pad=8,gW=W-pad*2,gH=H-pad*2;
-  for(let i=0;i<=4;i++){const y=pad+gH*(1-i/4);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.strokeStyle='rgba(200,168,75,.05)';ctx.lineWidth=1;ctx.stroke();}
+  for(let i=0;i<=4;i++){const y=pad+gH*(1-i/4);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.strokeStyle='rgba(0,56,184,.05)';ctx.lineWidth=1;ctx.stroke();}
   const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'rgba(200,168,75,.18)');grad.addColorStop(1,'rgba(200,168,75,.01)');
+  grad.addColorStop(0,'rgba(0,56,184,.22)');grad.addColorStop(1,'rgba(0,56,184,.01)');
   ctx.beginPath();
   actHistory.forEach((v,i)=>{const x=pad+i/(actHistory.length-1)*gW,y=pad+gH*(1-(v-mn)/range);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.lineTo(pad+gW,H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
   ctx.beginPath();
   actHistory.forEach((v,i)=>{const x=pad+i/(actHistory.length-1)*gW,y=pad+gH*(1-(v-mn)/range);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.strokeStyle='rgba(200,168,75,.65)';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
+  ctx.strokeStyle='rgba(26,111,255,.7)';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
   const lx=pad+gW,ly=pad+gH*(1-(actHistory[actHistory.length-1]-mn)/range);
-  ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);ctx.fillStyle='var(--gb)';ctx.fill();
-  ctx.beginPath();ctx.arc(lx,ly,6,0,Math.PI*2);ctx.fillStyle='rgba(240,192,64,.2)';ctx.fill();
+  ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);ctx.fillStyle='var(--il-blue-lt)';ctx.fill();
+  ctx.beginPath();ctx.arc(lx,ly,6,0,Math.PI*2);ctx.fillStyle='rgba(26,111,255,.2)';ctx.fill();
   const lel=document.getElementById('graph-labels');
   if(lel&&actLabels.length>0){
     const step=Math.max(1,Math.floor(actLabels.length/5));
@@ -498,7 +498,7 @@ async function openPlayerPanel(player){
     h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Heatmap horaire</div><div style="overflow-x:auto"><table class="pp-heatmap" style="border-collapse:collapse;font-family:var(--M);font-size:.44rem"><tr><td style="color:var(--t3);padding-right:.3rem;font-size:.38rem">H→</td>`;
     for(let i=0;i<24;i+=2)h+=`<td colspan="2" style="color:var(--t3);text-align:center;padding:0 1px;font-size:.38rem">${i}</td>`;
     h+='</tr>';
-    days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.3rem;white-space:nowrap;padding-top:2px;font-size:.44rem">${day}</td>`;hm[di].forEach(v=>{const bg=v?`rgba(200,168,75,${(.04+v/mxH*.82).toFixed(2)})`:'rgba(2,5,12,.9)';h+=`<td style="width:13px;height:11px;background:${bg};border-radius:1px;padding:0"></td>`;});h+='</tr>';});
+    days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.3rem;white-space:nowrap;padding-top:2px;font-size:.44rem">${day}</td>`;hm[di].forEach(v=>{const bg=v?`rgba(0,56,184,${(.04+v/mxH*.82).toFixed(2)})`:'rgba(2,5,12,.9)';h+=`<td style="width:13px;height:11px;background:${bg};border-radius:1px;padding:0"></td>`;});h+='</tr>';});
     h+='</table></div></div>';
   }
   body.innerHTML=h;
@@ -526,7 +526,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ppOpen)closePlayerP
     drops.forEach((y,i)=>{
       const ch=chars[Math.floor(Math.random()*chars.length)];
       const bright=Math.random()>.92;
-      ctx.fillStyle=bright?'#f0c040':`rgba(200,168,75,${Math.random()*.6+.15})`;
+      ctx.fillStyle=bright?'#4d9fff':`rgba(0,80,216,${Math.random()*.6+.15})`;
       ctx.fillText(ch,i*fs,y*fs);
       if(y*fs>c.height&&Math.random()>.975)drops[i]=0;
       drops[i]++;
