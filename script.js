@@ -99,6 +99,7 @@
       if(d.ok){
         sessionStorage.setItem(SESSION_KEY, 'ok');
         if(window._stopGateWatch) window._stopGateWatch();
+        requestNotifPerms();
         unlockContent();
         const gate = document.getElementById('pw-gate');
         gate.style.transition = 'opacity .6s';
@@ -229,6 +230,7 @@ window.addEventListener('load',()=>{
 });
 function enterSite(){
   try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}
+  requestNotifPerms();
   _au=true;window.scrollTo(0,0);
   $('ldr').classList.add('out');
   setTimeout(()=>{$('ldr').style.display='none';showToast('SYSTÈME OPÉRATIONNEL',2500);},900);
