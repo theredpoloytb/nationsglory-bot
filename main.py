@@ -32,12 +32,37 @@ db=sessions_col=config_col=None
 def init_mongo():
 	global mongo_ok,db,sessions_col,config_col
 	if not MONGO_URL:return
-	try:from pymongo import MongoClient,ASCENDING;c=MongoClient(MONGO_URL,serverSelectionTimeoutMS=8000,tls=True,tlsAllowInvalidCertificates=True);c.admin.command('ping');db=c['mossadglory'];sessions_col=db['sessions'];config_col=db['config'];sessions_col.create_index([('player',ASCENDING),('ts',ASCENDING)]);mongo_ok=True;print('✅ MongoDB OK',flush=True)
+	try:
+		from pymongo import MongoClient,ASCENDING
+		c=MongoClient(MONGO_URL,serverSelectionTimeoutMS=8000,tls=True,tlsAllowInvalidCertificates=True)
+		c.admin.command('ping')
+		db=c['mossadglory']
+		sessions_col=db['sessions']
+		config_col=db['config']
+		sessions_col.create_index([('player',ASCENDING),('ts',ASCENDING)])
+		# Index pour la collection presence
+		db['presence'].create_index([('total',-1)])
+		mongo_ok=True
+		print('✅ MongoDB OK',flush=True)
 	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
+
+# ── MODIFIÉ : record_connection incrémente aussi presence ──
 def record_connection(player,server):
 	if not mongo_ok:return
-	try:now=datetime.utcnow()+timedelta(hours=1);sessions_col.insert_one({'player':player,'server':server,'ts':now,'day':now.weekday(),'hour':now.hour,'minute':now.minute})
+	try:
+		now=datetime.utcnow()+timedelta(hours=1)
+		sessions_col.insert_one({'player':player,'server':server,'ts':now,'day':now.weekday(),'hour':now.hour,'minute':now.minute})
+		# Incrémenter compteur de présence global (Top Players)
+		db['presence'].update_one(
+			{'player':player},
+			{
+				'$inc':{'total':1,f'servers.{server}':1},
+				'$set':{'last_seen':now,'last_server':server}
+			},
+			upsert=True
+		)
 	except:pass
+
 def get_sessions(player,limit=500):
 	if not mongo_ok:return[]
 	try:from pymongo import ASCENDING;return list(sessions_col.find({'player':player},{'_id':0}).sort('ts',ASCENDING).limit(limit))
@@ -198,6 +223,37 @@ async def api_auth_check(r):
 		if data.get('password')==password:return cors({'ok':True})
 		return cors({'ok':False},401)
 	except:return cors({'ok':False},400)
+
+# ── NOUVEAU : Top Players interserveur ──
+async def api_top_players(r):
+	if not mongo_ok:return cors({'players':[]})
+	try:
+		limit=int(r.rel_url.query.get('limit',20))
+		docs=list(db['presence'].find({},{'_id':0}).sort('total',-1).limit(limit))
+		# Convertir datetime en string pour JSON
+		for d in docs:
+			if 'last_seen' in d and hasattr(d['last_seen'],'strftime'):
+				d['last_seen']=d['last_seen'].strftime('%d/%m/%Y %H:%M')
+		return cors({'players':docs})
+	except Exception as e:return cors({'error':str(e)},500)
+
+# ── NOUVEAU : Top Players par serveur ──
+async def api_top_players_server(r):
+	server=r.match_info['server'].lower()
+	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	if not mongo_ok:return cors({'players':[]})
+	try:
+		limit=int(r.rel_url.query.get('limit',10))
+		docs=list(db['presence'].find(
+			{f'servers.{server}':{'$exists':True,'$gt':0}},
+			{'_id':0}
+		).sort(f'servers.{server}',-1).limit(limit))
+		for d in docs:
+			if 'last_seen' in d and hasattr(d['last_seen'],'strftime'):
+				d['last_seen']=d['last_seen'].strftime('%d/%m/%Y %H:%M')
+		return cors({'players':docs})
+	except Exception as e:return cors({'error':str(e)},500)
+
 async def srv_ac(i,cur):return[app_commands.Choice(name=s.upper(),value=s)for s in SERVERS if cur.lower()in s][:25]
 async def ctry_ac(i,cur):
 	s=i.namespace.server
@@ -216,18 +272,18 @@ async def cmd_check(i:discord.Interaction,server:str,country:str):
 		if f:found[s]=f;total+=len(f)
 	e=discord.Embed(title=f"📊 Espionnage {name}",color=discord.Color.red())
 	if found:
-		for(s,pl)in sorted(found.items(),key=lambda x:(x[0]!=server,x[0])):lbl=f"{SERVERS[s]["emoji"]} {s.upper()} ({len(pl)})"+(' ← cible'if s==server else'');e.add_field(name=lbl,value=', '.join(pl),inline=False)
+		for(s,pl)in sorted(found.items(),key=lambda x:(x[0]!=server,x[0])):lbl=f"{SERVERS[s]['emoji']} {s.upper()} ({len(pl)})"+(' ← cible'if s==server else'');e.add_field(name=lbl,value=', '.join(pl),inline=False)
 		e.set_footer(text=f"Total : {total} | {len(members)} membres")
 	else:e.description=f"✅ Aucun membre de {name} connecté";e.color=discord.Color.green()
 	await i.followup.send(embed=e)
 @tree.command(name='checkall',description='Localiser un joueur')
-async def cmd_checkall(i:discord.Interaction,joueur:str):await i.response.defer();all_=await get_all_online();found=[s for(s,pl)in all_.items()if joueur in pl];e=discord.Embed(title=f"🔍 {joueur}",color=discord.Color.green()if found else discord.Color.red());e.description='\n'.join(f"{SERVERS[s]["emoji"]} **{s.upper()}**"for s in found)if found else f"**{joueur}** hors ligne";await i.followup.send(embed=e)
+async def cmd_checkall(i:discord.Interaction,joueur:str):await i.response.defer();all_=await get_all_online();found=[s for(s,pl)in all_.items()if joueur in pl];e=discord.Embed(title=f"🔍 {joueur}",color=discord.Color.green()if found else discord.Color.red());e.description='\n'.join(f"{SERVERS[s]['emoji']} **{s.upper()}**"for s in found)if found else f"**{joueur}** hors ligne";await i.followup.send(embed=e)
 @tree.command(name='online',description='Joueurs en ligne sur un serveur')
 @app_commands.autocomplete(server=srv_ac)
 async def cmd_online(i:discord.Interaction,server:str):
 	await i.response.defer()
 	if server not in SERVERS:return await i.followup.send('❌ Serveur invalide')
-	pl=await get_online(server);e=discord.Embed(title=f"{SERVERS[server]["emoji"]} {server.upper()}",color=discord.Color.blurple())
+	pl=await get_online(server);e=discord.Embed(title=f"{SERVERS[server]['emoji']} {server.upper()}",color=discord.Color.blurple())
 	if pl:
 		for(idx,chunk)in enumerate([pl[j:j+20]for j in range(0,len(pl),20)]):e.add_field(name=f"Joueurs {idx+1}",value='\n'.join(f"• {p}"for p in chunk),inline=True)
 		e.set_footer(text=f"{len(pl)} connectés")
@@ -240,7 +296,7 @@ async def cmd_pronostic(i:discord.Interaction,joueur:str):
 	res=get_pronostic(joueur)
 	if not res:return await i.followup.send(f"⚠️ Pas assez de données pour **{joueur}**",ephemeral=True)
 	top,DAYS,total=res;e=discord.Embed(title=f"🔮 Pronostic — {joueur}",description=f"Basé sur **{total}** connexions",color=discord.Color.purple())
-	for(d,avg_h,avg_m,pct)in top:e.add_field(name=f"{DAYS[d]} — {pct}%",value=f"`{"█"*(pct//10)}{"░"*(10-pct//10)}` **{avg_h}h{str(avg_m).zfill(2)}**",inline=False)
+	for(d,avg_h,avg_m,pct)in top:e.add_field(name=f"{DAYS[d]} — {pct}%",value=f"`{'█'*(pct//10)}{'░'*(10-pct//10)}` **{avg_h}h{str(avg_m).zfill(2)}**",inline=False)
 	e.set_footer(text='% = fréquence par jour');await i.followup.send(embed=e)
 @tree.command(name='plages',description="Plages horaires d'un joueur")
 async def cmd_plages(i:discord.Interaction,joueur:str):
@@ -281,7 +337,7 @@ def _status_text(wl,players):
 	if on:txt+=f"🟢 **En ligne ({len(on)}) :**\n"+''.join(f"• {p}\n"for p in on)
 	if off:txt+=('\n'if txt else'')+f"⚪ **Hors ligne ({len(off)}) :**\n"+''.join(f"• {p}\n"for p in off)
 	return txt or'Aucun joueur surveillé en ligne'
-def _rapport_embed(title,count,time_str,status_text,color):e=discord.Embed(title=title,color=color,timestamp=discord.utils.utcnow());e.add_field(name='👥 Connectés',value=f"**{count}**",inline=True);e.add_field(name='⏱️ Relevé', value=f"**{time_str}**", inline=True);e.add_field(name='👁️ Surveillance',value=status_text,inline=False);e.set_footer(text=f"Scanner • MongoDB {"✅"if mongo_ok else"❌"}");return e
+def _rapport_embed(title,count,time_str,status_text,color):e=discord.Embed(title=title,color=color,timestamp=discord.utils.utcnow());e.add_field(name='👥 Connectés',value=f"**{count}**",inline=True);e.add_field(name='⏱️ Relevé', value=f"**{time_str}**", inline=True);e.add_field(name='👁️ Surveillance',value=status_text,inline=False);e.set_footer(text=f"Scanner • MongoDB {'✅'if mongo_ok else'❌'}");return e
 async def _update_rapport(channel,msg_id_ref,embed,save_fn):
 	if not channel:return msg_id_ref
 	if msg_id_ref:
@@ -344,7 +400,33 @@ async def scanner_loop():
 		except Exception as e:print(f"❌ Scanner: {e}",flush=True)
 		await asyncio.sleep(2)
 async def start_web():
-	app=web.Application();routes=[('GET','/',api_health),('GET','/health',api_health),('POST','/api/auth-check',api_auth_check),('GET','/api/online/{server}',api_online),('GET','/api/online_all',api_online_all),('GET','/api/checkall/{player}',api_checkall),('GET','/api/countries/{server}',api_countries),('GET','/api/check/{server}/{country}',api_check),('GET','/api/watchlist',api_wl_get),('POST','/api/watchlist/add',api_wl_add),('POST','/api/watchlist/remove',api_wl_remove),('GET','/api/watchlist_mocha',api_wl_mocha_get),('POST','/api/watchlist_mocha/add',api_wl_mocha_add),('POST','/api/watchlist_mocha/remove',api_wl_mocha_remove),('GET','/api/pronostic/{player}',api_pronostic),('GET','/api/plages/{player}',api_plages),('GET','/api/known_players',api_known_players),('GET','/api/grade/{player}/{server}',api_grade),('GET','/api/country_watches',api_cw_get),('POST','/api/country_watches/add',api_cw_add),('POST','/api/country_watches/remove',api_cw_remove)]
+	app=web.Application()
+	routes=[
+		('GET','/',api_health),
+		('GET','/health',api_health),
+		('POST','/api/auth-check',api_auth_check),
+		('GET','/api/online/{server}',api_online),
+		('GET','/api/online_all',api_online_all),
+		('GET','/api/checkall/{player}',api_checkall),
+		('GET','/api/countries/{server}',api_countries),
+		('GET','/api/check/{server}/{country}',api_check),
+		('GET','/api/watchlist',api_wl_get),
+		('POST','/api/watchlist/add',api_wl_add),
+		('POST','/api/watchlist/remove',api_wl_remove),
+		('GET','/api/watchlist_mocha',api_wl_mocha_get),
+		('POST','/api/watchlist_mocha/add',api_wl_mocha_add),
+		('POST','/api/watchlist_mocha/remove',api_wl_mocha_remove),
+		('GET','/api/pronostic/{player}',api_pronostic),
+		('GET','/api/plages/{player}',api_plages),
+		('GET','/api/known_players',api_known_players),
+		('GET','/api/grade/{player}/{server}',api_grade),
+		('GET','/api/country_watches',api_cw_get),
+		('POST','/api/country_watches/add',api_cw_add),
+		('POST','/api/country_watches/remove',api_cw_remove),
+		# ── NOUVEAU ──
+		('GET','/api/top_players',api_top_players),
+		('GET','/api/top_players/{server}',api_top_players_server),
+	]
 	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
 	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
 async def self_ping():
@@ -365,5 +447,5 @@ async def main():
 		except discord.errors.HTTPException as e:print(f"❌ Rate limit Discord: {e}",flush=True);await asyncio.sleep(60);sys.exit(1)
 		except Exception as e:print(f"❌ Erreur: {e}",flush=True);await asyncio.sleep(30);sys.exit(1)
 @client.event
-async def on_ready():await tree.sync();print(f"✅ {client.user} | {len(SERVERS)} serveurs | MongoDB {"✅"if mongo_ok else"❌"}",flush=True)
+async def on_ready():await tree.sync();print(f"✅ {client.user} | {len(SERVERS)} serveurs | MongoDB {'✅'if mongo_ok else'❌'}",flush=True)
 if __name__=='__main__':asyncio.run(main())
