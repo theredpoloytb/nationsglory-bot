@@ -1184,39 +1184,43 @@ function trackPresence(all){
 }
 
 let top5AllData={};
+let top5ServerData=[];
 
 async function loadTop5(){
   const interEl=document.getElementById('top5-inter');
   if(interEl)interEl.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
   try{
-    const all=await api('/api/online_all');
+    // Charger en parallèle : joueurs en ligne + classement serveur
+    const [all, topData] = await Promise.all([
+      api('/api/online_all'),
+      api('/api/top_players?limit=20')
+    ]);
     top5AllData=all;
     trackPresence(all);
-    renderTop5Inter(all);
-    renderTop5BySrv();
+    renderTop5Inter(topData.players||[], all);
+    await renderTop5BySrv();
   }catch(e){
     if(interEl)interEl.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
   }
 }
 
-function renderTop5Inter(all){
+function renderTop5Inter(players, allOnline){
   const el=document.getElementById('top5-inter');if(!el)return;
-  // Top basé sur présence session + présence actuelle
-  const now={};
-  SRV.forEach(s=>(all[s]||[]).forEach(p=>{if(!now[p])now[p]=[];now[p].push(s);}));
+  if(!players.length){el.innerHTML='<div class="empty">Pas encore de données — le classement se construit automatiquement au fil du temps.</div>';return;}
 
-  // Score = présences session * 2 + serveurs actuels
-  const scored=Object.entries(presenceCount).map(([p,d])=>({
-    player:p,score:d.total,servers:d.servers,currentServers:now[p]||[],isOnline:!!(now[p]?.length)
-  })).sort((a,b)=>b.score-a.score).slice(0,5);
+  // Qui est en ligne maintenant ?
+  const nowOnline={};
+  SRV.forEach(s=>(allOnline[s]||[]).forEach(p=>{if(!nowOnline[p])nowOnline[p]=[];nowOnline[p].push(s);}));
 
-  if(!scored.length){el.innerHTML='<div class="empty">Pas encore de données — les scores se construisent avec le temps de session</div>';return;}
-
-  const maxScore=scored[0]?.score||1;
+  const top=players.slice(0,5);
+  const maxScore=top[0]?.total||1;
   const medals=['🥇','🥈','🥉','④','⑤'];
-  el.innerHTML=scored.map((x,i)=>{
+  el.innerHTML=top.map((x,i)=>{
     const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
-    const topSrv=Object.entries(x.servers).sort((a,b)=>b[1]-a[1])[0];
+    const currentSrvs=nowOnline[x.player]||[];
+    const isOnline=currentSrvs.length>0;
+    // Serveur favori = celui avec le plus de connexions
+    const topSrv=x.servers?Object.entries(x.servers).sort((a,b)=>b[1]-a[1])[0]:null;
     return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
       <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]}</div>
       <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
@@ -1224,53 +1228,58 @@ function renderTop5Inter(all){
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap">
           <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
           ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
-          ${x.isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+          ${isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
         </div>
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-          <div style="width:120px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(x.score/maxScore*100)}%;height:100%;background:var(--blue-lt);transition:width .4s"></div></div>
-          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${x.score} scans</span>
-          ${topSrv?`<span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">· Serveur fav : <span style="color:var(--blue-pale)">${topSrv[0].toUpperCase()}</span></span>`:''}
+          <div style="width:120px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(x.total/maxScore*100)}%;height:100%;background:var(--blue-lt);transition:width .4s"></div></div>
+          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${x.total} connexions</span>
+          ${topSrv?`<span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">· Fav : <span style="color:var(--blue-pale)">${topSrv[0].toUpperCase()}</span></span>`:''}
         </div>
-        ${x.currentServers.length?`<div style="margin-top:.2rem">${x.currentServers.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(' ')}</div>`:''}
+        ${isOnline?`<div style="margin-top:.2rem">${currentSrvs.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(' ')}</div>`:''}
+        ${x.last_seen?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.15rem">Dernière co : ${x.last_seen}</div>`:''}
       </div>
     </div>`;
   }).join('');
 }
 
-function renderTop5BySrv(){
+async function renderTop5BySrv(){
   const el=document.getElementById('top5-srv');if(!el)return;
   const srv=document.getElementById('top5-srv-sel')?.value||'lime';
-  const players=(top5AllData[srv]||[]);
-  if(!players.length){el.innerHTML=`<div class="empty">Aucun joueur sur ${srv.toUpperCase()} actuellement</div>`;return;}
-
-  // Top 5 du serveur = présence sur ce serveur en session
-  const srvScores=Object.entries(presenceCount)
-    .filter(([p,d])=>d.servers[srv])
-    .map(([p,d])=>({player:p,score:d.servers[srv],isOnline:players.map(x=>x.toLowerCase()).includes(p.toLowerCase())}))
-    .sort((a,b)=>b.score-a.score).slice(0,5);
-
-  // Compléter avec joueurs actuels si pas assez de données session
-  const onlineMissing=players.filter(p=>!srvScores.find(x=>x.player.toLowerCase()===p.toLowerCase())).slice(0,Math.max(0,5-srvScores.length));
-  const combined=[...srvScores,...onlineMissing.map(p=>({player:p,score:0,isOnline:true}))].slice(0,5);
-
-  if(!combined.length){el.innerHTML='<div class="empty">Pas de données pour ce serveur</div>';return;}
-  const maxS=combined[0]?.score||1;
-  const medals=['🥇','🥈','🥉','④','⑤'];
-  el.innerHTML=combined.map((x,i)=>{
-    const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
-    return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
-      <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]||'#'+(i+1)}</div>
-      <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
-          <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
-          ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
-          ${x.isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+  el.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
+  try{
+    const [srvData, onlineNow] = await Promise.all([
+      api(`/api/top_players/${srv}?limit=10`),
+      api(`/api/online/${srv}`)
+    ]);
+    const players=srvData.players||[];
+    const onlineList=(onlineNow.players||[]).map(p=>p.toLowerCase());
+    if(!players.length){el.innerHTML=`<div class="empty">Pas encore de données pour ${srv.toUpperCase()}</div>`;return;}
+    const maxS=players[0]?.servers?.[srv]||1;
+    const medals=['🥇','🥈','🥉','④','⑤'];
+    el.innerHTML=players.slice(0,5).map((x,i)=>{
+      const score=x.servers?.[srv]||0;
+      const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
+      const isOnline=onlineList.includes(x.player.toLowerCase());
+      return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
+        <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]||'#'+(i+1)}</div>
+        <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
+            <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
+            ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
+            ${isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div style="width:100px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(score/maxS*100)}%;height:100%;background:var(--blue-lt)"></div></div>
+            <span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">${score} connexions</span>
+          </div>
+          ${x.last_seen?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.15rem">Dernière co : ${x.last_seen}</div>`:''}
         </div>
-        ${x.score>0?`<div style="display:flex;align-items:center;gap:.5rem"><div style="width:100px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(x.score/maxS*100)}%;height:100%;background:var(--blue-lt)"></div></div><span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">${x.score} scans</span></div>`:'<span style="font-family:var(--M);font-size:.5rem;color:var(--t4)">En ligne maintenant</span>'}
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
+  }
 }
 
 // Auto-refresh Top5 et Carte toutes les 30s si section active
