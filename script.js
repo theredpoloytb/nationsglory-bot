@@ -284,7 +284,7 @@ function scStopBar(){if(scBarT){clearInterval(scBarT);scBarT=null;}}
 async function api(p){const r=await fetch(API+p);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');}
+async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -338,6 +338,110 @@ async function loadDash(){
 }
 const _authed=()=>sessionStorage.getItem('mg_auth_v2')==='ok';
 let _firstCycle=true;
+
+// ═══ HISTORIQUE CONNEXIONS ═══
+const CONN_HIST_KEY='mg_conn_hist_v2';
+const CONN_HIST_MAX=500;
+let connHist=JSON.parse(localStorage.getItem(CONN_HIST_KEY)||'[]');
+
+function saveConnHist(){localStorage.setItem(CONN_HIST_KEY,JSON.stringify(connHist));}
+
+function addConnEvent(type,player,server){
+  connHist.unshift({type,player,server,ts:Date.now(),time:new Date().toLocaleTimeString('fr-FR'),date:new Date().toLocaleDateString('fr-FR')});
+  if(connHist.length>CONN_HIST_MAX)connHist.pop();
+  saveConnHist();
+  updateHistPlayerFilter();
+  if(document.getElementById('s-historique')?.classList.contains('active')) renderConnHist();
+}
+
+function updateHistPlayerFilter(){
+  const sel=document.getElementById('hist-filter-player');if(!sel)return;
+  const cur=sel.value;
+  const players=[...new Set(connHist.map(e=>e.player))].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+  sel.innerHTML='<option value="">Tous les joueurs</option>'+players.map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+}
+
+function renderConnHist(){
+  const body=document.getElementById('conn-hist-body');
+  const statsEl=document.getElementById('hist-stats');
+  const chartEl=document.getElementById('hist-chart-body');
+  if(!body)return;
+  const fp=document.getElementById('hist-filter-player')?.value||'';
+  const ft=document.getElementById('hist-filter-type')?.value||'';
+  let filtered=connHist;
+  if(fp)filtered=filtered.filter(e=>e.player===fp);
+  if(ft)filtered=filtered.filter(e=>e.type===ft);
+
+  // Stats rapides
+  if(statsEl){
+    const total=connHist.length;
+    const connects=connHist.filter(e=>e.type==='connect').length;
+    const players=[...new Set(connHist.map(e=>e.player))].length;
+    statsEl.innerHTML=[
+      {label:'Événements total',val:total,col:'var(--blue-pale)'},
+      {label:'Connexions',val:connects,col:'var(--grn)'},
+      {label:'Déconnexions',val:total-connects,col:'var(--red)'},
+      {label:'Joueurs trackés',val:players,col:'var(--org)'}
+    ].map(s=>`<div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.6rem 1rem;min-width:120px">
+      <div style="font-family:var(--D);font-size:1.6rem;color:${s.col};line-height:1">${s.val}</div>
+      <div style="font-family:var(--M);font-size:.5rem;color:var(--t3);letter-spacing:.12em;margin-top:.2rem">${s.label}</div>
+    </div>`).join('');
+  }
+
+  // Tableau historique
+  if(!filtered.length){body.innerHTML='<div class="empty">Aucun événement correspondant aux filtres.</div>';return;}
+  body.innerHTML=`<table class="tbl">
+    <thead><tr><th>Type</th><th>Joueur</th><th>Serveur</th><th>Date</th><th>Heure</th></tr></thead>
+    <tbody>${filtered.slice(0,150).map(e=>`
+      <tr onclick="openPlayerPanel('${e.player}')">
+        <td><span style="color:${e.type==='connect'?'var(--grn)':'var(--red)'}">
+          ${e.type==='connect'?'🟢 Connexion':'🔴 Déco'}
+        </span></td>
+        <td style="color:var(--t1);font-weight:600">${e.player}</td>
+        <td><span class="stag">${(e.server||'').toUpperCase()}</span></td>
+        <td style="color:var(--t3)">${e.date||'—'}</td>
+        <td style="color:var(--t2)">${e.time}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+  ${filtered.length>150?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);text-align:center;margin-top:.6rem;letter-spacing:.1em">Affichage limité à 150 / ${filtered.length} événements — utilisez les filtres</div>`:''}`;
+
+  // Graphe activité par joueur
+  if(chartEl){
+    const byPlayer={};
+    connHist.forEach(e=>{
+      if(!byPlayer[e.player])byPlayer[e.player]={connect:0,disconnect:0};
+      byPlayer[e.player][e.type]=(byPlayer[e.player][e.type]||0)+1;
+    });
+    const sorted=Object.entries(byPlayer).sort((a,b)=>(b[1].connect+b[1].disconnect)-(a[1].connect+a[1].disconnect)).slice(0,10);
+    if(!sorted.length){chartEl.innerHTML='<div class="empty">Pas encore de données.</div>';return;}
+    const maxVal=Math.max(...sorted.map(([,v])=>v.connect+v.disconnect),1);
+    chartEl.innerHTML=sorted.map(([player,v])=>{
+      const total=v.connect+v.disconnect;
+      const pctC=Math.round(v.connect/maxVal*100);
+      const pctD=Math.round(v.disconnect/maxVal*100);
+      return`<div style="margin-bottom:.7rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.22rem">
+          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${player}')">${player}</span>
+          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${v.connect} co · ${v.disconnect} déco</span>
+        </div>
+        <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;background:var(--bg2)">
+          <div style="width:${pctC}%;background:var(--grn);opacity:.7;transition:width .3s"></div>
+          <div style="width:${pctD}%;background:var(--red);opacity:.6;transition:width .3s"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function clearConnHist(){
+  if(!confirm('Vider tout l\'historique des connexions ?'))return;
+  connHist=[];saveConnHist();
+  document.getElementById('hist-filter-player').innerHTML='<option value="">Tous les joueurs</option>';
+  renderConnHist();
+  showToast('Historique vidé');
+}
+
 function pAlert(t,p,s){
   ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});
   if(ALR.length>60)ALR.pop();
@@ -345,6 +449,7 @@ function pAlert(t,p,s){
   if(!_authed()||_firstCycle)return;
   const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());
   if(inWL){
+    addConnEvent(t,p,s);
     if(t==='connect'){setLastSeen(p,s);startSession(p);sendBrowserNotif('connect',p,s);}
     else{endSession(p);sendBrowserNotif('disconnect',p,s);}
     showPop(t,p,s);
