@@ -1203,37 +1203,54 @@ select option{background:var(--bg2);color:var(--t1)}
 <section class="sec" id="s-changelog">
   <div class="cl-wrap">
     <div class="cl-header">
-      <div class="cl-transmission">// TRANSMISSION OFFICIELLE — MISE À JOUR MAJEURE</div>
+      <div class="cl-transmission">// TRANSMISSION OFFICIELLE — CHANGELOG COMPLET V2</div>
       <div class="cl-title"><span class="cl-title-deco">◈</span> VERSION 2.0 — REFONTE TOTALE <span class="cl-title-deco">◈</span></div>
-      <div class="cl-intro">La V2 marque un tournant — architecture repensée, interface nouvelle génération, performances optimisées et fonctionnalités exclusives. <strong>Mossad Glory passe au niveau supérieur.</strong></div>
+      <div class="cl-intro">La V2 marque un tournant — architecture repensée, interface nouvelle génération, performances optimisées et <strong>8 nouvelles fonctionnalités exclusives</strong>. Mossad Glory passe au niveau supérieur.</div>
     </div>
+
+    <div style="font-family:var(--M);font-size:.58rem;letter-spacing:.2em;color:var(--blue-pale);margin-bottom:.8rem;opacity:.7">── FONDATIONS V2 ──────────────────────────</div>
     <div class="cl-grid">
-      <div class="cl-card new"><div class="cl-card-title"><span>🎨</span> REFONTE VISUELLE V2</div><div class="cl-card-body">Interface entièrement redesignée — palette israélienne bleu profond, typographie Frank Ruhl Libre, lisibilité maximale, textes bien visibles.</div></div>
+      <div class="cl-card new"><div class="cl-card-title"><span>🎨</span> REFONTE VISUELLE V2</div><div class="cl-card-body">Interface entièrement redesignée — palette bleu profond, typographie Frank Ruhl Libre, lisibilité maximale.</div></div>
       <div class="cl-card new"><div class="cl-card-title"><span>⚡</span> PERFORMANCES MOTEUR</div><div class="cl-card-body">Refactoring profond — moins d'appels DOM, batching des updates, gestion mémoire optimisée. Dashboard nettement plus réactif.</div></div>
-      <div class="cl-card new"><div class="cl-card-title"><span>🔐</span> SÉCURITÉ RENFORCÉE</div><div class="cl-card-body">Gate anti-bypass amélioré — détection DOM, fausse IP dissuasive, session sécurisée. Notifs bloquées avant authentification.</div></div>
+      <div class="cl-card new"><div class="cl-card-title"><span>🔐</span> SÉCURITÉ RENFORCÉE</div><div class="cl-card-body">Gate anti-bypass amélioré — détection DOM, fausse IP dissuasive, session sécurisée. Notifs bloquées avant auth.</div></div>
       <div class="cl-card new"><div class="cl-card-title"><span>📊</span> DASHBOARD ENRICHI</div><div class="cl-card-body">4 stats avec sparklines animées, graphe 30 points, météo d'activité dynamique et watchlist live en un seul écran.</div></div>
       <div class="cl-card new"><div class="cl-card-title"><span>🧠</span> IA PRÉDICTIVE</div><div class="cl-card-body">Prédiction de déconnexion recalibrée — meilleure précision, affichage couleur adaptatif, historique étendu.</div></div>
-      <div class="cl-card new"><div class="cl-card-title"><span>🌐</span> MULTI-SERVEUR</div><div class="cl-card-body">LIME et MOCHA avec isolation des alertes parfaite. Filtres affinés, zéro faux-positif inter-serveurs.</div></div>
+      <div class="cl-card new"><div class="cl-card-title"><span>🌐</span> MULTI-SERVEUR</div><div class="cl-card-body">11 serveurs surveillés — LIME, MOCHA et plus, isolation des alertes parfaite, zéro faux-positif inter-serveurs.</div></div>
       <div class="cl-card visual"><div class="cl-card-title"><span>✨</span> ANIMATIONS V2</div><div class="cl-card-body">Transitions fluides entre onglets, flash cinématique, entrées staggerées. Fluidité haut de gamme sur toutes les interactions.</div></div>
-      <div class="cl-card visual"><div class="cl-card-title"><span>🎯</span> UX AFFINÉE</div><div class="cl-card-body">Navigation clavier 1–9, Ctrl+K, Échap, autocomplétion intelligente, toasts informatifs. Entièrement pilotable sans souris.</div></div>
+      <div class="cl-card visual"><div class="cl-card-title"><span>🎯</span> UX AFFINÉE</div><div class="cl-card-body">Navigation clavier 1–9, Ctrl+K, Échap, autocomplétion intelligente, toasts informatifs. Pilotable sans souris.</div></div>
+    </div>
+
+    <div style="font-family:var(--M);font-size:.58rem;letter-spacing:.2em;color:var(--grn);margin:1.4rem 0 .8rem;opacity:.7">── NOUVELLES FONCTIONNALITÉS ──────────────</div>
+    <div class="cl-grid">
+      <div class="cl-card new" style="border-color:rgba(0,232,122,.25)"><div class="cl-card-title"><span>🕐</span> HISTORIQUE DES CONNEXIONS</div><div class="cl-card-body">Chaque connexion et déconnexion de la watchlist est enregistrée automatiquement — filtres par joueur, stats globales, graphe d'activité. Persistant en localStorage jusqu'à 500 événements.</div></div>
+      <div class="cl-card new" style="border-color:rgba(0,232,122,.25)"><div class="cl-card-title"><span>📝</span> NOTES SUR LES CIBLES</div><div class="cl-card-body">Annotations personnelles sur chaque joueur — 5 étiquettes colorées (Ennemi, Allié, Neutre, Espion, VIP), texte libre, visible directement dans le panel joueur.</div></div>
+      <div class="cl-card new" style="border-color:rgba(0,232,122,.25)"><div class="cl-card-title"><span>🗺</span> CARTE DES SERVEURS</div><div class="cl-card-body">Heat-map live des 11 serveurs — couleur dynamique selon l'activité, classement avec médailles, détection des cibles watchlist par serveur.</div></div>
+      <div class="cl-card new" style="border-color:rgba(0,232,122,.25)"><div class="cl-card-title"><span>🏆</span> TOP JOUEURS ACTIFS</div><div class="cl-card-body">Classement persistant côté serveur (MongoDB) des joueurs les plus souvent connectés — interserveur et par serveur, visible par tous les utilisateurs 24h/24.</div></div>
+    </div>
+
+    <div style="font-family:var(--M);font-size:.58rem;letter-spacing:.2em;color:var(--org);margin:1.4rem 0 .8rem;opacity:.7">── CORRECTIONS & AMÉLIORATIONS ────────────</div>
+    <div class="cl-grid">
       <div class="cl-card fix"><div class="cl-card-title"><span>🔊</span> AUDIO</div><div class="cl-card-body">Sons de navigation, d'alerte et de notification revus — Web Audio API précis, volumes calibrés.</div></div>
       <div class="cl-card fix"><div class="cl-card-title"><span>📱</span> MOBILE</div><div class="cl-card-body">Responsive repensé — 380px/640px, touch natif, panel joueur full-screen mobile. Zéro compromis.</div></div>
       <div class="cl-card fix"><div class="cl-card-title"><span>⏱</span> TIMERS</div><div class="cl-card-body">Timers de session et countdown synchro parfaite. Drift compensé, affichage stable après plusieurs heures.</div></div>
-      <div class="cl-card fix"><div class="cl-card-title"><span>🚨</span> SURVEILLANCE PAYS V2</div><div class="cl-card-body">Onglet pays stabilisé — gestion erreurs réseau, re-tentatives auto, statut visuel clair et lisible.</div></div>
+      <div class="cl-card fix"><div class="cl-card-title"><span>🚨</span> SURVEILLANCE PAYS</div><div class="cl-card-body">Onglet pays stabilisé — gestion erreurs réseau, re-tentatives auto, statut visuel clair et lisible.</div></div>
     </div>
+
     <div class="cl-checklist">
-      <div class="cl-check">Refonte visuelle — interface V2 lisible et premium</div>
+      <div class="cl-check">Refonte visuelle complète — interface V2 premium</div>
       <div class="cl-check">Moteur de rendu optimisé — +40% performances</div>
-      <div class="cl-check">Notifs bloquées avant authentification</div>
+      <div class="cl-check">Sécurité gate anti-bypass renforcée</div>
       <div class="cl-check">Dashboard enrichi — sparklines + météo + watchlist live</div>
       <div class="cl-check">IA prédictive de déconnexion recalibrée</div>
-      <div class="cl-check">Multi-serveur LIME/MOCHA — zéro faux-positif</div>
+      <div class="cl-check">Multi-serveur 11 serveurs — zéro faux-positif</div>
+      <div class="cl-check">🆕 Historique connexions — 500 événements persistants</div>
+      <div class="cl-check">🆕 Notes cibles — étiquettes + texte libre + panel joueur</div>
+      <div class="cl-check">🆕 Carte serveurs — heat-map live + classement</div>
+      <div class="cl-check">🆕 Top joueurs — classement MongoDB 24h/24 interserveur</div>
       <div class="cl-check">Animations V2 — transitions fluides et cinématiques</div>
       <div class="cl-check">Navigation clavier complète (1–9 + Ctrl+K + Échap)</div>
       <div class="cl-check">Audio système révisé — Web Audio API optimisé</div>
       <div class="cl-check">Responsive mobile parfait — 380px/640px</div>
-      <div class="cl-check">Timers de précision — drift compensé</div>
-      <div class="cl-check">Surveillance pays V2 — stabilité réseau améliorée</div>
     </div>
     <div class="cl-footer">
       <span>MOSSAD GLORY · INTEL CLASSIFIÉ</span>
