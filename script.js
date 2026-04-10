@@ -284,7 +284,7 @@ function scStopBar(){if(scBarT){clearInterval(scBarT);scBarT=null;}}
 async function api(p){const r=await fetch(API+p);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}}
+async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){renderNotes();}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -965,3 +965,330 @@ function rmCalc() {
     o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.4);
   } catch(e) {}
 }
+
+// ═══════════════════════════════════════════════════════════
+// NOTES SUR LES CIBLES
+// ═══════════════════════════════════════════════════════════
+const NOTES_KEY='mg_notes_v2';
+let playerNotes=JSON.parse(localStorage.getItem(NOTES_KEY)||'{}');
+let noteSelectedTag='';
+
+function noteSaveStore(){localStorage.setItem(NOTES_KEY,JSON.stringify(playerNotes));}
+
+function noteSelectTag(btn){
+  document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+  if(noteSelectedTag===btn.dataset.tag){noteSelectedTag='';return;}
+  noteSelectedTag=btn.dataset.tag;
+  btn.style.outline='2px solid currentColor';
+}
+
+function noteLoadExisting(){
+  const p=document.getElementById('note-player')?.value.trim();
+  if(!p||!playerNotes[p]){
+    document.getElementById('note-text').value='';
+    noteSelectedTag='';
+    document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+    return;
+  }
+  const n=playerNotes[p];
+  document.getElementById('note-text').value=n.text||'';
+  noteSelectedTag=n.tag||'';
+  document.querySelectorAll('.note-tag-btn').forEach(b=>{
+    b.style.outline=b.dataset.tag===noteSelectedTag?'2px solid currentColor':'none';
+  });
+}
+
+function noteSave(){
+  const p=document.getElementById('note-player')?.value.trim();
+  const txt=document.getElementById('note-text')?.value.trim();
+  if(!p)return showToast('⚠ Entre un pseudo');
+  if(!txt&&!noteSelectedTag)return showToast('⚠ Ajoute une note ou une étiquette');
+  playerNotes[p]={text:txt,tag:noteSelectedTag,updated:new Date().toLocaleString('fr-FR')};
+  noteSaveStore();
+  renderNotes();
+  const fb=document.getElementById('note-feedback');
+  if(fb){fb.textContent='✓ Note sauvegardée';fb.style.opacity='1';setTimeout(()=>fb.style.opacity='0',2000);}
+  showToast(`Note sauvegardée — ${p}`);
+}
+
+function noteDelete(){
+  const p=document.getElementById('note-player')?.value.trim();
+  if(!p||!playerNotes[p])return showToast('Aucune note pour ce joueur');
+  delete playerNotes[p];
+  noteSaveStore();
+  document.getElementById('note-text').value='';
+  noteSelectedTag='';
+  document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+  renderNotes();
+  showToast(`Note supprimée — ${p}`);
+}
+
+const NOTE_TAG_STYLES={
+  'ennemi':{color:'var(--red)',bg:'rgba(255,51,85,.12)',label:'⚔ Ennemi'},
+  'allié':{color:'var(--grn)',bg:'rgba(0,232,122,.1)',label:'🤝 Allié'},
+  'neutre':{color:'var(--blue-pale)',bg:'rgba(91,163,255,.1)',label:'◯ Neutre'},
+  'espion':{color:'var(--org)',bg:'rgba(255,153,0,.1)',label:'🕵 Espion'},
+  'vip':{color:'#ffd700',bg:'rgba(255,215,0,.08)',label:'⭐ VIP'},
+};
+
+function getNoteTagHtml(tag){
+  const s=NOTE_TAG_STYLES[tag];if(!s)return'';
+  return`<span style="font-family:var(--M);font-size:.5rem;padding:.12rem .45rem;border-radius:3px;background:${s.bg};color:${s.color};letter-spacing:.08em">${s.label}</span>`;
+}
+
+function renderNotes(){
+  const el=document.getElementById('notes-list');if(!el)return;
+  const search=document.getElementById('note-search')?.value.trim().toLowerCase()||'';
+  let entries=Object.entries(playerNotes);
+  if(search)entries=entries.filter(([p,n])=>p.toLowerCase().includes(search)||(n.text||'').toLowerCase().includes(search));
+  if(!entries.length){el.innerHTML='<div class="empty">Aucune note trouvée</div>';return;}
+  entries.sort((a,b)=>a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+  el.innerHTML=entries.map(([player,n])=>{
+    const s=n.tag?NOTE_TAG_STYLES[n.tag]:null;
+    return`<div style="padding:.65rem .85rem;border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;gap:.7rem;cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="noteEditPlayer('${player}')">
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(player)}/28" style="width:28px;height:28px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.65rem;color:var(--t1)">${player}</span>
+          ${n.tag?getNoteTagHtml(n.tag):''}
+        </div>
+        ${n.text?`<div style="font-family:var(--M);font-size:.58rem;color:var(--t3);line-height:1.5;white-space:pre-wrap">${n.text.substring(0,120)}${n.text.length>120?'…':''}</div>`:''}
+        <div style="font-family:var(--M);font-size:.46rem;color:var(--t4);margin-top:.2rem">${n.updated||''}</div>
+      </div>
+      <button class="btn btn-r" style="padding:.07rem .3rem;font-size:.46rem;flex-shrink:0" onclick="event.stopPropagation();noteDeleteDirect('${player}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function noteEditPlayer(player){
+  document.getElementById('note-player').value=player;
+  noteLoadExisting();
+  document.getElementById('note-player').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function noteDeleteDirect(player){
+  delete playerNotes[player];noteSaveStore();renderNotes();showToast(`Note supprimée — ${player}`);
+}
+
+// Badge note dans panel joueur — injecté dans openPlayerPanel
+const _origOpenPP=openPlayerPanel;
+window.openPlayerPanel=async function(player){
+  await _origOpenPP(player);
+  // Injecter section note dans le panel
+  const body=document.getElementById('pp-body');
+  if(!body)return;
+  const n=playerNotes[player];
+  const noteSection=document.createElement('div');
+  noteSection.className='pp-section';
+  noteSection.id='pp-note-section';
+  const s=n?.tag?NOTE_TAG_STYLES[n.tag]:null;
+  noteSection.innerHTML=`<div class="pp-sec-title">📝 Note personnelle</div>
+    <div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.7rem .9rem;margin-top:.4rem">
+      ${n?.tag?`<div style="margin-bottom:.4rem">${getNoteTagHtml(n.tag)}</div>`:''}
+      ${n?.text?`<div style="font-family:var(--M);font-size:.6rem;color:var(--t2);line-height:1.6;white-space:pre-wrap">${n.text}</div>`:'<div style="font-family:var(--M);font-size:.58rem;color:var(--t4)">Aucune note — <span style="color:var(--blue-pale);cursor:pointer" onclick="closePlayerPanel();setTimeout(()=>{nav(\'notes\',document.querySelector(\'.tab:nth-child(10)\'));document.getElementById(\'note-player\').value=\''+player+'\';noteLoadExisting();},200)">Ajouter une note ↗</span></div>'}
+      ${n?.updated?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.35rem">Modifié : ${n.updated}</div>`:''}
+    </div>`;
+  body.appendChild(noteSection);
+};
+
+
+// ═══════════════════════════════════════════════════════════
+// CARTE DES SERVEURS
+// ═══════════════════════════════════════════════════════════
+let carteData={};
+
+async function loadCarte(){
+  const grid=document.getElementById('carte-grid');
+  const ranking=document.getElementById('carte-ranking');
+  if(grid)grid.innerHTML='<div class="ld" style="grid-column:1/-1">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
+  try{
+    const all=await api('/api/online_all');
+    carteData=all;
+    renderCarte(all);
+  }catch(e){
+    if(grid)grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
+  }
+}
+
+function getCarteColor(cnt,max){
+  if(cnt===0)return{bg:'rgba(1,10,26,.8)',border:'rgba(0,56,184,.12)',text:'var(--t4)',glow:''};
+  const r=max>0?cnt/max:0;
+  if(r<.2)return{bg:'rgba(0,40,120,.25)',border:'rgba(0,80,216,.3)',text:'var(--blue-pale)',glow:'0 0 8px rgba(0,80,216,.15)'};
+  if(r<.45)return{bg:'rgba(0,60,160,.35)',border:'rgba(26,111,255,.5)',text:'#7ec8ff',glow:'0 0 12px rgba(26,111,255,.2)'};
+  if(r<.7)return{bg:'rgba(255,120,0,.12)',border:'rgba(255,120,0,.4)',text:'var(--org)',glow:'0 0 14px rgba(255,120,0,.2)'};
+  return{bg:'rgba(255,30,60,.12)',border:'rgba(255,30,60,.5)',text:'var(--red)',glow:'0 0 18px rgba(255,30,60,.25)'};
+}
+
+function renderCarte(all){
+  const grid=document.getElementById('carte-grid');
+  const ranking=document.getElementById('carte-ranking');
+  const totalEl=document.getElementById('carte-total-txt');
+  if(!grid)return;
+  const counts=SRV.map(s=>({s,cnt:(all[s]||[]).length,bug:BUG(s)}));
+  const max=Math.max(...counts.map(x=>x.cnt),1);
+  let total=counts.reduce((a,x)=>a+x.cnt,0);
+  if(totalEl)totalEl.textContent=`${total} joueurs connectés en tout`;
+
+  grid.innerHTML=counts.map(({s,cnt,bug})=>{
+    const c=getCarteColor(cnt,max);
+    const wlOn=(WL.concat(WLM)).filter(p=>(all[s]||[]).map(x=>x.toLowerCase()).includes(p.toLowerCase()));
+    const pct=max>0?Math.round(cnt/max*100):0;
+    return`<div onclick="gOL('${s}')" style="background:${c.bg};border:1px solid ${c.border};border-radius:var(--r);padding:1rem 1.1rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;box-shadow:${c.glow}" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">
+      <div style="position:absolute;bottom:0;left:0;width:${pct}%;height:3px;background:${c.border};transition:width .4s;opacity:.7"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.2em;color:${c.text}">${s.toUpperCase()}</span>
+        <span style="font-size:.9rem">${EMO[s]}</span>
+      </div>
+      <div style="font-family:var(--D);font-size:2.4rem;color:${c.text};line-height:1;text-shadow:${c.glow}">${cnt}</div>
+      <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);letter-spacing:.12em;margin-top:.25rem">${bug?'⚠ INSTABLE':'EN LIGNE'}</div>
+      ${wlOn.length?`<div style="margin-top:.4rem;font-family:var(--M);font-size:.48rem;color:var(--grn);letter-spacing:.06em">🎯 ${wlOn.join(', ')}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Classement
+  const sorted=[...counts].sort((a,b)=>b.cnt-a.cnt);
+  if(ranking){
+    ranking.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Serveur</th><th>Joueurs</th><th>Part</th><th>Cibles</th></tr></thead><tbody>${
+      sorted.map((x,i)=>{
+        const c=getCarteColor(x.cnt,max);
+        const pct2=total>0?Math.round(x.cnt/total*100):0;
+        const wl2=(WL.concat(WLM)).filter(p=>(all[x.s]||[]).map(v=>v.toLowerCase()).includes(p.toLowerCase()));
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return`<tr onclick="gOL('${x.s}')">
+          <td style="color:var(--t3)">${medal||'#'+(i+1)}</td>
+          <td><span style="color:${c.text};font-family:var(--D);letter-spacing:.15em">${x.s.toUpperCase()}</span>${x.bug?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}</td>
+          <td style="color:var(--t1);font-family:var(--D);font-size:1.1rem">${x.cnt}</td>
+          <td><div style="display:flex;align-items:center;gap:.4rem"><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${pct2}%;height:100%;background:${c.border}"></div></div><span style="color:var(--t3);font-size:.55rem">${pct2}%</span></div></td>
+          <td>${wl2.length?`<span style="color:var(--grn);font-size:.58rem">🎯 ${wl2.join(', ')}</span>`:'<span style="color:var(--t4)">—</span>'}</td>
+        </tr>`;
+      }).join('')
+    }</tbody></table>`;
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// TOP 5 JOUEURS ACTIFS
+// ═══════════════════════════════════════════════════════════
+// Compteur de présences par joueur/serveur pendant la session
+const presenceCount={};  // {player: {total:N, servers:{srv:N}}}
+
+function trackPresence(all){
+  SRV.forEach(s=>{
+    (all[s]||[]).forEach(p=>{
+      if(!presenceCount[p])presenceCount[p]={total:0,servers:{}};
+      presenceCount[p].total++;
+      presenceCount[p].servers[s]=(presenceCount[p].servers[s]||0)+1;
+    });
+  });
+}
+
+let top5AllData={};
+
+async function loadTop5(){
+  const interEl=document.getElementById('top5-inter');
+  if(interEl)interEl.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
+  try{
+    const all=await api('/api/online_all');
+    top5AllData=all;
+    trackPresence(all);
+    renderTop5Inter(all);
+    renderTop5BySrv();
+  }catch(e){
+    if(interEl)interEl.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
+  }
+}
+
+function renderTop5Inter(all){
+  const el=document.getElementById('top5-inter');if(!el)return;
+  // Top basé sur présence session + présence actuelle
+  const now={};
+  SRV.forEach(s=>(all[s]||[]).forEach(p=>{if(!now[p])now[p]=[];now[p].push(s);}));
+
+  // Score = présences session * 2 + serveurs actuels
+  const scored=Object.entries(presenceCount).map(([p,d])=>({
+    player:p,score:d.total,servers:d.servers,currentServers:now[p]||[],isOnline:!!(now[p]?.length)
+  })).sort((a,b)=>b.score-a.score).slice(0,5);
+
+  if(!scored.length){el.innerHTML='<div class="empty">Pas encore de données — les scores se construisent avec le temps de session</div>';return;}
+
+  const maxScore=scored[0]?.score||1;
+  const medals=['🥇','🥈','🥉','④','⑤'];
+  el.innerHTML=scored.map((x,i)=>{
+    const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
+    const topSrv=Object.entries(x.servers).sort((a,b)=>b[1]-a[1])[0];
+    return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
+      <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]}</div>
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
+          ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
+          ${x.isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <div style="width:120px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(x.score/maxScore*100)}%;height:100%;background:var(--blue-lt);transition:width .4s"></div></div>
+          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${x.score} scans</span>
+          ${topSrv?`<span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">· Serveur fav : <span style="color:var(--blue-pale)">${topSrv[0].toUpperCase()}</span></span>`:''}
+        </div>
+        ${x.currentServers.length?`<div style="margin-top:.2rem">${x.currentServers.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(' ')}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTop5BySrv(){
+  const el=document.getElementById('top5-srv');if(!el)return;
+  const srv=document.getElementById('top5-srv-sel')?.value||'lime';
+  const players=(top5AllData[srv]||[]);
+  if(!players.length){el.innerHTML=`<div class="empty">Aucun joueur sur ${srv.toUpperCase()} actuellement</div>`;return;}
+
+  // Top 5 du serveur = présence sur ce serveur en session
+  const srvScores=Object.entries(presenceCount)
+    .filter(([p,d])=>d.servers[srv])
+    .map(([p,d])=>({player:p,score:d.servers[srv],isOnline:players.map(x=>x.toLowerCase()).includes(p.toLowerCase())}))
+    .sort((a,b)=>b.score-a.score).slice(0,5);
+
+  // Compléter avec joueurs actuels si pas assez de données session
+  const onlineMissing=players.filter(p=>!srvScores.find(x=>x.player.toLowerCase()===p.toLowerCase())).slice(0,Math.max(0,5-srvScores.length));
+  const combined=[...srvScores,...onlineMissing.map(p=>({player:p,score:0,isOnline:true}))].slice(0,5);
+
+  if(!combined.length){el.innerHTML='<div class="empty">Pas de données pour ce serveur</div>';return;}
+  const maxS=combined[0]?.score||1;
+  const medals=['🥇','🥈','🥉','④','⑤'];
+  el.innerHTML=combined.map((x,i)=>{
+    const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
+    return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
+      <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]||'#'+(i+1)}</div>
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
+          ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
+          ${x.isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+        </div>
+        ${x.score>0?`<div style="display:flex;align-items:center;gap:.5rem"><div style="width:100px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(x.score/maxS*100)}%;height:100%;background:var(--blue-lt)"></div></div><span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">${x.score} scans</span></div>`:'<span style="font-family:var(--M);font-size:.5rem;color:var(--t4)">En ligne maintenant</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Auto-refresh Top5 et Carte toutes les 30s si section active
+setInterval(()=>{
+  const active=document.querySelector('.sec.active');
+  if(!active)return;
+  if(active.id==='s-top5')loadTop5();
+  if(active.id==='s-carte')loadCarte();
+},30000);
+
+// Tracker la présence à chaque loadDash
+const _origLoadDash=loadDash;
+window.loadDash=async function(){
+  await _origLoadDash();
+  // Tracker les joueurs en ligne pour le Top5
+  try{
+    const all=await api('/api/online_all');
+    trackPresence(all);
+    if(Object.keys(top5AllData).length===0)top5AllData=all;
+  }catch(e){}
+};
