@@ -697,6 +697,7 @@ select option{background:var(--bg2);color:var(--t1)}
   <button class="tab" onclick="nav('stats',this)">◐ Stats</button>
   <button class="tab" onclick="nav('countrywatch',this)">⚠ Pays</button>
   <button class="tab" onclick="nav('redmatter',this)">☢ Red Matter</button>
+  <button class="tab" onclick="nav('historique',this)">🕐 Historique</button>
   <button class="tab" onclick="nav('changelog',this)">◈ V2.0</button>
   <div class="nav-r"><span class="blink">■</span><span>SYSTÈME ACTIF</span></div>
 </nav>
@@ -997,7 +998,7 @@ select option{background:var(--bg2);color:var(--t1)}
 
 <!-- 08 RED MATTER -->
 <section class="sec" id="s-redmatter">
-  <div class="sh"><span class="sh-n">08</span><div class="sh-l"></div><span class="sh-t">Simulateur d'impact missile — Red Matter</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+  <div class="sh"><span class="sh-n">10</span><div class="sh-l"></div><span class="sh-t">Simulateur d'impact missile — Red Matter</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
   <div class="panel mb">
     <div class="ptop"></div>
     <div class="ph">
@@ -1044,7 +1045,45 @@ select option{background:var(--bg2);color:var(--t1)}
   </div>
 </section>
 
-<!-- 09 CHANGELOG -->
+<!-- 09 HISTORIQUE -->
+<section class="sec" id="s-historique">
+  <div class="sh"><span class="sh-n">09</span><div class="sh-l"></div><span class="sh-t">Historique des connexions — Watchlist</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph">
+      <span class="pt">🕐 Connexions enregistrées</span>
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+        <select id="hist-filter-player" onchange="renderConnHist()" style="max-width:180px">
+          <option value="">Tous les joueurs</option>
+        </select>
+        <select id="hist-filter-type" onchange="renderConnHist()" style="max-width:140px">
+          <option value="">Connexions &amp; Déco</option>
+          <option value="connect">Connexions seulement</option>
+          <option value="disconnect">Déconnexions seulement</option>
+        </select>
+        <button class="btn btn-r" onclick="clearConnHist()">🗑 Vider</button>
+      </div>
+    </div>
+    <div class="pb">
+      <div id="hist-stats" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+      <div id="conn-hist-body"><div class="empty">Aucun événement enregistré — les connexions/déconnexions de la watchlist apparaîtront ici automatiquement.</div></div>
+    </div>
+  </div>
+
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph">
+      <span class="pt">📊 Activité par joueur</span>
+      <span class="pts">Sessions totales enregistrées</span>
+    </div>
+    <div class="pb" id="hist-chart-body">
+      <div class="empty">Pas encore de données.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 CHANGELOG -->
 <section class="sec" id="s-changelog">
   <div class="cl-wrap">
     <div class="cl-header">
