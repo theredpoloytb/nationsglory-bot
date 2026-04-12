@@ -332,6 +332,27 @@ _wl_cmd('',WL,save_watchlist)
 _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
 rapport_msg_id=None
+_rate_limited=False
+
+async def safe_send(channel,**kwargs):
+	global _rate_limited
+	while True:
+		try:return await channel.send(**kwargs)
+		except discord.errors.HTTPException as e:
+			if e.status==429:
+				retry=e.retry_after if hasattr(e,'retry_after')else 30
+				_rate_limited=True;print(f"⚠️ Rate limit, attente {retry}s",flush=True);await asyncio.sleep(retry);_rate_limited=False
+			else:raise
+
+async def safe_edit(msg,**kwargs):
+	global _rate_limited
+	while True:
+		try:return await msg.edit(**kwargs)
+		except discord.errors.HTTPException as e:
+			if e.status==429:
+				retry=e.retry_after if hasattr(e,'retry_after')else 30
+				_rate_limited=True;print(f"⚠️ Rate limit (edit), attente {retry}s",flush=True);await asyncio.sleep(retry);_rate_limited=False
+			else:raise
 def _status_text(wl,players):
 	on=[p for p in wl if p in players];off=[p for p in wl if p not in players];txt=''
 	if on:txt+=f"🟢 **En ligne ({len(on)}) :**\n"+''.join(f"• {p}\n"for p in on)
@@ -341,20 +362,20 @@ def _rapport_embed(title,count,time_str,status_text,color):e=discord.Embed(title
 async def _update_rapport(channel,msg_id_ref,embed,save_fn):
 	if not channel:return msg_id_ref
 	if msg_id_ref:
-		try:msg=await channel.fetch_message(msg_id_ref);await msg.edit(embed=embed);return msg_id_ref
+		try:msg=await channel.fetch_message(msg_id_ref);await safe_edit(msg,embed=embed);return msg_id_ref
 		except discord.NotFound:pass
-	msg=await channel.send(embed=embed);await asyncio.get_running_loop().run_in_executor(None,save_fn,msg.id);return msg.id
+	msg=await safe_send(channel,embed=embed);await asyncio.get_running_loop().run_in_executor(None,save_fn,msg.id);return msg.id
 async def scan_server(server,alerte_ch):
 	players=await get_online(server);pset=set(players);prev=last_states[server];mocha_ch=client.get_channel(CH_M_ALERTE);ts=discord.utils.utcnow()
 	for p in pset:
 		if not prev.get(p):
 			record_connection(p,server)
-			if p in WL and alerte_ch:e=discord.Embed(title='🟢 CONNEXION',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts);await alerte_ch.send(embed=e);await asyncio.sleep(.5)
-			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🟢 CONNEXION — MOCHA',description=f"**{p}** → **MOCHA**",color=discord.Color.orange(),timestamp=ts);await mocha_ch.send(embed=e);await asyncio.sleep(.5)
+			if p in WL and alerte_ch:e=discord.Embed(title='🟢 CONNEXION',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts);await safe_send(alerte_ch,embed=e)
+			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🟢 CONNEXION — MOCHA',description=f"**{p}** → **MOCHA**",color=discord.Color.orange(),timestamp=ts);await safe_send(mocha_ch,embed=e)
 	for(p,was)in prev.items():
 		if was and p not in pset:
-			if p in WL and alerte_ch:e=discord.Embed(title='🔴 DÉCONNEXION',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts);await alerte_ch.send(embed=e);await asyncio.sleep(.5)
-			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🔴 DÉCONNEXION — MOCHA',description=f"**{p}** ← **MOCHA**",color=discord.Color.red(),timestamp=ts);await mocha_ch.send(embed=e);await asyncio.sleep(.5)
+			if p in WL and alerte_ch:e=discord.Embed(title='🔴 DÉCONNEXION',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts);await safe_send(alerte_ch,embed=e)
+			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🔴 DÉCONNEXION — MOCHA',description=f"**{p}** ← **MOCHA**",color=discord.Color.red(),timestamp=ts);await safe_send(mocha_ch,embed=e)
 	last_states[server]={p:True for p in pset};return players
 async def check_country_watch(watch):
 	try:
@@ -375,10 +396,10 @@ async def check_country_watch(watch):
 		watch['members']=online_members;can_assault=len(online_members)>=2 and len(non_recruits)>=1
 		if can_assault and not watch.get('last_alert'):
 			watch['last_alert']=True;ch=client.get_channel(CH_PAYS)
-			if ch:await ch.send(f"⚔ **ASSAUT POSSIBLE** — **{name}** sur **{server.upper()}**")
+			if ch:await safe_send(ch,content=f"⚔ **ASSAUT POSSIBLE** — **{name}** sur **{server.upper()}**")
 		elif not can_assault and watch.get('last_alert'):
 			watch['last_alert']=False;ch=client.get_channel(CH_PAYS)
-			if ch:await ch.send(f"✅ **PLUS POSSIBLE** — **{name}** sur **{server.upper()}** (moins de 2 membres ou que des recrues)")
+			if ch:await safe_send(ch,content=f"✅ **PLUS POSSIBLE** — **{name}** sur **{server.upper()}** (moins de 2 membres ou que des recrues)")
 	except Exception as e:print(f"❌ CW scan {watch}: {e}",flush=True)
 async def scanner_loop():
 	global rapport_msg_id;await client.wait_until_ready();await load_watchlist();await load_watchlist_mocha();rapport_msg_id=await asyncio.get_running_loop().run_in_executor(None,cfg_get,'rapport_msg_id');await load_cw();print(f"📋 Country watches: {len(COUNTRY_WATCHES)}",flush=True);print(f"📋 Rapport ID: {rapport_msg_id}",flush=True);ch_rapport=client.get_channel(CH_RAPPORT);ch_alerte=client.get_channel(CH_ALERTE);tick=0
@@ -391,11 +412,11 @@ async def scanner_loop():
 				if ch_mr:
 					found=False
 					async for old in ch_mr.history(limit=10):
-						if old.author==client.user and old.embeds and'RAPPORT TACTIQUE — MOCHA'in(old.embeds[0].title or''):await old.edit(embed=mocha_e);found=True;break
-					if not found:await ch_mr.send(embed=mocha_e)
+						if old.author==client.user and old.embeds and'RAPPORT TACTIQUE — MOCHA'in(old.embeds[0].title or''):await safe_edit(old,embed=mocha_e);found=True;break
+					if not found:await safe_send(ch_mr,embed=mocha_e)
 			tick+=1
 		except discord.errors.HTTPException as e:
-			if e.status==429:retry_after=e.retry_after if hasattr(e,'retry_after')else 30;print(f"⚠️ Rate limit, attente {retry_after}s",flush=True);await asyncio.sleep(retry_after)
+			if e.status==429:retry=e.retry_after if hasattr(e,'retry_after')else 30;print(f"⚠️ Rate limit (loop), attente {retry}s",flush=True);await asyncio.sleep(retry)
 			else:print(f"❌ Scanner HTTP: {e}",flush=True)
 		except Exception as e:print(f"❌ Scanner: {e}",flush=True)
 		await asyncio.sleep(2)
