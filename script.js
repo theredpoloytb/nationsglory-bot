@@ -90,7 +90,7 @@
     const val = inp.value;
     if(!val) return;
     try{
-      const r = await fetch('https://nationsglory-spy.onrender.com/api/auth-check', {
+      const r = await fetch('https://nationsglory-bot1.onrender.com/api/auth-check', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({password: val})
@@ -129,7 +129,7 @@
 // ═══════════════════════════════════════════════════════════
 // MAIN APPLICATION
 // ═══════════════════════════════════════════════════════════
-const API='https://nationsglory-spy.onrender.com';
+const API='https://nationsglory-bot1.onrender.com';
 const SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
 const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
 const BUG=s=>s==='red'||s==='mocha';
