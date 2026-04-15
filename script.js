@@ -90,7 +90,7 @@
     const val = inp.value;
     if(!val) return;
     try{
-      const r = await fetch('https://nationsglory-spy.onrender.com//api/auth-check', {
+      const r = await fetch('https://nationsglory-spy.onrender.com/api/auth-check', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({password: val})
