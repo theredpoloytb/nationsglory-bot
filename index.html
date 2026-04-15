@@ -585,7 +585,7 @@ select option{background:var(--bg2);color:var(--t1)}
 .row{display:flex;align-items:center;gap:.6rem}
 .row.mb{margin-bottom:.6rem}
 
-/* ─── RÉFÉRENTS TAB STYLES ─── */
+/* ─── RÉFÉRENTS STYLES ─── */
 
 :root{
   --blue:#0038b8;--blue-mid:#0050d8;--blue-lt:#1a6fff;--blue-pale:#5ba3ff;
@@ -763,6 +763,7 @@ select option{background:var(--bg2)}
   .page-hdr{flex-direction:column;align-items:flex-start}
 }
 
+/* ─────────────────────── */
 </style>
 </head>
 <body>
@@ -1443,8 +1444,7 @@ select option{background:var(--bg2)}
 
 <!-- 14 RÉFÉRENTS -->
 <section class="sec" id="s-referents">
-  <div class="sh"><span class="sh-n">14</span><div class="sh-l"></div><span class="sh-t">Pays référents — tracking recrutements 24h/24</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-  <div id="app">
+  <div class="sh"><span class="sh-n">14</span><div class="sh-l"></div><span class="sh-t">Pays référents — tracking recrutements</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
   <!-- HEADER -->
   <div class="page-hdr">
     <div>
@@ -1557,8 +1557,6 @@ select option{background:var(--bg2)}
       </div>
     </div>
   </div>
-</div>
-  <div class="toast-wrap" id="ref-toast-wrap" style="position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9001;display:flex;flex-direction:column;gap:.4rem;align-items:center"></div>
 </section>
 
 </main>
@@ -1591,8 +1589,6 @@ let allStats={},allReferents=[];
   }
 })();
 
-  }catch(e){err.textContent='ERREUR SERVEUR';err.style.opacity='1';setTimeout(()=>{err.style.opacity='0';err.textContent='CODE INVALIDE — ACCÈS REFUSÉ';},2500);}
-}
 
 // ─── TOAST ──────────────────────────────────────
 function refToast(msg,dur=2800){
