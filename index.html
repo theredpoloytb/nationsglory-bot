@@ -1206,37 +1206,37 @@ select option{background:var(--bg2);color:var(--t1)}
 
   <!-- Stats globales -->
   <div class="g4 mb2">
-    <div class="stat">
-      <div class="stat-icon">🏳</div>
-      <div class="stat-info">
-        <div class="stat-val" id="ref-gs-total">—</div>
-        <div class="stat-lbl">Pays pistés</div>
+    <div class="stat"><div class="stat-icon">🏳</div><div class="stat-info"><div class="stat-val" id="ref-gs-total">—</div><div class="stat-lbl">Pays pistés</div></div></div>
+    <div class="stat"><div class="stat-icon">🆕</div><div class="stat-info"><div class="stat-val" id="ref-gs-week">—</div><div class="stat-lbl">Recrues (7 jours)</div></div></div>
+    <div class="stat"><div class="stat-icon">📈</div><div class="stat-info"><div class="stat-val" id="ref-gs-month">—</div><div class="stat-lbl">Recrues (30 jours)</div></div></div>
+    <div class="stat"><div class="stat-icon">🥇</div><div class="stat-info"><div class="stat-val" id="ref-gs-leader" style="font-size:1rem;padding-top:.4rem">—</div><div class="stat-lbl" id="ref-gs-leader-sub">Leader recrues</div></div></div>
+  </div>
+
+  <!-- Formulaire ajout — MÊME système que l'onglet Pays -->
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph"><span class="pt">+ Ajouter un pays référent</span></div>
+    <div class="pb">
+      <div class="row" style="flex-wrap:wrap;gap:.6rem">
+        <select id="ref-add-srv" style="max-width:150px" onchange="refLoadCountries()">
+          <option value="">Serveur...</option>
+          <option value="blue">BLUE</option><option value="coral">CORAL</option><option value="orange">ORANGE</option>
+          <option value="red">RED</option><option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+          <option value="white">WHITE</option><option value="jade">JADE</option><option value="black">BLACK</option>
+          <option value="cyan">CYAN</option><option value="lime">LIME</option>
+        </select>
+        <div class="acw" style="min-width:160px">
+          <input id="ref-add-country" placeholder="Nom du pays..." autocomplete="off"
+            oninput="refFilterCountries()" onkeydown="acK(event,'ref-add-acl',addReferentEntry)"/>
+          <div class="acl" id="ref-add-acl"></div>
+        </div>
+        <button class="btn btn-g" onclick="addReferentEntry()">+ Ajouter</button>
       </div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon">🆕</div>
-      <div class="stat-info">
-        <div class="stat-val" id="ref-gs-week">—</div>
-        <div class="stat-lbl">Recrues (7 jours)</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon">📈</div>
-      <div class="stat-info">
-        <div class="stat-val" id="ref-gs-month">—</div>
-        <div class="stat-lbl">Recrues (30 jours)</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon">🥇</div>
-      <div class="stat-info">
-        <div class="stat-val" id="ref-gs-leader" style="font-size:1rem;padding-top:.4rem">—</div>
-        <div class="stat-lbl" id="ref-gs-leader-sub">Leader recrues</div>
-      </div>
+      <div id="ref-suggest" class="tags" style="margin-top:.45rem;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)"></div>
     </div>
   </div>
 
-  <!-- Detail panel (affiché au clic) -->
+  <!-- Detail panel -->
   <div id="ref-detail" style="display:none" class="panel mb2">
     <div class="ptop"></div>
     <div class="ph">
@@ -1246,8 +1246,8 @@ select option{background:var(--bg2);color:var(--t1)}
       </div>
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
         <div style="display:flex;gap:.3rem">
-          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setRefPeriod(7,this)">7J</button>
-          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:var(--bg2);border-color:var(--b3);color:var(--blue-pale)" onclick="setRefPeriod(14,this)">14J</button>
+          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale)" onclick="setRefPeriod(7,this)">7J</button>
+          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setRefPeriod(14,this)">14J</button>
           <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setRefPeriod(30,this)">30J</button>
         </div>
         <button class="btn" style="font-size:.55rem;padding:.3rem .7rem" id="ref-dep-btn" onclick="toggleRefDep()">+ Départs</button>
@@ -1256,7 +1256,6 @@ select option{background:var(--bg2);color:var(--t1)}
       </div>
     </div>
     <div class="pb">
-      <!-- tabs -->
       <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
         <button class="btn" id="rdt-courbe" style="background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale);font-size:.58rem;padding:.32rem .8rem" onclick="showRefTab('courbe',this)">📈 Courbe</button>
         <button class="btn" id="rdt-events" style="font-size:.58rem;padding:.32rem .8rem" onclick="showRefTab('events',this)">📋 Événements</button>
@@ -1280,8 +1279,8 @@ select option{background:var(--bg2);color:var(--t1)}
     <div class="ph">
       <span class="pt">📊 Comparatif recrutements</span>
       <div style="display:flex;gap:.3rem">
-        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(7,this)">7J</button>
-        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:var(--bg2);border-color:var(--b3);color:var(--blue-pale)" onclick="setCmpRefPeriod(14,this)">14J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale)" onclick="setCmpRefPeriod(7,this)">7J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(14,this)">14J</button>
         <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(30,this)">30J</button>
       </div>
     </div>
@@ -1299,33 +1298,6 @@ select option{background:var(--bg2);color:var(--t1)}
       </div>
     </div>
     <div class="pb" id="ref-grid"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
-  </div>
-
-  <!-- Ajouter un pays -->
-  <div class="panel mb">
-    <div class="ptop"></div>
-    <div class="ph"><span class="pt">➕ Ajouter un pays référent</span></div>
-    <div class="pb">
-      <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end">
-        <div style="display:flex;flex-direction:column;gap:.3rem;min-width:120px">
-          <span style="font-family:var(--M);font-size:.55rem;letter-spacing:.15em;color:var(--t3)">SERVEUR</span>
-          <select id="ref-add-srv" style="max-width:150px">
-            <option value="blue">BLUE</option><option value="coral">CORAL</option>
-            <option value="orange">ORANGE</option><option value="red">RED</option>
-            <option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
-            <option value="white">WHITE</option><option value="jade">JADE</option>
-            <option value="black">BLACK</option><option value="cyan">CYAN</option>
-            <option value="lime" selected>LIME</option>
-          </select>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:160px">
-          <span style="font-family:var(--M);font-size:.55rem;letter-spacing:.15em;color:var(--t3)">NOM DU PAYS (slug API)</span>
-          <input id="ref-add-country" type="text" placeholder="ex: France, Germany..." onkeydown="if(event.key==='Enter')addReferentEntry()"/>
-        </div>
-        <button class="btn btn-g" onclick="addReferentEntry()" style="align-self:flex-end">+ Ajouter</button>
-      </div>
-      <div style="font-family:var(--M);font-size:.52rem;color:var(--t4);margin-top:.5rem;letter-spacing:.08em">ℹ Utilise le slug exact de l'API NationsGlory (ex: "France", "Germany")</div>
-    </div>
   </div>
 </section>
 
@@ -1404,235 +1376,6 @@ select option{background:var(--bg2);color:var(--t1)}
   </div>
 </div>
 
-<script>
-// ═══════════════════════════════════════════════
-// MODULE PAYS RÉFÉRENTS
-// ═══════════════════════════════════════════════
-let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refPeriod=7,refCmpPeriod=7,refShowDep=false;
-
-async function loadReferents(){
-  const grid=document.getElementById('ref-grid');
-  grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-  try{
-    const [rRefs,rStats7,rStats30]=await Promise.all([
-      fetch(API+'/api/referents').then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=7').then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=30').then(r=>r.json()),
-    ]);
-    refAllReferents=rRefs.watches||[];
-    refAllStats=rStats30.stats||[];
-    // Stats globales
-    document.getElementById('ref-gs-total').textContent=refAllReferents.length;
-    const week7=(rStats7.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
-    const month30=(rStats30.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
-    document.getElementById('ref-gs-week').textContent=week7;
-    document.getElementById('ref-gs-month').textContent=month30;
-    const leader=(rStats30.stats||[])[0];
-    if(leader){
-      document.getElementById('ref-gs-leader').textContent=leader.country_name;
-      document.getElementById('ref-gs-leader-sub').textContent=leader.total_recruits+' recrues — '+leader.server.toUpperCase();
-    }
-    renderRefGrid();
-    loadRefCmp();
-  }catch(e){grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur chargement</div>`;}
-}
-
-function renderRefGrid(){
-  const el=document.getElementById('ref-grid');
-  if(!refAllReferents.length){el.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en ci-dessous</div>';return;}
-  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem">${refAllReferents.map(w=>{
-    const stat=refAllStats.find(s=>s.server===w.server&&s.country.toLowerCase()===w.country.toLowerCase());
-    const recruits=stat?.total_recruits||0;
-    const isSelected=refCurSrv===w.server&&refCurCtry===w.country;
-    return`<div onclick="selectReferent('${w.server}','${w.country}')" style="background:var(--bg2);border:1px solid ${isSelected?'var(--blue-lt)':'var(--b1)'};border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;${isSelected?'box-shadow:0 0 0 1px var(--blue-mid)':''}" onmouseenter="this.style.borderColor='var(--b2)'" onmouseleave="this.style.borderColor='${isSelected?'var(--blue-lt)':'var(--b1)'}'">
-      <div style="padding:.7rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)">${w.name||w.country}</span>
-        <span style="font-family:var(--M);font-size:.55rem;letter-spacing:.12em;color:var(--t3);background:var(--bg3);padding:.12rem .4rem;border-radius:3px">${w.server.toUpperCase()}</span>
-      </div>
-      <div style="padding:.7rem 1rem">
-        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
-          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">MEMBRES</span>
-          <span style="font-family:var(--D);font-size:1rem;color:var(--t1)">${w.member_count||'—'}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
-          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">RECRUES 30J</span>
-          <span style="font-family:var(--D);font-size:1rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits}</span>
-        </div>
-        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden">
-          <div style="width:${Math.min(recruits*5,100)}%;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px;transition:width .5s"></div>
-        </div>
-      </div>
-      <div style="padding:.4rem 1rem;border-top:1px solid var(--b1);display:flex;justify-content:space-between;background:rgba(0,0,0,.15)">
-        <span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Check: ${w.last_check||'—'}</span>
-        <span style="font-family:var(--M);font-size:.52rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits>0?'▲ '+recruits+' recrues':'Aucune recrue'}</span>
-      </div>
-    </div>`;
-  }).join('')}</div>`;
-}
-
-async function loadRefCmp(){
-  const el=document.getElementById('ref-cmp');
-  el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-  try{
-    const r=await fetch(API+'/api/referents/stats?days='+refCmpPeriod);
-    const d=await r.json();
-    const stats=d.stats||[];
-    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données de recrutement — le tracking démarre au prochain scan (5 min)</div>';return;}
-    const max=stats[0]?.total_recruits||1;
-    el.innerHTML=stats.map((x,i)=>{
-      const pct=Math.round(x.total_recruits/max*100);
-      const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
-      const col=colors[i%colors.length];
-      return`<div onclick="selectReferent('${x.server}','${x.country}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
-        <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)">${x.country_name}</span>
-        <span style="font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:55px">${x.server.toUpperCase()}</span>
-        <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:${col};border-radius:4px;transition:width .6s"></div>
-        </div>
-        <span style="font-family:var(--D);font-size:1.1rem;min-width:35px;text-align:right;color:var(--t1)">${x.total_recruits}</span>
-        <span style="font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:65px;text-align:right">${x.unique_players} joueurs</span>
-      </div>`;
-    }).join('');
-  }catch(e){el.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>';}
-}
-
-function setCmpRefPeriod(days,btn){
-  refCmpPeriod=days;
-  btn.closest('.ph').querySelectorAll('.btn').forEach(b=>{b.style.background='var(--bg2)';b.style.borderColor='var(--b2)';b.style.color='var(--t2)';});
-  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
-  loadRefCmp();
-}
-
-async function selectReferent(server,country){
-  refCurSrv=server;refCurCtry=country;
-  const ref=refAllReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
-  document.getElementById('ref-dp-title').textContent=(ref?.name||country).toUpperCase();
-  document.getElementById('ref-dp-sub').textContent=server.toUpperCase()+' · '+(ref?.member_count||'?')+' membres';
-  document.getElementById('ref-detail').style.display='block';
-  document.getElementById('ref-detail').scrollIntoView({behavior:'smooth',block:'start'});
-  renderRefGrid();
-  await loadRefDetail();
-}
-
-function closeRefDetail(){
-  document.getElementById('ref-detail').style.display='none';
-  refCurSrv=null;refCurCtry=null;
-  renderRefGrid();
-}
-
-function showRefTab(tab,btn){
-  document.getElementById('ref-tab-courbe').style.display=tab==='courbe'?'block':'none';
-  document.getElementById('ref-tab-events').style.display=tab==='events'?'block':'none';
-  ['rdt-courbe','rdt-events'].forEach(id=>{
-    const b=document.getElementById(id);
-    b.style.background='var(--bg2)';b.style.borderColor='var(--b2)';b.style.color='var(--t2)';
-  });
-  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
-}
-
-function setRefPeriod(days,btn){
-  refPeriod=days;
-  btn.closest('.ph').querySelectorAll('.btn').forEach((b,i)=>{
-    if(b.id==='ref-dep-btn'||b.classList.contains('btn-r'))return;
-    b.style.background='var(--bg2)';b.style.borderColor='var(--b2)';b.style.color='var(--t2)';
-  });
-  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
-  if(refCurSrv)loadRefDetail();
-}
-
-function toggleRefDep(){
-  refShowDep=!refShowDep;
-  document.getElementById('ref-dep-btn').textContent=refShowDep?'- Départs':'+ Départs';
-  if(refCurSrv)loadRefDetail();
-}
-
-async function loadRefDetail(){
-  if(!refCurSrv||!refCurCtry)return;
-  try{
-    const r=await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${refCurCtry}&limit=200&departures=${refShowDep?1:0}`);
-    const d=await r.json();
-    renderRefCurve(d.curve||[]);
-    renderRefEvents(d.events||[],d.total||0);
-  }catch(e){}
-}
-
-function renderRefCurve(curve){
-  const el=document.getElementById('ref-chart');
-  if(!curve.length){el.innerHTML='<div class="empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">Pas encore de données — le tracking est actif</div>';return;}
-  const today=new Date();const days=[];
-  for(let i=refPeriod-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
-  const map={};curve.forEach(c=>map[c._id]=c.count);
-  const vals=days.map(d=>map[d]||0);
-  const max=Math.max(...vals,1);
-  const W=600,H=90,pl=28,pr=10,pt=8,pb=18;
-  const pts=vals.map((v,i)=>{
-    const x=pl+(i/(vals.length-1||1))*(W-pl-pr);
-    const y=pt+(1-v/max)*(H-pt-pb);
-    return[x,y];
-  });
-  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const area=line+`L${pts[pts.length-1][0].toFixed(1)},${H-pb} L${pts[0][0].toFixed(1)},${H-pb} Z`;
-  const yTicks=[0,Math.ceil(max/2),max].map(v=>({v,y:pt+(1-v/max)*(H-pt-pb)}));
-  const yAxis=yTicks.map(t=>`<line x1="${pl}" y1="${t.y.toFixed(1)}" x2="${W-pr}" y2="${t.y.toFixed(1)}" stroke="rgba(91,163,255,.06)" stroke-width="1"/>
-    <text x="${pl-3}" y="${(t.y+4).toFixed(1)}" font-family="Space Mono" font-size="7" fill="rgba(107,138,184,.5)" text-anchor="end">${t.v}</text>`).join('');
-  const dots=pts.filter((_,i)=>vals[i]>0).map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--blue-lt)" opacity=".85"/>`).join('');
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible">
-    <defs><linearGradient id="refag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a6fff" stop-opacity=".2"/><stop offset="100%" stop-color="#1a6fff" stop-opacity="0"/></linearGradient></defs>
-    ${yAxis}
-    <path d="${area}" fill="url(#refag)"/>
-    <path d="${line}" fill="none" stroke="var(--blue-lt)" stroke-width="1.5" stroke-linejoin="round"/>
-    ${dots}
-  </svg>`;
-  const leg=document.getElementById('ref-chart-legend');
-  const step=Math.max(1,Math.floor(days.length/5));
-  leg.innerHTML=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">${d.slice(5)}</span>`).join('');
-}
-
-function renderRefEvents(events,total){
-  document.getElementById('ref-events-count').textContent=total+' événement'+(total>1?'s':'');
-  const el=document.getElementById('ref-events-list');
-  if(!events.length){el.innerHTML='<div class="empty">Aucun événement enregistré</div>';return;}
-  el.innerHTML=`<table class="tbl"><thead><tr><th>Date</th><th>Joueur</th><th>Type</th><th>Avant</th><th>Après</th></tr></thead><tbody>${
-    events.slice(0,100).map(e=>`<tr>
-      <td style="color:var(--t3)">${e.ts}</td>
-      <td style="color:var(--t1)">${e.player}</td>
-      <td>${e.departure?`<span style="font-family:var(--M);font-size:.52rem;color:var(--red);background:rgba(255,51,85,.08);padding:.1rem .35rem;border-radius:3px">DÉPART</span>`:`<span style="font-family:var(--M);font-size:.52rem;color:var(--grn);background:rgba(0,232,122,.08);padding:.1rem .35rem;border-radius:3px">RECRUE</span>`}</td>
-      <td style="color:var(--t3)">${e.members_before}</td>
-      <td style="color:var(--t3)">${e.members_after}</td>
-    </tr>`).join('')}
-  </tbody></table>`;
-}
-
-async function addReferentEntry(){
-  const server=document.getElementById('ref-add-srv').value;
-  const country=document.getElementById('ref-add-country').value.trim();
-  if(!country)return;
-  try{
-    const r=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})});
-    const d=await r.json();
-    if(d.error){alert('❌ '+d.error);return;}
-    document.getElementById('ref-add-country').value='';
-    await loadReferents();
-  }catch(e){alert('❌ Erreur réseau');}
-}
-
-async function removeReferentEntry(server,country){
-  if(!confirm('Retirer '+country+' ('+server.toUpperCase()+') ?'))return;
-  try{
-    const r=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})});
-    const d=await r.json();
-    if(d.error){alert('❌ '+d.error);return;}
-    closeRefDetail();
-    await loadReferents();
-  }catch(e){alert('❌ Erreur réseau');}
-}
-
-// Auto-refresh si onglet actif
-setInterval(()=>{
-  const active=document.querySelector('.sec.active');
-  if(active&&active.id==='s-referents')loadReferents();
-},300000);
-</script>
 <script src="script.js"></script>
 </body>
 </html>
