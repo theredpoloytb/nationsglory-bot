@@ -584,186 +584,6 @@ select option{background:var(--bg2);color:var(--t1)}
 /* ROW UTIL */
 .row{display:flex;align-items:center;gap:.6rem}
 .row.mb{margin-bottom:.6rem}
-
-/* ─── RÉFÉRENTS STYLES ─── */
-
-:root{
-  --blue:#0038b8;--blue-mid:#0050d8;--blue-lt:#1a6fff;--blue-pale:#5ba3ff;
-  --bg:#010a1a;--bg1:#071428;--bg2:#0c1e3a;--bg3:#112348;
-  --t1:#edf2ff;--t2:#b8ccf0;--t3:#6b8ab8;--t4:#344d72;
-  --b1:rgba(91,163,255,.12);--b2:rgba(91,163,255,.24);--b3:rgba(91,163,255,.48);
-  --grn:#00e87a;--red:#ff3355;--org:#ff9900;
-  --F:'Frank Ruhl Libre',serif;--M:'Space Mono',monospace;--D:'Bebas Neue',sans-serif;
-  --r:6px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px;scroll-behavior:smooth}
-body{background:var(--bg);color:var(--t1);font-family:var(--F);line-height:1.6;overflow-x:hidden;min-height:100vh;cursor:none}
-body{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%235ba3ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%235ba3ff'/%3E%3C/svg%3E") 12 12,crosshair}
-a,button,.btn,.tag{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='rgba(91%2C163%2C255%2C.18)' stroke='%235ba3ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%235ba3ff'/%3E%3C/svg%3E") 12 12,pointer}
-input,select{cursor:text}
-
-/* BG */
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(ellipse 70% 55% at 50% 0%,rgba(0,56,184,.15) 0%,transparent 70%),
-  radial-gradient(ellipse 50% 40% at 50% 100%,rgba(0,56,184,.08) 0%,transparent 70%)}
-body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:linear-gradient(rgba(0,56,184,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,56,184,.03) 1px,transparent 1px);
-  background-size:40px 40px}
-.grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:1;pointer-events:none;opacity:.025;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:180px;animation:grain .6s steps(3) infinite}
-@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-4%,2%)}66%{transform:translate(2%,-3%)}100%{transform:translate(-2%,4%)}}
-.scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,8,30,.06) 3px,rgba(0,8,30,.06) 4px)}
-.vig{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 90% 90% at 50% 50%,transparent 40%,rgba(0,4,18,.7) 100%)}
-
-/* PASSWORD GATE */
-#pw-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
-#pw-gate::before,#pw-gate::after{content:'';position:absolute;left:0;right:0;height:6px;background:linear-gradient(90deg,transparent,var(--blue-mid) 30%,var(--blue-lt) 50%,var(--blue-mid) 70%,transparent);opacity:.8}
-#pw-gate::before{top:0}#pw-gate::after{bottom:0}
-.pw-title{font-family:var(--D);font-size:clamp(2.5rem,7vw,5rem);letter-spacing:.5em;background:linear-gradient(150deg,#edf2ff 20%,var(--blue-pale) 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;line-height:1}
-.pw-sub{font-family:var(--M);font-size:.72rem;letter-spacing:.3em;color:var(--t3);text-align:center}
-.pw-form{display:flex;flex-direction:column;align-items:center;gap:.9rem;width:min(320px,85vw);margin-top:1.5rem}
-#pw-input{width:100%;background:var(--bg1);border:1px solid var(--b2);color:var(--t1);font-family:var(--M);font-size:1rem;letter-spacing:.4em;padding:.9rem;border-radius:var(--r);text-align:center;outline:none;transition:border-color .2s,box-shadow .2s}
-#pw-input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px rgba(26,111,255,.1)}
-#pw-btn-el{width:100%;padding:.8rem;font-family:var(--M);font-size:.75rem;letter-spacing:.2em;background:var(--blue-mid);color:#edf2ff;border:none;border-radius:var(--r);transition:all .15s;box-shadow:0 4px 20px rgba(0,56,184,.4)}
-#pw-btn-el:hover{background:var(--blue-lt);transform:translateY(-2px)}
-#pw-err{font-family:var(--M);font-size:.68rem;letter-spacing:.15em;color:var(--red);opacity:0;transition:opacity .2s;min-height:1.1em}
-
-/* MAIN */
-#app{display:none;position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
-
-/* HEADER */
-.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem;padding-bottom:1.2rem;border-bottom:1px solid var(--b1);flex-wrap:wrap;gap:1rem}
-.page-title{font-family:var(--D);font-size:clamp(1.8rem,5vw,3rem);letter-spacing:.35em;background:linear-gradient(135deg,#edf2ff,var(--blue-pale));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.page-sub{font-family:var(--M);font-size:.65rem;letter-spacing:.2em;color:var(--t3);margin-top:.25rem}
-.hdr-r{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
-.liveb{display:flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.62rem;letter-spacing:.15em;color:var(--grn)}
-.liveled{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:led 1.2s ease-in-out infinite}
-@keyframes led{0%,100%{opacity:1;box-shadow:0 0 6px var(--grn)}50%{opacity:.35;box-shadow:none}}
-
-/* CARDS STATS GLOBALES */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin-bottom:2rem}
-.stat-card{background:var(--bg1);border:1px solid var(--b1);border-radius:var(--r);padding:1rem 1.2rem;position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue-lt),transparent)}
-.stat-lbl{font-family:var(--M);font-size:.6rem;letter-spacing:.2em;color:var(--t3);margin-bottom:.35rem}
-.stat-val{font-family:var(--D);font-size:2.2rem;color:var(--t1);line-height:1}
-.stat-sub{font-family:var(--M);font-size:.52rem;color:var(--t4);margin-top:.2rem;letter-spacing:.1em}
-
-/* SECTION */
-.section{margin-bottom:2.5rem}
-.section-title{font-family:var(--M);font-size:.7rem;letter-spacing:.3em;color:var(--blue-pale);margin-bottom:1rem;display:flex;align-items:center;gap:.7rem}
-.section-title::after{content:'';flex:1;height:1px;background:var(--b1)}
-
-/* PANEL */
-.panel{background:var(--bg1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
-.panel-top{height:2px;background:linear-gradient(90deg,transparent,var(--blue-mid),transparent)}
-.panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;border-bottom:1px solid var(--b1);flex-wrap:wrap;gap:.5rem}
-.panel-title{font-family:var(--M);font-size:.68rem;letter-spacing:.2em;color:var(--t2)}
-.panel-body{padding:1rem 1.1rem}
-
-/* FORM AJOUT */
-.add-form{display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end}
-.form-group{display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:120px}
-.form-label{font-family:var(--M);font-size:.58rem;letter-spacing:.18em;color:var(--t3)}
-input,select{background:var(--bg2);border:1px solid var(--b1);color:var(--t1);font-family:var(--M);font-size:.75rem;padding:.5rem .8rem;border-radius:4px;outline:none;transition:border-color .2s;width:100%}
-input:focus,select:focus{border-color:var(--blue-lt);box-shadow:0 0 0 2px rgba(26,111,255,.08)}
-select option{background:var(--bg2)}
-
-/* BTN */
-.btn{font-family:var(--M);font-size:.68rem;letter-spacing:.15em;padding:.5rem 1rem;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--t2);transition:all .15s;white-space:nowrap}
-.btn:hover{background:var(--b1);color:var(--t1);border-color:var(--b3)}
-.btn-blue{background:rgba(0,56,184,.25);border-color:rgba(26,111,255,.4);color:var(--blue-pale)}
-.btn-blue:hover{background:rgba(0,80,216,.4);color:var(--t1)}
-.btn-red{border-color:rgba(255,51,85,.3);color:rgba(255,51,85,.7)}
-.btn-red:hover{background:rgba(255,51,85,.1);color:var(--red)}
-.btn-sm{padding:.3rem .7rem;font-size:.6rem}
-
-/* REFERENT CARDS GRID */
-.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
-.ref-card{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;transition:border-color .2s,box-shadow .2s;cursor:pointer}
-.ref-card:hover{border-color:var(--b2);box-shadow:0 4px 20px rgba(0,40,120,.3)}
-.ref-card.selected{border-color:var(--blue-lt);box-shadow:0 0 0 1px var(--blue-mid)}
-.rc-hdr{padding:.8rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-.rc-name{font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)}
-.rc-srv{font-family:var(--M);font-size:.58rem;letter-spacing:.15em;color:var(--t3);background:var(--bg3);padding:.15rem .45rem;border-radius:3px}
-.rc-body{padding:.8rem 1rem}
-.rc-stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
-.rc-stat-lbl{font-family:var(--M);font-size:.6rem;letter-spacing:.12em;color:var(--t3)}
-.rc-stat-val{font-family:var(--D);font-size:1.1rem;color:var(--t1)}
-.rc-bar-wrap{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:.6rem}
-.rc-bar{height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px;transition:width .5s}
-.rc-footer{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;border-top:1px solid var(--b1);background:rgba(0,0,0,.15)}
-.rc-check{font-family:var(--M);font-size:.5rem;color:var(--t4);letter-spacing:.08em}
-.rc-trend{font-family:var(--M);font-size:.58rem}
-.rc-trend.up{color:var(--grn)}
-.rc-trend.down{color:var(--red)}
-.rc-trend.flat{color:var(--t4)}
-
-/* DETAIL PANEL */
-#detail-panel{display:none;background:var(--bg1);border:1px solid var(--b2);border-radius:var(--r);overflow:hidden;margin-bottom:2rem}
-.dp-hdr{padding:1rem 1.3rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.7rem}
-.dp-title{font-family:var(--D);font-size:2rem;letter-spacing:.3em;color:var(--t1)}
-.dp-body{padding:1.2rem 1.3rem}
-.dp-tabs{display:flex;gap:.4rem;margin-bottom:1.2rem;flex-wrap:wrap}
-.dp-tab{font-family:var(--M);font-size:.62rem;letter-spacing:.15em;padding:.4rem .9rem;border-radius:4px;border:1px solid var(--b1);background:transparent;color:var(--t3);transition:all .15s}
-.dp-tab.active{background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale)}
-.dp-tab:hover:not(.active){background:var(--b1);color:var(--t2)}
-
-/* COURBE SVG */
-.chart-wrap{height:120px;position:relative;margin-bottom:.8rem;background:rgba(0,0,0,.2);border-radius:4px;border:1px solid var(--b1);overflow:hidden}
-.chart-wrap svg{width:100%;height:100%}
-.chart-empty{display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--M);font-size:.62rem;color:var(--t4);letter-spacing:.1em}
-
-/* TABLE */
-.tbl{width:100%;border-collapse:collapse;font-family:var(--M);font-size:.72rem}
-.tbl th{padding:.45rem .7rem;text-align:left;font-size:.58rem;letter-spacing:.18em;color:var(--t3);border-bottom:1px solid var(--b1);font-weight:400}
-.tbl td{padding:.45rem .7rem;border-bottom:1px solid rgba(91,163,255,.06);color:var(--t2)}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:rgba(91,163,255,.04)}
-.badge{display:inline-block;font-family:var(--M);font-size:.5rem;letter-spacing:.1em;padding:.1rem .35rem;border-radius:3px}
-.badge-grn{background:rgba(0,232,122,.1);color:var(--grn);border:1px solid rgba(0,232,122,.2)}
-.badge-red{background:rgba(255,51,85,.1);color:var(--red);border:1px solid rgba(255,51,85,.2)}
-.badge-blue{background:rgba(26,111,255,.1);color:var(--blue-pale);border:1px solid rgba(26,111,255,.2)}
-
-/* COMPARATIF */
-.cmp-row{display:flex;align-items:center;gap:.8rem;padding:.6rem 0;border-bottom:1px solid var(--b1)}
-.cmp-row:last-child{border-bottom:none}
-.cmp-name{font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)}
-.cmp-srv{font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:60px}
-.cmp-bar-w{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
-.cmp-bar{height:100%;border-radius:4px;transition:width .6s}
-.cmp-val{font-family:var(--D);font-size:1.1rem;min-width:40px;text-align:right;color:var(--t1)}
-.cmp-sub{font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:70px;text-align:right}
-
-/* LOADING */
-.ld{font-family:var(--M);font-size:.7rem;color:var(--t4);letter-spacing:.15em;padding:1.5rem;text-align:center}
-.ldd span{animation:blink 1.2s ease-in-out infinite}
-.ldd span:nth-child(2){animation-delay:.2s}.ldd span:nth-child(3){animation-delay:.4s}
-@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
-.empty{font-family:var(--M);font-size:.65rem;color:var(--t4);letter-spacing:.12em;padding:1.5rem;text-align:center}
-
-/* TOAST */
-.toast-wrap{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9001;display:flex;flex-direction:column;gap:.4rem;align-items:center}
-.toast{font-family:var(--M);font-size:.72rem;letter-spacing:.08em;padding:.5rem 1.2rem;border-radius:var(--r);background:var(--bg2);border:1px solid var(--b2);color:var(--t1);animation:toastIn .25s ease;white-space:nowrap;box-shadow:0 4px 20px rgba(0,20,80,.5)}
-@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-/* PERIOD SELECTOR */
-.period-sel{display:flex;gap:.3rem}
-.period-btn{font-family:var(--M);font-size:.58rem;letter-spacing:.1em;padding:.3rem .65rem;border-radius:3px;border:1px solid var(--b1);background:transparent;color:var(--t3);transition:all .12s}
-.period-btn.active{background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.35);color:var(--blue-pale)}
-.period-btn:hover:not(.active){background:var(--b1)}
-
-/* MOBILE */
-@media(max-width:640px){
-  #app{padding:1rem .75rem 3rem}
-  .ref-grid{grid-template-columns:1fr}
-  .add-form{flex-direction:column}
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  .page-hdr{flex-direction:column;align-items:flex-start}
-}
-
-/* ─────────────────────── */
 </style>
 </head>
 <body>
@@ -881,8 +701,8 @@ select option{background:var(--bg2)}
   <button class="tab" onclick="nav('notes',this)">📝 Notes</button>
   <button class="tab" onclick="nav('carte',this)">🗺 Carte</button>
   <button class="tab" onclick="nav('top5',this)">🏆 Top 5</button>
+  <button class="tab" onclick="nav('referents',this)">🏳 Référents</button>
   <button class="tab" onclick="nav('changelog',this)">◈ V2.0</button>
-  <button class="tab" onclick="nav('referents',this);if(typeof refLoadAll==='function')refLoadAll()">🏳 Référents</button>
   <div class="nav-r"><span class="blink">■</span><span>SYSTÈME ACTIF</span></div>
 </nav>
 
@@ -1380,7 +1200,136 @@ select option{background:var(--bg2)}
   </div>
 </section>
 
-<!-- 13 CHANGELOG -->
+<!-- 13 RÉFÉRENTS -->
+<section class="sec" id="s-referents">
+  <div class="sh"><span class="sh-n">13</span><div class="sh-l"></div><span class="sh-t">Pays référents — tracking recrutements 24h/24 7j/7</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+
+  <!-- Stats globales -->
+  <div class="g4 mb2">
+    <div class="stat">
+      <div class="stat-icon">🏳</div>
+      <div class="stat-info">
+        <div class="stat-val" id="ref-gs-total">—</div>
+        <div class="stat-lbl">Pays pistés</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">🆕</div>
+      <div class="stat-info">
+        <div class="stat-val" id="ref-gs-week">—</div>
+        <div class="stat-lbl">Recrues (7 jours)</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">📈</div>
+      <div class="stat-info">
+        <div class="stat-val" id="ref-gs-month">—</div>
+        <div class="stat-lbl">Recrues (30 jours)</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">🥇</div>
+      <div class="stat-info">
+        <div class="stat-val" id="ref-gs-leader" style="font-size:1rem;padding-top:.4rem">—</div>
+        <div class="stat-lbl" id="ref-gs-leader-sub">Leader recrues</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail panel (affiché au clic) -->
+  <div id="ref-detail" style="display:none" class="panel mb2">
+    <div class="ptop"></div>
+    <div class="ph">
+      <div>
+        <span class="pt" id="ref-dp-title">—</span>
+        <span class="pts" id="ref-dp-sub" style="margin-left:.7rem">—</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <div style="display:flex;gap:.3rem">
+          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setRefPeriod(7,this)">7J</button>
+          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:var(--bg2);border-color:var(--b3);color:var(--blue-pale)" onclick="setRefPeriod(14,this)">14J</button>
+          <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setRefPeriod(30,this)">30J</button>
+        </div>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .7rem" id="ref-dep-btn" onclick="toggleRefDep()">+ Départs</button>
+        <button class="btn btn-r" style="font-size:.55rem;padding:.3rem .7rem" onclick="removeReferentEntry(refCurSrv,refCurCtry)">✕ Retirer</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .7rem" onclick="closeRefDetail()">Fermer</button>
+      </div>
+    </div>
+    <div class="pb">
+      <!-- tabs -->
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="btn" id="rdt-courbe" style="background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale);font-size:.58rem;padding:.32rem .8rem" onclick="showRefTab('courbe',this)">📈 Courbe</button>
+        <button class="btn" id="rdt-events" style="font-size:.58rem;padding:.32rem .8rem" onclick="showRefTab('events',this)">📋 Événements</button>
+      </div>
+      <div id="ref-tab-courbe">
+        <div id="ref-chart" style="height:110px;background:var(--bg2);border:1px solid var(--b1);border-radius:4px;overflow:hidden;margin-bottom:.5rem;position:relative">
+          <div class="empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">Sélectionne un pays</div>
+        </div>
+        <div id="ref-chart-legend" style="display:flex;gap:1.2rem;flex-wrap:wrap"></div>
+      </div>
+      <div id="ref-tab-events" style="display:none">
+        <div style="font-family:var(--M);font-size:.58rem;color:var(--t3);margin-bottom:.6rem" id="ref-events-count">—</div>
+        <div id="ref-events-list"><div class="empty">Aucun événement</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparatif -->
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph">
+      <span class="pt">📊 Comparatif recrutements</span>
+      <div style="display:flex;gap:.3rem">
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(7,this)">7J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:var(--bg2);border-color:var(--b3);color:var(--blue-pale)" onclick="setCmpRefPeriod(14,this)">14J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(30,this)">30J</button>
+      </div>
+    </div>
+    <div class="pb" id="ref-cmp"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
+  </div>
+
+  <!-- Grille pays -->
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph">
+      <span class="pt">🌍 Pays surveillés</span>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span class="liveb"><span class="liveled"></span>Scan toutes les 5 min</span>
+        <button class="btn" onclick="loadReferents()">↺ Actualiser</button>
+      </div>
+    </div>
+    <div class="pb" id="ref-grid"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
+  </div>
+
+  <!-- Ajouter un pays -->
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph"><span class="pt">➕ Ajouter un pays référent</span></div>
+    <div class="pb">
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end">
+        <div style="display:flex;flex-direction:column;gap:.3rem;min-width:120px">
+          <span style="font-family:var(--M);font-size:.55rem;letter-spacing:.15em;color:var(--t3)">SERVEUR</span>
+          <select id="ref-add-srv" style="max-width:150px">
+            <option value="blue">BLUE</option><option value="coral">CORAL</option>
+            <option value="orange">ORANGE</option><option value="red">RED</option>
+            <option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
+            <option value="white">WHITE</option><option value="jade">JADE</option>
+            <option value="black">BLACK</option><option value="cyan">CYAN</option>
+            <option value="lime" selected>LIME</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:160px">
+          <span style="font-family:var(--M);font-size:.55rem;letter-spacing:.15em;color:var(--t3)">NOM DU PAYS (slug API)</span>
+          <input id="ref-add-country" type="text" placeholder="ex: France, Germany..." onkeydown="if(event.key==='Enter')addReferentEntry()"/>
+        </div>
+        <button class="btn btn-g" onclick="addReferentEntry()" style="align-self:flex-end">+ Ajouter</button>
+      </div>
+      <div style="font-family:var(--M);font-size:.52rem;color:var(--t4);margin-top:.5rem;letter-spacing:.08em">ℹ Utilise le slug exact de l'API NationsGlory (ex: "France", "Germany")</div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 CHANGELOG -->
 <section class="sec" id="s-changelog">
   <div class="cl-wrap">
     <div class="cl-header">
@@ -1441,124 +1390,6 @@ select option{background:var(--bg2)}
   </div>
 </section>
 
-
-<!-- 14 RÉFÉRENTS -->
-<section class="sec" id="s-referents">
-  <div class="sh"><span class="sh-n">14</span><div class="sh-l"></div><span class="sh-t">Pays référents — tracking recrutements</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
-  <!-- HEADER -->
-  <div class="page-hdr">
-    <div>
-      <div class="page-title">🏳 PAYS RÉFÉRENTS</div>
-      <div class="page-sub">// TRACKING RECRUTEMENTS — SURVEILLANCE 24H/24 7J/7</div>
-    </div>
-    <div class="hdr-r">
-      <div class="liveb"><span class="liveled"></span>LIVE — Scan toutes les 5 min</div>
-      <button class="btn btn-blue" onclick="loadAll()">↺ Actualiser</button>
-      
-    </div>
-  </div>
-
-  <!-- STATS GLOBALES -->
-  <div class="stats-row" id="global-stats">
-    <div class="stat-card"><div class="stat-lbl">PAYS PISTÉS</div><div class="stat-val" id="gs-total">—</div><div class="stat-sub">référents actifs</div></div>
-    <div class="stat-card"><div class="stat-lbl">RECRUTEMENTS 7J</div><div class="stat-val" id="gs-week">—</div><div class="stat-sub">nouveaux membres</div></div>
-    <div class="stat-card"><div class="stat-lbl">RECRUTEMENTS 30J</div><div class="stat-val" id="gs-month">—</div><div class="stat-sub">total observé</div></div>
-    <div class="stat-card"><div class="stat-lbl">LEADER</div><div class="stat-val" id="gs-leader" style="font-size:1.1rem;padding-top:.3rem">—</div><div class="stat-sub" id="gs-leader-sub">recrute le plus</div></div>
-  </div>
-
-  <!-- DETAIL PANEL (affiché quand on clique un pays) -->
-  <div id="detail-panel">
-    <div class="dp-hdr">
-      <div>
-        <div class="dp-title" id="dp-title">—</div>
-        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3);letter-spacing:.15em;margin-top:.2rem" id="dp-sub">—</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-        <div class="period-sel">
-          <button class="period-btn active" onclick="setPeriod(7,this)">7J</button>
-          <button class="period-btn" onclick="setPeriod(14,this)">14J</button>
-          <button class="period-btn" onclick="setPeriod(30,this)">30J</button>
-        </div>
-        <button class="btn btn-sm" onclick="toggleDepartures()" id="dep-btn">Afficher départs</button>
-        <button class="btn btn-sm btn-red" onclick="removeReferent(currentServer,currentCountry)">✕ Retirer</button>
-        <button class="btn btn-sm" onclick="closeDetail()">Fermer</button>
-      </div>
-    </div>
-    <div class="dp-body">
-      <div class="dp-tabs">
-        <button class="dp-tab active" onclick="showTab('courbe',this)">📈 Courbe</button>
-        <button class="dp-tab" onclick="showTab('events',this)">📋 Événements</button>
-      </div>
-      <!-- COURBE -->
-      <div id="tab-courbe">
-        <div class="chart-wrap" id="dp-chart"><div class="chart-empty">Sélectionne un pays</div></div>
-        <div id="dp-chart-legend" style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.5rem"></div>
-      </div>
-      <!-- EVENTS -->
-      <div id="tab-events" style="display:none">
-        <div style="margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-family:var(--M);font-size:.62rem;color:var(--t3)" id="events-count">—</span>
-        </div>
-        <div id="dp-events-list"><div class="empty">Aucun événement</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- COMPARATIF -->
-  <div class="section">
-    <div class="section-title">📊 Comparatif recrutements</div>
-    <div class="panel">
-      <div class="panel-top"></div>
-      <div class="panel-hdr">
-        <span class="panel-title">🏆 Classement — recrutements sur la période</span>
-        <div class="period-sel">
-          <button class="period-btn active" onclick="setCmpPeriod(7,this)">7J</button>
-          <button class="period-btn" onclick="setCmpPeriod(14,this)">14J</button>
-          <button class="period-btn" onclick="setCmpPeriod(30,this)">30J</button>
-        </div>
-      </div>
-      <div class="panel-body" id="cmp-body"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
-    </div>
-  </div>
-
-  <!-- GRILLE PAYS -->
-  <div class="section">
-    <div class="section-title">🌍 Pays surveillés</div>
-    <div class="ref-grid" id="ref-grid"><div class="ld" style="grid-column:1/-1">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
-  </div>
-
-  <!-- AJOUTER UN PAYS -->
-  <div class="section">
-    <div class="section-title">➕ Ajouter un pays référent</div>
-    <div class="panel">
-      <div class="panel-top"></div>
-      <div class="panel-body">
-        <div class="add-form">
-          <div class="form-group">
-            <label class="form-label">SERVEUR</label>
-            <select id="add-srv">
-              <option value="blue">BLUE</option><option value="coral">CORAL</option>
-              <option value="orange">ORANGE</option><option value="red">RED</option>
-              <option value="yellow">YELLOW</option><option value="mocha">MOCHA</option>
-              <option value="white">WHITE</option><option value="jade">JADE</option>
-              <option value="black">BLACK</option><option value="cyan">CYAN</option>
-              <option value="lime" selected>LIME</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:2">
-            <label class="form-label">NOM DU PAYS (slug API)</label>
-            <input id="add-country" type="text" placeholder="ex: France, Germany..." onkeydown="if(event.key==='Enter')addReferent()"/>
-          </div>
-          <button class="btn btn-blue" onclick="addReferent()" style="align-self:flex-end;padding:.5rem 1.4rem">+ Ajouter</button>
-        </div>
-        <div style="font-family:var(--M);font-size:.55rem;color:var(--t4);margin-top:.6rem;letter-spacing:.08em">
-          ℹ Le nom doit correspondre au slug exact utilisé par l'API NationsGlory (ex: "France", "Germany", "UnitedStates")
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 </main>
 
 <div class="page-flash" id="page-flash"></div>
@@ -1574,283 +1405,233 @@ select option{background:var(--bg2)}
 </div>
 
 <script>
-
-const REF_API='https://nationsglory-spy.onrender.com';
-const REF_REF_SESSION_KEY='mg_auth_v2';
-let currentServer=null,currentCountry=null,currentPeriod=7,cmpPeriod=7,showDep=false;
-let allStats={},allReferents=[];
-
-// ─── AUTH ───────────────────────────────────────
-(function(){
-  if(sessionStorage.getItem(REF_SESSION_KEY)==='ok'){
-    document.getElementById('pw-gate').style.display='none';
-    document.getElementById('app').style.display='block';
-    refLoadAll();
-  }
-})();
-
-
-// ─── TOAST ──────────────────────────────────────
-function refToast(msg,dur=2800){
-  const w=document.getElementById('ref-toast-wrap');
-  const t=document.createElement('div');t.className='toast';t.textContent=msg;w.appendChild(t);
-  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),300);},dur);
-}
-
-// ─── LOAD ALL ───────────────────────────────────
-async function refLoadAll(){
-  await Promise.all([loadReferents(),loadStats(30),loadStats(7,'week'),loadComparatif()]);
-}
+// ═══════════════════════════════════════════════
+// MODULE PAYS RÉFÉRENTS
+// ═══════════════════════════════════════════════
+let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refPeriod=7,refCmpPeriod=7,refShowDep=false;
 
 async function loadReferents(){
+  const grid=document.getElementById('ref-grid');
+  grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
   try{
-    const r=await fetch(`${REF_API}/api/referents`);
-    const d=await r.json();
-    allReferents=d.watches||[];
-    document.getElementById('gs-total').textContent=allReferents.length;
-    renderRefGrid(allReferents);
-  }catch(e){refToast('❌ Erreur chargement référents');}
-}
-
-async function loadStats(days=30,key='month'){
-  try{
-    const r=await fetch(`${REF_API}/api/referents/stats?days=${days}`);
-    const d=await r.json();
-    const total=(d.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
-    if(key==='month'){
-      allStats=d.stats||[];
-      document.getElementById('gs-month').textContent=total;
-      // Leader
-      const leader=(d.stats||[])[0];
-      if(leader){
-        document.getElementById('gs-leader').textContent=leader.country_name;
-        document.getElementById('gs-leader-sub').textContent=`${leader.total_recruits} recrues (${leader.server.toUpperCase()})`;
-      }
-    }else{
-      document.getElementById('gs-week').textContent=total;
+    const [rRefs,rStats7,rStats30]=await Promise.all([
+      fetch(API+'/api/referents').then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=7').then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=30').then(r=>r.json()),
+    ]);
+    refAllReferents=rRefs.watches||[];
+    refAllStats=rStats30.stats||[];
+    // Stats globales
+    document.getElementById('ref-gs-total').textContent=refAllReferents.length;
+    const week7=(rStats7.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
+    const month30=(rStats30.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
+    document.getElementById('ref-gs-week').textContent=week7;
+    document.getElementById('ref-gs-month').textContent=month30;
+    const leader=(rStats30.stats||[])[0];
+    if(leader){
+      document.getElementById('ref-gs-leader').textContent=leader.country_name;
+      document.getElementById('ref-gs-leader-sub').textContent=leader.total_recruits+' recrues — '+leader.server.toUpperCase();
     }
-  }catch(e){}
+    renderRefGrid();
+    loadRefCmp();
+  }catch(e){grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur chargement</div>`;}
 }
 
-async function loadComparatif(){
-  const el=document.getElementById('cmp-body');
+function renderRefGrid(){
+  const el=document.getElementById('ref-grid');
+  if(!refAllReferents.length){el.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en ci-dessous</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem">${refAllReferents.map(w=>{
+    const stat=refAllStats.find(s=>s.server===w.server&&s.country.toLowerCase()===w.country.toLowerCase());
+    const recruits=stat?.total_recruits||0;
+    const isSelected=refCurSrv===w.server&&refCurCtry===w.country;
+    return`<div onclick="selectReferent('${w.server}','${w.country}')" style="background:var(--bg2);border:1px solid ${isSelected?'var(--blue-lt)':'var(--b1)'};border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;${isSelected?'box-shadow:0 0 0 1px var(--blue-mid)':''}" onmouseenter="this.style.borderColor='var(--b2)'" onmouseleave="this.style.borderColor='${isSelected?'var(--blue-lt)':'var(--b1)'}'">
+      <div style="padding:.7rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)">${w.name||w.country}</span>
+        <span style="font-family:var(--M);font-size:.55rem;letter-spacing:.12em;color:var(--t3);background:var(--bg3);padding:.12rem .4rem;border-radius:3px">${w.server.toUpperCase()}</span>
+      </div>
+      <div style="padding:.7rem 1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">MEMBRES</span>
+          <span style="font-family:var(--D);font-size:1rem;color:var(--t1)">${w.member_count||'—'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">RECRUES 30J</span>
+          <span style="font-family:var(--D);font-size:1rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits}</span>
+        </div>
+        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden">
+          <div style="width:${Math.min(recruits*5,100)}%;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px;transition:width .5s"></div>
+        </div>
+      </div>
+      <div style="padding:.4rem 1rem;border-top:1px solid var(--b1);display:flex;justify-content:space-between;background:rgba(0,0,0,.15)">
+        <span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Check: ${w.last_check||'—'}</span>
+        <span style="font-family:var(--M);font-size:.52rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits>0?'▲ '+recruits+' recrues':'Aucune recrue'}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function loadRefCmp(){
+  const el=document.getElementById('ref-cmp');
   el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
   try{
-    const r=await fetch(`${REF_API}/api/referents/stats?days=${cmpPeriod}`);
+    const r=await fetch(API+'/api/referents/stats?days='+refCmpPeriod);
     const d=await r.json();
     const stats=d.stats||[];
-    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données de recrutement</div>';return;}
+    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données de recrutement — le tracking démarre au prochain scan (5 min)</div>';return;}
     const max=stats[0]?.total_recruits||1;
-    const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
     el.innerHTML=stats.map((x,i)=>{
       const pct=Math.round(x.total_recruits/max*100);
+      const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
       const col=colors[i%colors.length];
-      return`<div class="cmp-row" onclick="selectCountry('${x.server}','${x.country}')" style="cursor:pointer">
-        <div class="cmp-name">${x.country_name}</div>
-        <div class="cmp-srv">${x.server.toUpperCase()}</div>
-        <div class="cmp-bar-w"><div class="cmp-bar" style="width:${pct}%;background:${col}"></div></div>
-        <div class="cmp-val">${x.total_recruits}</div>
-        <div class="cmp-sub">${x.unique_players} joueurs</div>
+      return`<div onclick="selectReferent('${x.server}','${x.country}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
+        <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)">${x.country_name}</span>
+        <span style="font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:55px">${x.server.toUpperCase()}</span>
+        <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${col};border-radius:4px;transition:width .6s"></div>
+        </div>
+        <span style="font-family:var(--D);font-size:1.1rem;min-width:35px;text-align:right;color:var(--t1)">${x.total_recruits}</span>
+        <span style="font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:65px;text-align:right">${x.unique_players} joueurs</span>
       </div>`;
     }).join('');
   }catch(e){el.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>';}
 }
 
-function setCmpPeriod(days,btn){
-  cmpPeriod=days;
-  document.querySelectorAll('.period-sel .period-btn').forEach((b,i,arr)=>{
-    // Only target the comparatif period selector (second one before cmp-body)
-    if(b.closest('.panel-hdr'))b.classList.remove('active');
+function setCmpRefPeriod(days,btn){
+  refCmpPeriod=days;
+  btn.closest('.ph').querySelectorAll('.btn').forEach(b=>{b.style.background='var(--bg2)';b.style.borderColor='var(--b2)';b.style.color='var(--t2)';});
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
+  loadRefCmp();
+}
+
+async function selectReferent(server,country){
+  refCurSrv=server;refCurCtry=country;
+  const ref=refAllReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
+  document.getElementById('ref-dp-title').textContent=(ref?.name||country).toUpperCase();
+  document.getElementById('ref-dp-sub').textContent=server.toUpperCase()+' · '+(ref?.member_count||'?')+' membres';
+  document.getElementById('ref-detail').style.display='block';
+  document.getElementById('ref-detail').scrollIntoView({behavior:'smooth',block:'start'});
+  renderRefGrid();
+  await loadRefDetail();
+}
+
+function closeRefDetail(){
+  document.getElementById('ref-detail').style.display='none';
+  refCurSrv=null;refCurCtry=null;
+  renderRefGrid();
+}
+
+function showRefTab(tab,btn){
+  document.getElementById('ref-tab-courbe').style.display=tab==='courbe'?'block':'none';
+  document.getElementById('ref-tab-events').style.display=tab==='events'?'block':'none';
+  ['rdt-courbe','rdt-events'].forEach(id=>{
+    const b=document.getElementById(id);
+    b.style.background='var(--bg2)';b.style.borderColor='var(--b2)';b.style.color='var(--t2)';
   });
-  btn.classList.add('active');
-  loadComparatif();
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
 }
 
-// ─── GRID RÉFÉRENTS ──────────────────────────────
-function renderRefGrid(refs){
-  const el=document.getElementById('ref-grid');
-  if(!refs.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">Aucun pays référent surveillé — ajoutez-en ci-dessous</div>';return;}
-  // Récupérer stats pour les tendances
-  el.innerHTML=refs.map(w=>{
-    const stat=allStats.find(s=>s.server===w.server&&s.country.toLowerCase()===w.country.toLowerCase());
-    const recruits=stat?.total_recruits||0;
-    const isSelected=currentServer===w.server&&currentCountry===w.country;
-    return`<div class="ref-card${isSelected?' selected':''}" onclick="selectCountry('${w.server}','${w.country}')">
-      <div class="rc-hdr">
-        <div>
-          <div class="rc-name">${w.name||w.country}</div>
-        </div>
-        <div class="rc-srv">${w.server.toUpperCase()}</div>
-      </div>
-      <div class="rc-body">
-        <div class="rc-stat">
-          <span class="rc-stat-lbl">MEMBRES ACTUELS</span>
-          <span class="rc-stat-val">${w.member_count||'—'}</span>
-        </div>
-        <div class="rc-stat">
-          <span class="rc-stat-lbl">RECRUES (30J)</span>
-          <span class="rc-stat-val" style="color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits}</span>
-        </div>
-        <div class="rc-bar-wrap">
-          <div class="rc-bar" style="width:${Math.min(recruits*5,100)}%"></div>
-        </div>
-      </div>
-      <div class="rc-footer">
-        <span class="rc-check">Dernier check : ${w.last_check||'—'}</span>
-        <span class="rc-trend ${recruits>5?'up':recruits>0?'flat':'flat'}">${recruits>0?`▲ ${recruits} recrues`:'Aucune recrue'}</span>
-      </div>
-    </div>`;
-  }).join('');
+function setRefPeriod(days,btn){
+  refPeriod=days;
+  btn.closest('.ph').querySelectorAll('.btn').forEach((b,i)=>{
+    if(b.id==='ref-dep-btn'||b.classList.contains('btn-r'))return;
+    b.style.background='var(--bg2)';b.style.borderColor='var(--b2)';b.style.color='var(--t2)';
+  });
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
+  if(refCurSrv)loadRefDetail();
 }
 
-// ─── DETAIL PANEL ────────────────────────────────
-async function selectCountry(server,country){
-  currentServer=server;currentCountry=country;
-  const ref=allReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
-  const name=ref?.name||country;
-  document.getElementById('dp-title').textContent=name.toUpperCase();
-  document.getElementById('dp-sub').textContent=`${server.toUpperCase()} · ${ref?.member_count||'?'} membres actuels`;
-  document.getElementById('detail-panel').style.display='block';
-  document.getElementById('detail-panel').scrollIntoView({behavior:'smooth',block:'start'});
-  // Re-render grid pour sélection
-  renderRefGrid(allReferents);
-  await loadDetail();
+function toggleRefDep(){
+  refShowDep=!refShowDep;
+  document.getElementById('ref-dep-btn').textContent=refShowDep?'- Départs':'+ Départs';
+  if(refCurSrv)loadRefDetail();
 }
 
-function closeDetail(){
-  document.getElementById('detail-panel').style.display='none';
-  currentServer=null;currentCountry=null;
-  renderRefGrid(allReferents);
-}
-
-function showTab(tab,btn){
-  document.getElementById('tab-courbe').style.display=tab==='courbe'?'block':'none';
-  document.getElementById('tab-events').style.display=tab==='events'?'block':'none';
-  document.querySelectorAll('.dp-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function setPeriod(days,btn){
-  currentPeriod=days;
-  document.querySelectorAll('.dp-hdr .period-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  if(currentServer)loadDetail();
-}
-
-function toggleDepartures(){
-  showDep=!showDep;
-  document.getElementById('dep-btn').textContent=showDep?'Masquer départs':'Afficher départs';
-  if(currentServer)loadDetail();
-}
-
-async function loadDetail(){
-  if(!currentServer||!currentCountry)return;
+async function loadRefDetail(){
+  if(!refCurSrv||!refCurCtry)return;
   try{
-    const r=await fetch(`${REF_API}/api/referents/history?server=${currentServer}&country=${currentCountry}&limit=200&departures=${showDep?1:0}`);
+    const r=await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${refCurCtry}&limit=200&departures=${refShowDep?1:0}`);
     const d=await r.json();
-    renderCurve(d.curve||[]);
-    renderEvents(d.events||[],d.total||0);
-  }catch(e){refToast('❌ Erreur chargement historique');}
+    renderRefCurve(d.curve||[]);
+    renderRefEvents(d.events||[],d.total||0);
+  }catch(e){}
 }
 
-function renderCurve(curve){
-  const el=document.getElementById('dp-chart');
-  if(!curve.length){el.innerHTML='<div class="chart-empty">Pas encore de données — le tracking démarre maintenant</div>';return;}
-
-  // Construire un tableau sur currentPeriod jours
-  const today=new Date();
-  const days=[];
-  for(let i=currentPeriod-1;i>=0;i--){
-    const d=new Date(today);d.setDate(d.getDate()-i);
-    days.push(d.toISOString().slice(0,10));
-  }
+function renderRefCurve(curve){
+  const el=document.getElementById('ref-chart');
+  if(!curve.length){el.innerHTML='<div class="empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">Pas encore de données — le tracking est actif</div>';return;}
+  const today=new Date();const days=[];
+  for(let i=refPeriod-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
   const map={};curve.forEach(c=>map[c._id]=c.count);
   const vals=days.map(d=>map[d]||0);
   const max=Math.max(...vals,1);
-
-  const W=600,H=100,pad={t:10,r:10,b:20,l:28};
+  const W=600,H=90,pl=28,pr=10,pt=8,pb=18;
   const pts=vals.map((v,i)=>{
-    const x=pad.l+(i/(vals.length-1||1))*(W-pad.l-pad.r);
-    const y=pad.t+(1-v/max)*(H-pad.t-pad.b);
+    const x=pl+(i/(vals.length-1||1))*(W-pl-pr);
+    const y=pt+(1-v/max)*(H-pt-pb);
     return[x,y];
   });
-  const line=pts.map((p,i)=>(i?'L':'M')+p[0]+','+p[1]).join(' ');
-  const area=line+`L${pts[pts.length-1][0]},${H-pad.b} L${pts[0][0]},${H-pad.b} Z`;
-
-  // Axe Y simplifié
-  const yTicks=[0,Math.ceil(max/2),max].map(v=>({v,y:pad.t+(1-v/max)*(H-pad.t-pad.b)}));
-  const yAxis=yTicks.map(t=>`<line x1="${pad.l}" y1="${t.y}" x2="${W-pad.r}" y2="${t.y}" stroke="rgba(91,163,255,.06)" stroke-width="1"/>
-    <text x="${pad.l-3}" y="${t.y+4}" font-family="Space Mono" font-size="7" fill="rgba(107,138,184,.6)" text-anchor="end">${t.v}</text>`).join('');
-
-  // Points remarquables
-  const dots=pts.filter((_,i)=>vals[i]>0).map(([x,y],_,__)=>`<circle cx="${x}" cy="${y}" r="3" fill="#1a6fff" opacity=".8"/>`).join('');
-
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="overflow:visible">
-    <defs>
-      <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#1a6fff" stop-opacity=".25"/>
-        <stop offset="100%" stop-color="#1a6fff" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const area=line+`L${pts[pts.length-1][0].toFixed(1)},${H-pb} L${pts[0][0].toFixed(1)},${H-pb} Z`;
+  const yTicks=[0,Math.ceil(max/2),max].map(v=>({v,y:pt+(1-v/max)*(H-pt-pb)}));
+  const yAxis=yTicks.map(t=>`<line x1="${pl}" y1="${t.y.toFixed(1)}" x2="${W-pr}" y2="${t.y.toFixed(1)}" stroke="rgba(91,163,255,.06)" stroke-width="1"/>
+    <text x="${pl-3}" y="${(t.y+4).toFixed(1)}" font-family="Space Mono" font-size="7" fill="rgba(107,138,184,.5)" text-anchor="end">${t.v}</text>`).join('');
+  const dots=pts.filter((_,i)=>vals[i]>0).map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--blue-lt)" opacity=".85"/>`).join('');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible">
+    <defs><linearGradient id="refag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a6fff" stop-opacity=".2"/><stop offset="100%" stop-color="#1a6fff" stop-opacity="0"/></linearGradient></defs>
     ${yAxis}
-    <path d="${area}" fill="url(#ag)"/>
-    <path d="${line}" fill="none" stroke="#1a6fff" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="${area}" fill="url(#refag)"/>
+    <path d="${line}" fill="none" stroke="var(--blue-lt)" stroke-width="1.5" stroke-linejoin="round"/>
     ${dots}
   </svg>`;
-
-  // Légende dates
-  const legend=document.getElementById('dp-chart-legend');
+  const leg=document.getElementById('ref-chart-legend');
   const step=Math.max(1,Math.floor(days.length/5));
-  legend.innerHTML=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<span style="font-family:var(--M);font-size:.5rem;color:var(--t4)">${d.slice(5)}</span>`).join('');
+  leg.innerHTML=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">${d.slice(5)}</span>`).join('');
 }
 
-function renderEvents(events,total){
-  document.getElementById('events-count').textContent=`${total} événement${total>1?'s':''}`;
-  const el=document.getElementById('dp-events-list');
+function renderRefEvents(events,total){
+  document.getElementById('ref-events-count').textContent=total+' événement'+(total>1?'s':'');
+  const el=document.getElementById('ref-events-list');
   if(!events.length){el.innerHTML='<div class="empty">Aucun événement enregistré</div>';return;}
-  el.innerHTML=`<table class="tbl">
-    <thead><tr><th>Date</th><th>Joueur</th><th>Type</th><th>Membres avant</th><th>Membres après</th></tr></thead>
-    <tbody>${events.slice(0,100).map(e=>`<tr>
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Date</th><th>Joueur</th><th>Type</th><th>Avant</th><th>Après</th></tr></thead><tbody>${
+    events.slice(0,100).map(e=>`<tr>
       <td style="color:var(--t3)">${e.ts}</td>
-      <td style="color:var(--t1);font-family:var(--M)">${e.player}</td>
-      <td>${e.departure?`<span class="badge badge-red">DÉPART</span>`:`<span class="badge badge-grn">RECRUTEMENT</span>`}</td>
+      <td style="color:var(--t1)">${e.player}</td>
+      <td>${e.departure?`<span style="font-family:var(--M);font-size:.52rem;color:var(--red);background:rgba(255,51,85,.08);padding:.1rem .35rem;border-radius:3px">DÉPART</span>`:`<span style="font-family:var(--M);font-size:.52rem;color:var(--grn);background:rgba(0,232,122,.08);padding:.1rem .35rem;border-radius:3px">RECRUE</span>`}</td>
       <td style="color:var(--t3)">${e.members_before}</td>
       <td style="color:var(--t3)">${e.members_after}</td>
-    </tr>`).join('')}</tbody>
-  </table>`;
+    </tr>`).join('')}
+  </tbody></table>`;
 }
 
-// ─── AJOUTER / RETIRER ───────────────────────────
-async function addReferent(){
-  const server=document.getElementById('add-srv').value;
-  const country=document.getElementById('add-country').value.trim();
-  if(!country){refToast('⚠ Saisis un nom de pays');return;}
-  refToast('⏳ Ajout en cours...');
+async function addReferentEntry(){
+  const server=document.getElementById('ref-add-srv').value;
+  const country=document.getElementById('ref-add-country').value.trim();
+  if(!country)return;
   try{
-    const r=await fetch(`${REF_API}/api/referents/add`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})});
+    const r=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})});
     const d=await r.json();
-    if(d.error){refToast(`❌ ${d.error}`);return;}
-    document.getElementById('add-country').value='';
-    refToast(`✅ ${country} (${server.toUpperCase()}) ajouté`);
-    await refLoadAll();
-  }catch(e){refToast('❌ Erreur réseau');}
+    if(d.error){alert('❌ '+d.error);return;}
+    document.getElementById('ref-add-country').value='';
+    await loadReferents();
+  }catch(e){alert('❌ Erreur réseau');}
 }
 
-async function removeReferent(server,country){
-  if(!confirm(`Retirer ${country} (${server.toUpperCase()}) de la surveillance ?`))return;
+async function removeReferentEntry(server,country){
+  if(!confirm('Retirer '+country+' ('+server.toUpperCase()+') ?'))return;
   try{
-    const r=await fetch(`${REF_API}/api/referents/remove`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})});
+    const r=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})});
     const d=await r.json();
-    if(d.error){refToast(`❌ ${d.error}`);return;}
-    refToast(`🗑 ${country} retiré`);
-    closeDetail();
-    await refLoadAll();
-  }catch(e){refToast('❌ Erreur réseau');}
+    if(d.error){alert('❌ '+d.error);return;}
+    closeRefDetail();
+    await loadReferents();
+  }catch(e){alert('❌ Erreur réseau');}
 }
 
-// Auto-refresh toutes les 5 min
-setInterval(refLoadAll,300000);
-
+// Auto-refresh si onglet actif
+setInterval(()=>{
+  const active=document.querySelector('.sec.active');
+  if(active&&active.id==='s-referents')loadReferents();
+},300000);
 </script>
 <script src="script.js"></script>
 </body>
