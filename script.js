@@ -1301,3 +1301,246 @@ window.loadDash=async function(){
     if(Object.keys(top5AllData).length===0)top5AllData=all;
   }catch(e){}
 };
+
+// ═══════════════════════════════════════════════
+// MODULE PAYS RÉFÉRENTS
+// ═══════════════════════════════════════════════
+let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refPeriod=7,refCmpPeriod=7,refShowDep=false;
+const refCountryCache={};
+
+// Chargement pays depuis l'API (même logique que cwLoadCountries)
+async function refLoadCountries(){
+  const s=$('ref-add-srv').value;
+  if(!s){$('ref-suggest').innerHTML='';return;}
+  $('ref-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
+  try{
+    if(!refCountryCache[s]){
+      const d=await api('/api/countries/'+s);
+      refCountryCache[s]=(d.countries||[]).sort((a,b)=>a.localeCompare(b));
+    }
+    refFilterCountries();
+  }catch(e){$('ref-suggest').innerHTML='';}
+}
+
+// Filtrage des pays (même logique que cwFilterCountries)
+function refFilterCountries(){
+  const s=$('ref-add-srv').value,v=$('ref-add-country').value.trim().toLowerCase();
+  const p=refCountryCache[s]||[];
+  const f=v?p.filter(x=>x.toLowerCase().includes(v)):p;
+  // Grille de tags cliquables
+  $('ref-suggest').innerHTML=f.slice(0,60).map(x=>`<span class="tag" onclick="refSelectTag('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');
+  // Dropdown autocomplete
+  const acl=$('ref-add-acl');
+  if(v&&f.length){
+    acl.innerHTML=f.slice(0,8).map(x=>`<div class="aci" onmousedown="refSelectTag('${x.replace(/'/g,"\\'")}')">${x}</div>`).join('');
+    acl.style.display='block';
+  }else acl.style.display='none';
+}
+
+function refSelectTag(name){
+  $('ref-add-country').value=name;
+  $('ref-add-acl').style.display='none';
+  refFilterCountries();
+}
+
+async function loadReferents(){
+  const grid=$('ref-grid');
+  grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    const [rRefs,rStats7,rStats30]=await Promise.all([
+      fetch(API+'/api/referents').then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=7').then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=30').then(r=>r.json()),
+    ]);
+    refAllReferents=rRefs.watches||[];
+    refAllStats=rStats30.stats||[];
+    $('ref-gs-total').textContent=refAllReferents.length;
+    const week7=(rStats7.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
+    const month30=(rStats30.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
+    $('ref-gs-week').textContent=week7;
+    $('ref-gs-month').textContent=month30;
+    const leader=(rStats30.stats||[])[0];
+    if(leader){$('ref-gs-leader').textContent=leader.country_name;$('ref-gs-leader-sub').textContent=leader.total_recruits+' recrues — '+leader.server.toUpperCase();}
+    renderRefGrid();
+    loadRefCmp();
+  }catch(e){grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur chargement</div>`;}
+}
+
+function renderRefGrid(){
+  const el=$('ref-grid');
+  if(!refAllReferents.length){el.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en un ci-dessus</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem">${refAllReferents.map(w=>{
+    const stat=refAllStats.find(s=>s.server===w.server&&s.country.toLowerCase()===w.country.toLowerCase());
+    const recruits=stat?.total_recruits||0;
+    const isSel=refCurSrv===w.server&&refCurCtry===w.country;
+    return`<div onclick="selectReferent('${w.server}','${w.country}')" style="background:var(--bg2);border:1px solid ${isSel?'var(--blue-lt)':'var(--b1)'};border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .15s;${isSel?'box-shadow:0 0 0 1px var(--blue-mid)':''}">
+      <div style="padding:.7rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)">${w.name||w.country}</span>
+        <span style="font-family:var(--M);font-size:.55rem;color:var(--t3);background:var(--bg3);padding:.12rem .4rem;border-radius:3px">${w.server.toUpperCase()}</span>
+      </div>
+      <div style="padding:.7rem 1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">MEMBRES</span>
+          <span style="font-family:var(--D);font-size:1rem;color:var(--t1)">${w.member_count||'—'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">RECRUES 30J</span>
+          <span style="font-family:var(--D);font-size:1rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits}</span>
+        </div>
+        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden">
+          <div style="width:${Math.min(recruits*5,100)}%;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px;transition:width .5s"></div>
+        </div>
+      </div>
+      <div style="padding:.4rem 1rem;border-top:1px solid var(--b1);display:flex;justify-content:space-between;background:rgba(0,0,0,.15)">
+        <span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Check: ${w.last_check||'—'}</span>
+        <span style="font-family:var(--M);font-size:.52rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits>0?'▲ '+recruits+' recrues':'Aucune recrue'}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function loadRefCmp(){
+  const el=$('ref-cmp');
+  el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    const d=await fetch(API+'/api/referents/stats?days='+refCmpPeriod).then(r=>r.json());
+    const stats=d.stats||[];
+    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (5 min)</div>';return;}
+    const max=stats[0]?.total_recruits||1;
+    const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
+    el.innerHTML=stats.map((x,i)=>{
+      const pct=Math.round(x.total_recruits/max*100);
+      return`<div onclick="selectReferent('${x.server}','${x.country}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
+        <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)">${x.country_name}</span>
+        <span style="font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:55px">${x.server.toUpperCase()}</span>
+        <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${colors[i%colors.length]};border-radius:4px;transition:width .6s"></div>
+        </div>
+        <span style="font-family:var(--D);font-size:1.1rem;min-width:35px;text-align:right;color:var(--t1)">${x.total_recruits}</span>
+        <span style="font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:65px;text-align:right">${x.unique_players} joueurs</span>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>';}
+}
+
+function setCmpRefPeriod(days,btn){
+  refCmpPeriod=days;
+  btn.closest('.ph').querySelectorAll('.btn').forEach(b=>{b.style.background='';b.style.borderColor='';b.style.color='';});
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
+  loadRefCmp();
+}
+
+async function selectReferent(server,country){
+  refCurSrv=server;refCurCtry=country;
+  const ref=refAllReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
+  $('ref-dp-title').textContent=(ref?.name||country).toUpperCase();
+  $('ref-dp-sub').textContent=server.toUpperCase()+' · '+(ref?.member_count||'?')+' membres';
+  $('ref-detail').style.display='block';
+  $('ref-detail').scrollIntoView({behavior:'smooth',block:'start'});
+  renderRefGrid();
+  await loadRefDetail();
+}
+
+function closeRefDetail(){
+  $('ref-detail').style.display='none';
+  refCurSrv=null;refCurCtry=null;
+  renderRefGrid();
+}
+
+function showRefTab(tab,btn){
+  $('ref-tab-courbe').style.display=tab==='courbe'?'block':'none';
+  $('ref-tab-events').style.display=tab==='events'?'block':'none';
+  ['rdt-courbe','rdt-events'].forEach(id=>{$(id).style.background='';$(id).style.borderColor='';$(id).style.color='';});
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
+}
+
+function setRefPeriod(days,btn){
+  refPeriod=days;
+  btn.closest('.ph').querySelectorAll('.btn').forEach(b=>{
+    if(b.id==='ref-dep-btn'||b.classList.contains('btn-r'))return;
+    b.style.background='';b.style.borderColor='';b.style.color='';
+  });
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
+  if(refCurSrv)loadRefDetail();
+}
+
+function toggleRefDep(){
+  refShowDep=!refShowDep;
+  $('ref-dep-btn').textContent=refShowDep?'- Départs':'+ Départs';
+  if(refCurSrv)loadRefDetail();
+}
+
+async function loadRefDetail(){
+  if(!refCurSrv||!refCurCtry)return;
+  try{
+    const d=await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${encodeURIComponent(refCurCtry)}&limit=200&departures=${refShowDep?1:0}`).then(r=>r.json());
+    renderRefCurve(d.curve||[]);
+    renderRefEvents(d.events||[],d.total||0);
+  }catch(e){}
+}
+
+function renderRefCurve(curve){
+  const el=$('ref-chart');
+  if(!curve.length){el.innerHTML='<div class="empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">Pas encore de données — tracking actif</div>';return;}
+  const today=new Date();const days=[];
+  for(let i=refPeriod-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const map={};curve.forEach(c=>map[c._id]=c.count);
+  const vals=days.map(d=>map[d]||0);
+  const max=Math.max(...vals,1);
+  const W=600,H=90,pl=28,pr=10,pt=8,pb=18;
+  const pts=vals.map((v,i)=>{const x=pl+(i/(vals.length-1||1))*(W-pl-pr);const y=pt+(1-v/max)*(H-pt-pb);return[x,y];});
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const area=line+`L${pts[pts.length-1][0].toFixed(1)},${H-pb} L${pts[0][0].toFixed(1)},${H-pb} Z`;
+  const yTicks=[0,Math.ceil(max/2),max].map(v=>({v,y:pt+(1-v/max)*(H-pt-pb)}));
+  const yAxis=yTicks.map(t=>`<line x1="${pl}" y1="${t.y.toFixed(1)}" x2="${W-pr}" y2="${t.y.toFixed(1)}" stroke="rgba(91,163,255,.06)" stroke-width="1"/><text x="${(pl-3).toFixed(1)}" y="${(t.y+4).toFixed(1)}" font-family="Space Mono" font-size="7" fill="rgba(107,138,184,.5)" text-anchor="end">${t.v}</text>`).join('');
+  const dots=pts.filter((_,i)=>vals[i]>0).map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--blue-lt)" opacity=".85"/>`).join('');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible">
+    <defs><linearGradient id="refag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a6fff" stop-opacity=".2"/><stop offset="100%" stop-color="#1a6fff" stop-opacity="0"/></linearGradient></defs>
+    ${yAxis}<path d="${area}" fill="url(#refag)"/><path d="${line}" fill="none" stroke="var(--blue-lt)" stroke-width="1.5" stroke-linejoin="round"/>${dots}
+  </svg>`;
+  const leg=$('ref-chart-legend');
+  const step=Math.max(1,Math.floor(days.length/5));
+  leg.innerHTML=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">${d.slice(5)}</span>`).join('');
+}
+
+function renderRefEvents(events,total){
+  $('ref-events-count').textContent=total+' événement'+(total>1?'s':'');
+  const el=$('ref-events-list');
+  if(!events.length){el.innerHTML='<div class="empty">Aucun événement enregistré</div>';return;}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Date</th><th>Joueur</th><th>Type</th><th>Avant</th><th>Après</th></tr></thead><tbody>${
+    events.slice(0,100).map(e=>`<tr>
+      <td style="color:var(--t3)">${e.ts}</td><td>${e.player}</td>
+      <td>${e.departure?`<span style="font-family:var(--M);font-size:.52rem;color:var(--red);background:rgba(255,51,85,.08);padding:.1rem .35rem;border-radius:3px">DÉPART</span>`:`<span style="font-family:var(--M);font-size:.52rem;color:var(--grn);background:rgba(0,232,122,.08);padding:.1rem .35rem;border-radius:3px">RECRUE</span>`}</td>
+      <td style="color:var(--t3)">${e.members_before}</td><td style="color:var(--t3)">${e.members_after}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function addReferentEntry(){
+  const server=$('ref-add-srv').value;
+  const country=$('ref-add-country').value.trim();
+  if(!server||!country)return showToast('⚠ Sélectionne un serveur et un pays');
+  try{
+    const d=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})}).then(r=>r.json());
+    if(d.error)return showToast('❌ '+d.error);
+    $('ref-add-country').value='';
+    showToast('✅ '+country+' ('+server.toUpperCase()+') ajouté');
+    await loadReferents();
+  }catch(e){showToast('❌ Erreur réseau');}
+}
+
+async function removeReferentEntry(server,country){
+  if(!confirm('Retirer '+country+' ('+server.toUpperCase()+') ?'))return;
+  try{
+    const d=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})}).then(r=>r.json());
+    if(d.error)return showToast('❌ '+d.error);
+    showToast('🗑 '+country+' retiré');
+    closeRefDetail();
+    await loadReferents();
+  }catch(e){showToast('❌ Erreur réseau');}
+}
+
+setInterval(()=>{
+  const active=document.querySelector('.sec.active');
+  if(active&&active.id==='s-referents')loadReferents();
+},300000);
