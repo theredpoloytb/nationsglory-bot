@@ -1260,11 +1260,13 @@ select option{background:var(--bg2);color:var(--t1)}
   <div class="panel mb">
     <div class="ptop"></div>
     <div class="ph">
-      <span class="pt">📊 Comparatif recrutements — 30 jours</span>
+      <span class="pt">📊 Comparatif recrutements — 90 jours</span>
       <div style="display:flex;gap:.3rem">
-        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale)" onclick="setCmpRefPeriod(7,this)">7J</button>
-        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(14,this)">14J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(7,this)">7J</button>
         <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(30,this)">30J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem;background:rgba(0,56,184,.2);border-color:rgba(26,111,255,.4);color:var(--blue-pale)" onclick="setCmpRefPeriod(90,this)">90J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(180,this)">180J</button>
+        <button class="btn" style="font-size:.55rem;padding:.3rem .6rem" onclick="setCmpRefPeriod(365,this)">365J</button>
       </div>
     </div>
     <div class="pb" id="ref-cmp"><div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div></div>
