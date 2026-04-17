@@ -236,7 +236,7 @@ async def referent_tracker_loop():
 				await asyncio.gather(*[check_referent(w) for w in REFERENT_WATCHES],return_exceptions=True)
 				await save_referents()
 		except Exception as e:print(f"❌ referent_tracker_loop: {e}",flush=True)
-		await asyncio.sleep(300)  # 5 minutes
+		await asyncio.sleep(1800)  # 30 minutes
 
 # ── API ENDPOINTS RÉFÉRENTS ──
 
@@ -251,6 +251,7 @@ async def api_referent_get(r):
 			'member_count':w.get('member_count',0),
 			'last_check':w.get('last_check',None),
 			'added_at':w.get('added_at',None),
+			'members_snapshot':w.get('members_snapshot',[]),
 		})
 	return cors({'watches':result})
 
@@ -299,7 +300,7 @@ async def api_referent_stats(r):
 		from pymongo import ASCENDING
 		server=r.rel_url.query.get('server',None)
 		country=r.rel_url.query.get('country',None)
-		days=int(r.rel_url.query.get('days',30))
+		days=int(r.rel_url.query.get('days',90))
 		since=datetime.utcnow()+timedelta(hours=1)-timedelta(days=days)
 		query={'ts':{'$gte':since},'departure':{'$exists':False}}
 		if server:query['server']=server.lower()
