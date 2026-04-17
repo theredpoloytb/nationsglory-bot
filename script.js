@@ -1304,7 +1304,7 @@ window.loadDash=async function(){
 // ═══════════════════════════════════════════════
 // MODULE PAYS RÉFÉRENTS
 // ═══════════════════════════════════════════════
-let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refCmpPeriod=7;
+let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refCmpPeriod=90;
 const refCountryCache={};
 
 // ── Chargement pays (même logique que cwLoadCountries) ──
@@ -1335,17 +1335,18 @@ async function loadReferents(){
   const grid=$('ref-grid');
   grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
   try{
-    const[rRefs,rStats7,rStats30]=await Promise.all([
+    const[rRefs,rStats7,rStats30,rStats90]=await Promise.all([
       fetch(API+'/api/referents').then(r=>r.json()),
       fetch(API+'/api/referents/stats?days=7').then(r=>r.json()),
       fetch(API+'/api/referents/stats?days=30').then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=90').then(r=>r.json()),
     ]);
     refAllReferents=rRefs.watches||[];
-    refAllStats=rStats30.stats||[];
+    refAllStats=rStats90.stats||[];
     $('ref-gs-total').textContent=refAllReferents.length;
     $('ref-gs-week').textContent=(rStats7.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
     $('ref-gs-month').textContent=(rStats30.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
-    const leader=(rStats30.stats||[])[0];
+    const leader=(rStats90.stats||[])[0];
     if(leader){$('ref-gs-leader').textContent=leader.country_name;$('ref-gs-leader-sub').textContent=leader.total_recruits+' recrues — '+leader.server.toUpperCase();}
     renderRefGrid();
     loadRefCmp();
@@ -1472,7 +1473,7 @@ async function loadRefCmp(){
   try{
     const d=await fetch(API+'/api/referents/stats?days='+refCmpPeriod).then(r=>r.json());
     const stats=d.stats||[];
-    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (5 min)</div>';return;}
+    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (30 min)</div>';return;}
     const max=stats[0]?.total_recruits||1;
     const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
     el.innerHTML=stats.map((x,i)=>`<div onclick="openRefMembers('${x.server}','${x.country.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
