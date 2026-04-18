@@ -621,7 +621,10 @@ async def check_country_watch(watch):
 	try:
 		server=watch['server'];country=watch['country'];members,name=await get_country_members(server,country)
 		if not members:return
+		print(f"🔍 DEBUG [{name}/{server.upper()}] Membres API ({len(members)}): {members}",flush=True)
 		online_players=await get_online(server);online_members=[m for m in members if m in online_players]
+		print(f"🔍 DEBUG [{name}/{server.upper()}] Online membres ({len(online_members)}): {online_members}",flush=True)
+		print(f"🔍 DEBUG [{name}/{server.upper()}] Tous les online sur le serveur ({len(online_players)}): {online_players}",flush=True)
 		if len(online_members)<2:watch['last_alert']=False;watch['members']=online_members;return
 		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'};non_recruits=[]
 		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
