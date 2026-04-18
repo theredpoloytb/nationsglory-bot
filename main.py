@@ -197,11 +197,50 @@ def record_departure(server,country,country_name,player,old_count,new_count):
 		})
 	except Exception as e:print(f"❌ record_departure: {e}",flush=True)
 
+async def verify_members_by_api(server, members):
+	"""Vérifie via l'API /user que chaque joueur appartient vraiment au pays sur ce serveur.
+	Retourne uniquement les joueurs ayant un country_rank valide (filtre les faux positifs de l'API membres)."""
+	if not members:return[]
+	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+	verified=[]
+	async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
+		tasks=[s.get(f"https://publicapi.nationsglory.fr/user/{p}",headers=headers)for p in members]
+		for(p,task)in zip(members,tasks):
+			try:
+				async with task as resp:
+					if resp.status==200:
+						data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank','')
+						if rank:verified.append(p)
+					else:verified.append(p)  # En cas d'erreur API on garde le joueur par défaut
+			except:verified.append(p)
+	return verified
+
+async def verify_members_with_ranks(server, members):
+	"""Comme verify_members_by_api mais retourne aussi les ranks.
+	Retourne (verified_list, rank_dict) — rank_dict = {player: rank}"""
+	if not members:return[],{}
+	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+	verified=[];ranks={}
+	async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
+		tasks=[s.get(f"https://publicapi.nationsglory.fr/user/{p}",headers=headers)for p in members]
+		for(p,task)in zip(members,tasks):
+			try:
+				async with task as resp:
+					if resp.status==200:
+						data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank','')
+						if rank:verified.append(p);ranks[p]=rank
+					else:verified.append(p)  # En cas d'erreur API on garde le joueur
+			except:verified.append(p)
+	return verified,ranks
+
 async def check_referent(watch):
 	"""Vérifie les recrutements d'un pays référent et met à jour le snapshot."""
 	try:
 		server=watch['server'];country=watch['country']
 		members,name=await get_country_members(server,country)
+		if not members:return
+		# Vérification double via /user pour filtrer les faux positifs de l'API membres
+		members=await verify_members_by_api(server,members)
 		if not members:return
 		# Mettre à jour le nom réel du pays
 		watch['name']=name
@@ -621,21 +660,13 @@ async def check_country_watch(watch):
 	try:
 		server=watch['server'];country=watch['country'];members,name=await get_country_members(server,country)
 		if not members:return
-		print(f"🔍 DEBUG [{name}/{server.upper()}] Membres API ({len(members)}): {members}",flush=True)
+		# Vérification double via /user pour filtrer les faux positifs de l'API membres
+		# On récupère aussi les ranks pour éviter un 2e appel API plus bas
+		members,rank_map=await verify_members_with_ranks(server,members)
+		if not members:return
 		online_players=await get_online(server);online_members=[m for m in members if m in online_players]
-		print(f"🔍 DEBUG [{name}/{server.upper()}] Online membres ({len(online_members)}): {online_members}",flush=True)
-		print(f"🔍 DEBUG [{name}/{server.upper()}] Tous les online sur le serveur ({len(online_players)}): {online_players}",flush=True)
 		if len(online_members)<2:watch['last_alert']=False;watch['members']=online_members;return
-		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'};non_recruits=[]
-		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
-			tasks=[s.get(f"https://publicapi.nationsglory.fr/user/{p}",headers=headers)for p in online_members[:8]]
-			for(p,task)in zip(online_members[:8],tasks):
-				try:
-					async with task as resp:
-						if resp.status==200:
-							data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank','')
-							if rank and rank!='recruit':non_recruits.append((p,rank))
-				except:pass
+		non_recruits=[(p,rank_map[p])for p in online_members if rank_map.get(p,'')!='recruit']
 		watch['members']=online_members;can_assault=len(online_members)>=2 and len(non_recruits)>=1
 		if can_assault and not watch.get('last_alert'):
 			watch['last_alert']=True;ch=client.get_channel(CH_PAYS)
