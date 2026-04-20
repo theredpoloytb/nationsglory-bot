@@ -2,7 +2,7 @@
 // PASSWORD GATE — protection renforcée
 // ═══════════════════════════════════════════════════════════
 (function(){
-  const SESSION_KEY = 'mg_auth_v2';
+  const SESSION_KEY = 'mg_token_v3';
   const MAIN = document.querySelector('.main');
   const HDR  = document.querySelector('.hdr');
   const NAV  = document.querySelector('.nav');
@@ -27,7 +27,7 @@
   function watchGate() {
     const gate = document.getElementById('pw-gate');
     // Si quelqu'un supprime le gate sans être authentifié → troll
-    if(!gate && sessionStorage.getItem(SESSION_KEY) !== 'ok') {
+    if(!gate && !sessionStorage.getItem(SESSION_KEY)) {
       trollUser();
     }
   }
@@ -68,7 +68,7 @@
   function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
   // Auth déjà validée en session → débloquer directement
-  if(sessionStorage.getItem(SESSION_KEY) === 'ok'){
+  if(sessionStorage.getItem(SESSION_KEY)){
     const gate = document.getElementById('pw-gate');
     if(gate) gate.style.display = 'none';
     unlockContent();
@@ -97,7 +97,7 @@
       });
       const d = await r.json();
       if(d.ok){
-        sessionStorage.setItem(SESSION_KEY, 'ok');
+        sessionStorage.setItem(SESSION_KEY, data.token);
         if(window._stopGateWatch) window._stopGateWatch();
         requestNotifPerms();
         unlockContent();
@@ -281,8 +281,10 @@ function scVol(v){if(scW)scW.setVolume(parseInt(v));}
 function scStartBar(){scStopBar();scBarT=setInterval(()=>{if(!scW)return;scW.getPosition(p=>{scW.getDuration(d=>{if(d>0)$('scp-bf').style.width=(p/d*100)+'%';});});},500);}
 function scStopBar(){if(scBarT){clearInterval(scBarT);scBarT=null;}}
 
-async function api(p){const r=await fetch(API+p);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
-async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+
+function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'Authorization':'Bearer '+t}:{};}
+async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
 async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){renderNotes();}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}}
 
@@ -336,7 +338,7 @@ async function loadDash(){
     if(document.getElementById('wl-status')&&document.getElementById('wl-status').innerHTML.trim()!=='')wlRS();
   }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne<br/><span style="font-size:.52rem;opacity:.6">${e.message}</span></div>`;}
 }
-const _authed=()=>sessionStorage.getItem('mg_auth_v2')==='ok';
+const _authed=()=>!!sessionStorage.getItem('mg_token_v3');
 let _firstCycle=true;
 
 // ═══ HISTORIQUE CONNEXIONS ═══
@@ -872,7 +874,7 @@ async function hasNonRecruit(members,server){
 
 async function init(){
   const b=$('sound-btn');if(b&&!snd){b.textContent='🔇 SON';b.style.color='var(--t3)';}
-  if(sessionStorage.getItem('mg_auth_v2')==='ok') requestNotifPerms();
+  if(_authed()) requestNotifPerms();
   api('/api/country_watches').then(d=>{cwWatches=d.watches||[];const stored=JSON.parse(localStorage.getItem('mg_cw')||'[]');stored.forEach(w=>{if(!cwWatches.find(x=>x.server===w.server&&x.country===w.country))cwWatches.push(w);});cwRender();}).catch(()=>{cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');cwRender();});
   rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
   if(ok){
@@ -1500,7 +1502,7 @@ async function addReferentEntry(){
   const server=$('ref-add-srv').value,country=$('ref-add-country').value.trim();
   if(!server||!country)return showToast('⚠ Sélectionne un serveur et un pays');
   try{
-    const d=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})}).then(r=>r.json());
+    const d=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify({server,country})}).then(r=>r.json());
     if(d.error)return showToast('❌ '+d.error);
     $('ref-add-country').value='';
     showToast('✅ '+country+' ('+server.toUpperCase()+') ajouté');
@@ -1511,7 +1513,7 @@ async function addReferentEntry(){
 async function removeReferentEntry(server,country){
   if(!confirm('Retirer '+country+' ('+server.toUpperCase()+') de la surveillance ?'))return;
   try{
-    const d=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({server,country})}).then(r=>r.json());
+    const d=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify({server,country})}).then(r=>r.json());
     if(d.error)return showToast('❌ '+d.error);
     showToast('🗑 '+country+' retiré');
     closeRefMembers();
