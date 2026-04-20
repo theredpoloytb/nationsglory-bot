@@ -1,4 +1,4 @@
-import discord,aiohttp,asyncio,time,json,os,sys
+import discord,aiohttp,asyncio,time,json,os,sys,hmac,hashlib,base64,secrets
 from discord import app_commands
 from aiohttp import web
 from datetime import timedelta,datetime
@@ -29,6 +29,33 @@ SERVERS={'blue':{'url':'https://blue.nationsglory.fr/standalone/dynmap_world.jso
 CACHE_TTL=900
 ctry_cache={}
 CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}
+
+# ── JWT AUTH ──
+JWT_SECRET=os.environ.get('JWT_SECRET',secrets.token_hex(32))
+def _jwt_sign(payload):
+	header=base64.urlsafe_b64encode(json.dumps({'alg':'HS256','typ':'JWT'}).encode()).rstrip(b'=').decode()
+	body=base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b'=').decode()
+	sig=hmac.new(JWT_SECRET.encode(),f"{header}.{body}".encode(),hashlib.sha256).digest()
+	return f"{header}.{body}.{base64.urlsafe_b64encode(sig).rstrip(b'=').decode()}"
+def _jwt_verify(token):
+	try:
+		h,b,s=token.split('.')
+		expected=hmac.new(JWT_SECRET.encode(),f"{h}.{b}".encode(),hashlib.sha256).digest()
+		if not hmac.compare_digest(base64.urlsafe_b64encode(expected).rstrip(b'=').decode(),s):return None
+		payload=json.loads(base64.urlsafe_b64decode(b+'=='))
+		if payload.get('exp',0)<time.time():return None
+		return payload
+	except:return None
+def _get_token(request):
+	auth=request.headers.get('Authorization','')
+	if auth.startswith('Bearer '):return auth[7:]
+	return None
+def require_auth(handler):
+	async def wrapper(r,*a,**kw):
+		t=_get_token(r)
+		if not t or not _jwt_verify(t):return cors({'error':'Non autorisé'},401)
+		return await handler(r,*a,**kw)
+	return wrapper
 def cors(data,status=200):return web.Response(text=json.dumps(data,ensure_ascii=False),status=status,content_type='application/json',headers=CORS)
 async def handle_options(r):return web.Response(status=204,headers=CORS)
 mongo_ok=False
@@ -294,6 +321,7 @@ async def api_referent_get(r):
 		})
 	return cors({'watches':result})
 
+@require_auth
 async def api_referent_add(r):
 	"""Ajouter un pays référent à surveiller."""
 	try:
@@ -320,6 +348,7 @@ async def api_referent_add(r):
 		return cors({'watches':[{'server':w['server'],'country':w['country'],'name':w.get('name',w['country']),'member_count':w.get('member_count',0)} for w in REFERENT_WATCHES]})
 	except Exception as e:return cors({'error':str(e)},400)
 
+@require_auth
 async def api_referent_remove(r):
 	"""Retirer un pays référent."""
 	try:
@@ -464,9 +493,13 @@ async def _wl_mutate(r,lst,save_fn):
 		elif action=='remove'and p in lst:lst.remove(p);await save_fn()
 		return cors({'players':lst})
 	except Exception as e:return cors({'error':str(e)},400)
+@require_auth
 async def api_wl_add(r):return await _wl_mutate(r,WL,save_watchlist)
+@require_auth
 async def api_wl_remove(r):return await _wl_mutate(r,WL,save_watchlist)
+@require_auth
 async def api_wl_mocha_add(r):return await _wl_mutate(r,WL_MOCHA,save_watchlist_mocha)
+@require_auth
 async def api_wl_mocha_remove(r):return await _wl_mutate(r,WL_MOCHA,save_watchlist_mocha)
 async def api_pronostic(r):
 	res=get_pronostic(r.match_info['player'])
@@ -477,6 +510,7 @@ async def api_plages(r):
 	if not res:return cors({'error':'Aucune donnée'},404)
 	hm,DAYS=res;return cors({'player':r.match_info['player'],'days':DAYS,'heatmap':hm})
 async def api_cw_get(r):return cors({'watches':COUNTRY_WATCHES})
+@require_auth
 async def api_cw_add(r):
 	try:
 		body=await r.json();s=body.get('server','').lower();country=body.get('country','').strip()
@@ -485,6 +519,7 @@ async def api_cw_add(r):
 		if exists:return cors({'error':'Déjà surveillé'},409)
 		COUNTRY_WATCHES.append({'server':s,'country':country,'members':[],'last_alert':False});await save_cw();return cors({'watches':COUNTRY_WATCHES})
 	except Exception as e:return cors({'error':str(e)},400)
+@require_auth
 async def api_cw_remove(r):
 	try:body=await r.json();s=body.get('server','').lower();country=body.get('country','').strip();global COUNTRY_WATCHES;COUNTRY_WATCHES=[w for w in COUNTRY_WATCHES if not(w['server']==s and w['country'].lower()==country.lower())];await save_cw();return cors({'watches':COUNTRY_WATCHES})
 	except Exception as e:return cors({'error':str(e)},400)
@@ -504,7 +539,9 @@ async def api_known_players(r):
 async def api_auth_check(r):
 	try:
 		data=await r.json();password=os.environ.get('SITE_PASSWORD','')
-		if data.get('password')==password:return cors({'ok':True})
+		if data.get('password')==password:
+			token=_jwt_sign({'sub':'user','exp':int(time.time())+86400*7})
+			return cors({'ok':True,'token':token})
 		return cors({'ok':False},401)
 	except:return cors({'ok':False},400)
 async def api_top_players(r):
