@@ -295,7 +295,7 @@ function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'
 async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){renderNotes();}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}}
+async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){notesLoadFromAPI().then(()=>renderNotes());}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -980,11 +980,13 @@ function rmCalc() {
 // ═══════════════════════════════════════════════════════════
 // NOTES SUR LES CIBLES
 // ═══════════════════════════════════════════════════════════
-const NOTES_KEY='mg_notes_v2';
-let playerNotes=JSON.parse(localStorage.getItem(NOTES_KEY)||'{}');
+let playerNotes={};
 let noteSelectedTag='';
 
-function noteSaveStore(){localStorage.setItem(NOTES_KEY,JSON.stringify(playerNotes));}
+async function notesLoadFromAPI(){
+  try{const d=await api('/api/notes');playerNotes=d.notes||{};}catch{}
+}
+function noteSaveStore(){/* legacy noop */}
 
 function noteSelectTag(btn){
   document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
@@ -1009,29 +1011,33 @@ function noteLoadExisting(){
   });
 }
 
-function noteSave(){
+async function noteSave(){
   const p=document.getElementById('note-player')?.value.trim();
   const txt=document.getElementById('note-text')?.value.trim();
   if(!p)return showToast('⚠ Entre un pseudo');
   if(!txt&&!noteSelectedTag)return showToast('⚠ Ajoute une note ou une étiquette');
-  playerNotes[p]={text:txt,tag:noteSelectedTag,updated:new Date().toLocaleString('fr-FR')};
-  noteSaveStore();
-  renderNotes();
-  const fb=document.getElementById('note-feedback');
-  if(fb){fb.textContent='✓ Note sauvegardée';fb.style.opacity='1';setTimeout(()=>fb.style.opacity='0',2000);}
-  showToast(`Note sauvegardée — ${p}`);
+  try{
+    await apiP('/api/notes/save',{player:p,text:txt,tag:noteSelectedTag});
+    playerNotes[p]={text:txt,tag:noteSelectedTag,updated:new Date().toLocaleString('fr-FR')};
+    renderNotes();
+    const fb=document.getElementById('note-feedback');
+    if(fb){fb.textContent='✓ Note sauvegardée';fb.style.opacity='1';setTimeout(()=>fb.style.opacity='0',2000);}
+    showToast(`Note sauvegardée — ${p}`);
+  }catch(e){showToast('❌ Erreur sauvegarde');}
 }
 
-function noteDelete(){
+async function noteDelete(){
   const p=document.getElementById('note-player')?.value.trim();
   if(!p||!playerNotes[p])return showToast('Aucune note pour ce joueur');
-  delete playerNotes[p];
-  noteSaveStore();
-  document.getElementById('note-text').value='';
-  noteSelectedTag='';
-  document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
-  renderNotes();
-  showToast(`Note supprimée — ${p}`);
+  try{
+    await apiP('/api/notes/delete',{player:p});
+    delete playerNotes[p];
+    document.getElementById('note-text').value='';
+    noteSelectedTag='';
+    document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+    renderNotes();
+    showToast(`Note supprimée — ${p}`);
+  }catch(e){showToast('❌ Erreur suppression');}
 }
 
 const NOTE_TAG_STYLES={
@@ -1077,8 +1083,11 @@ function noteEditPlayer(player){
   document.getElementById('note-player').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-function noteDeleteDirect(player){
-  delete playerNotes[player];noteSaveStore();renderNotes();showToast(`Note supprimée — ${player}`);
+async function noteDeleteDirect(player){
+  try{
+    await apiP('/api/notes/delete',{player});
+    delete playerNotes[player];renderNotes();showToast(`Note supprimée — ${player}`);
+  }catch{showToast('❌ Erreur suppression');}
 }
 
 // Badge note dans panel joueur — injecté dans openPlayerPanel
@@ -1469,6 +1478,78 @@ async function refRefreshMembers(){
       :(!onlineOnSrv.length&&!onlineElsewhere.length?'<div class="empty">Aucun membre connu hors ligne — le snapshot se remplira au prochain scan (5 min)</div>':'')}
     `;
   }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
+}
+
+async function loadRefHistory(){
+  if(!refCurSrv||!refCurCtry)return;
+  const body=$('ref-hist-body');
+  if(!body)return;
+  body.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    const d=await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${encodeURIComponent(refCurCtry)}&limit=200&departures=1`,{headers:{..._authHeader()}}).then(r=>r.json());
+    const events=d.events||[];
+    if(!events.length){body.innerHTML='<div class="empty">Aucun événement enregistré — le tracking démarre au prochain scan (30 min)</div>';return;}
+    const recruits=events.filter(e=>!e.departure);
+    const departs=events.filter(e=>e.departure);
+    body.innerHTML=`
+      <div style="display:flex;gap:2rem;margin-bottom:1rem;flex-wrap:wrap">
+        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--grn)">${recruits.length}</span> recrutements</div>
+        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--red)">${departs.length}</span> départs</div>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.8rem">
+        <button class="btn" id="ref-hist-tab-all" onclick="refHistFilter('all')" style="font-size:.5rem;padding:.2rem .6rem">Tous (${events.length})</button>
+        <button class="btn" id="ref-hist-tab-recruit" onclick="refHistFilter('recruit')" style="font-size:.5rem;padding:.2rem .6rem">Recrutements</button>
+        <button class="btn" id="ref-hist-tab-depart" onclick="refHistFilter('depart')" style="font-size:.5rem;padding:.2rem .6rem">Départs</button>
+      </div>
+      <div id="ref-hist-list">
+        ${renderHistEvents(events)}
+      </div>
+    `;
+    body._allEvents=events;
+  }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
+}
+
+function renderHistEvents(events){
+  if(!events.length)return'<div class="empty">Aucun événement</div>';
+  return events.map(e=>{
+    const isDepart=!!e.departure;
+    const color=isDepart?'var(--red)':'var(--grn)';
+    const icon=isDepart?'🚪':'🆕';
+    const label=isDepart?'DÉPART':'RECRUTEMENT';
+    return`<div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .2rem;border-bottom:1px solid var(--b1)">
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(e.player)}/24" style="width:24px;height:24px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${e.player.replace(/'/g,"\'")}')">${e.player}</span>
+          <span style="font-family:var(--M);font-size:.46rem;padding:.08rem .35rem;border-radius:3px;background:${isDepart?'rgba(255,51,85,.12)':'rgba(0,232,122,.1)'};color:${color}">${icon} ${label}</span>
+        </div>
+        <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);margin-top:.15rem">${e.ts} · ${e.members_before}→${e.members_after} membres</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function refHistFilter(type){
+  const body=$('ref-hist-body');
+  if(!body||!body._allEvents)return;
+  let evts=body._allEvents;
+  if(type==='recruit')evts=evts.filter(e=>!e.departure);
+  else if(type==='depart')evts=evts.filter(e=>e.departure);
+  const list=$('ref-hist-list');
+  if(list)list.innerHTML=renderHistEvents(evts);
+  document.querySelectorAll('[id^="ref-hist-tab-"]').forEach(b=>b.style.borderColor='');
+  const active=$('ref-hist-tab-'+type);
+  if(active)active.style.borderColor='var(--blue)';
+}
+
+function refShowTab(tab){
+  ['members','history'].forEach(t=>{
+    const panel=$('ref-tab-'+t);
+    const btn=$('ref-tabn-'+t);
+    if(panel)panel.style.display=t===tab?'block':'none';
+    if(btn){btn.style.color=t===tab?'var(--blue)':'var(--t3)';btn.style.borderBottom=t===tab?'1px solid var(--blue)':'1px solid transparent';}
+  });
+  if(tab==='history')loadRefHistory();
 }
 
 function closeRefMembers(){
