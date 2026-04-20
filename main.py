@@ -31,6 +31,38 @@ ctry_cache={}
 CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}
 
 # ── JWT AUTH ──
+
+# ── RATE LIMITER / ANTI BRUTEFORCE ──
+_fail_attempts={}  # {ip: [timestamps]}
+_blocked_ips={}    # {ip: block_until_timestamp}
+MAX_ATTEMPTS=5
+BLOCK_DURATION=900  # 15 min
+ATTEMPT_WINDOW=300  # 5 min
+
+def _get_ip(request):
+	return request.headers.get('X-Forwarded-For','').split(',')[0].strip() or request.remote or 'unknown'
+
+def _is_blocked(ip):
+	if ip in _blocked_ips:
+		if time.time()<_blocked_ips[ip]:return True
+		del _blocked_ips[ip]
+	return False
+
+def _record_fail(ip):
+	now=time.time()
+	if ip not in _fail_attempts:_fail_attempts[ip]=[]
+	_fail_attempts[ip]=[t for t in _fail_attempts[ip] if now-t<ATTEMPT_WINDOW]
+	_fail_attempts[ip].append(now)
+	if len(_fail_attempts[ip])>=MAX_ATTEMPTS:
+		_blocked_ips[ip]=now+BLOCK_DURATION
+		print(f"🚫 IP bloquée {ip} pour {BLOCK_DURATION}s",flush=True)
+		return True
+	return False
+
+def _clear_attempts(ip):
+	_fail_attempts.pop(ip,None)
+	_blocked_ips.pop(ip,None)
+
 JWT_SECRET=os.environ.get('JWT_SECRET',secrets.token_hex(32))
 def _jwt_sign(payload):
 	header=base64.urlsafe_b64encode(json.dumps({'alg':'HS256','typ':'JWT'}).encode()).rstrip(b'=').decode()
@@ -306,6 +338,7 @@ async def referent_tracker_loop():
 
 # ── API ENDPOINTS RÉFÉRENTS ──
 
+@require_auth
 async def api_referent_get(r):
 	"""Liste tous les pays référents surveillés."""
 	result=[]
@@ -361,6 +394,7 @@ async def api_referent_remove(r):
 		return cors({'watches':[{'server':w['server'],'country':w['country'],'name':w.get('name',w['country'])} for w in REFERENT_WATCHES]})
 	except Exception as e:return cors({'error':str(e)},400)
 
+@require_auth
 async def api_referent_stats(r):
 	"""Stats globales des recrutements par pays référent (30 derniers jours)."""
 	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
@@ -402,6 +436,7 @@ async def api_referent_stats(r):
 		return cors({'stats':result,'days':days})
 	except Exception as e:return cors({'error':str(e)},500)
 
+@require_auth
 async def api_referent_history(r):
 	"""Historique détaillé des recrutements d'un pays référent."""
 	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
@@ -434,6 +469,7 @@ async def api_referent_history(r):
 		return cors({'events':docs,'curve':curve,'total':len(docs)})
 	except Exception as e:return cors({'error':str(e)},500)
 
+@require_auth
 async def api_referent_timeline(r):
 	"""Timeline globale de tous les pays référents — courbe par jour."""
 	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
@@ -462,16 +498,21 @@ async def api_referent_timeline(r):
 # ══════════════════════════════════════════════
 
 async def api_health(r):return cors({'status':'ok','mongo':mongo_ok})
+@require_auth
 async def api_online(r):
 	s=r.match_info['server'].lower()
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
 	pl=await get_online(s);return cors({'server':s,'players':pl,'count':len(pl)})
+@require_auth
 async def api_online_all(r):return cors(await get_all_online())
+@require_auth
 async def api_checkall(r):p=r.match_info['player'];all_=await get_all_online();return cors({'player':p,'servers':[s for(s,pl)in all_.items()if p in pl]})
+@require_auth
 async def api_countries(r):
 	s=r.match_info['server'].lower()
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
 	return cors({'server':s,'countries':await get_country_list(s)})
+@require_auth
 async def api_check(r):
 	s,c=r.match_info['server'].lower(),r.match_info['country']
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
@@ -482,7 +523,9 @@ async def api_check(r):
 		f=[m for m in members if m in pl]
 		if f:found[sv]=f;total+=len(f)
 	return cors({'country':name,'members_total':len(members),'online_total':total,'servers':found})
+@require_auth
 async def api_wl_get(r):return cors({'players':WL})
+@require_auth
 async def api_wl_mocha_get(r):return cors({'players':WL_MOCHA})
 async def _wl_mutate(r,lst,save_fn):
 	try:
@@ -501,14 +544,17 @@ async def api_wl_remove(r):return await _wl_mutate(r,WL,save_watchlist)
 async def api_wl_mocha_add(r):return await _wl_mutate(r,WL_MOCHA,save_watchlist_mocha)
 @require_auth
 async def api_wl_mocha_remove(r):return await _wl_mutate(r,WL_MOCHA,save_watchlist_mocha)
+@require_auth
 async def api_pronostic(r):
 	res=get_pronostic(r.match_info['player'])
 	if not res:return cors({'error':'Pas assez de données (min 3)'},404)
 	top,DAYS,total=res;return cors({'player':r.match_info['player'],'total':total,'pronostic':[{'day':DAYS[d],'avg_h':h,'avg_m':m,'pct':pct}for(d,h,m,pct)in top]})
+@require_auth
 async def api_plages(r):
 	res=get_plages(r.match_info['player'])
 	if not res:return cors({'error':'Aucune donnée'},404)
 	hm,DAYS=res;return cors({'player':r.match_info['player'],'days':DAYS,'heatmap':hm})
+@require_auth
 async def api_cw_get(r):return cors({'watches':COUNTRY_WATCHES})
 @require_auth
 async def api_cw_add(r):
@@ -523,6 +569,7 @@ async def api_cw_add(r):
 async def api_cw_remove(r):
 	try:body=await r.json();s=body.get('server','').lower();country=body.get('country','').strip();global COUNTRY_WATCHES;COUNTRY_WATCHES=[w for w in COUNTRY_WATCHES if not(w['server']==s and w['country'].lower()==country.lower())];await save_cw();return cors({'watches':COUNTRY_WATCHES})
 	except Exception as e:return cors({'error':str(e)},400)
+@require_auth
 async def api_grade(r):
 	player=r.match_info['player'];server=r.match_info['server'].lower()
 	try:
@@ -532,18 +579,26 @@ async def api_grade(r):
 				if resp.status!=200:return cors({'player':player,'server':server,'rank':None})
 				data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank',None);return cors({'player':player,'server':server,'rank':rank})
 	except Exception as e:return cors({'player':player,'server':server,'rank':None,'error':str(e)})
+@require_auth
 async def api_known_players(r):
 	if not mongo_ok:return cors({'players':[]})
 	try:pl=sessions_col.distinct('player');pl.sort(key=str.lower);return cors({'players':pl})
 	except:return cors({'players':[]})
 async def api_auth_check(r):
 	try:
+		ip=_get_ip(r)
+		if _is_blocked(ip):return cors({'ok':False,'error':'Trop de tentatives, réessaie dans 15 minutes'},429)
 		data=await r.json();password=os.environ.get('SITE_PASSWORD','')
 		if data.get('password')==password:
+			_clear_attempts(ip)
 			token=_jwt_sign({'sub':'user','exp':int(time.time())+86400*7})
 			return cors({'ok':True,'token':token})
-		return cors({'ok':False},401)
+		blocked=_record_fail(ip)
+		remaining=MAX_ATTEMPTS-len(_fail_attempts.get(ip,[]))
+		if blocked:return cors({'ok':False,'error':'Trop de tentatives, réessaie dans 15 minutes'},429)
+		return cors({'ok':False,'error':f'Mot de passe incorrect ({remaining} essais restants)'},401)
 	except:return cors({'ok':False},400)
+@require_auth
 async def api_top_players(r):
 	if not mongo_ok:return cors({'players':[]})
 	try:
@@ -554,6 +609,7 @@ async def api_top_players(r):
 				d['last_seen']=d['last_seen'].strftime('%d/%m/%Y %H:%M')
 		return cors({'players':docs})
 	except Exception as e:return cors({'error':str(e)},500)
+@require_auth
 async def api_top_players_server(r):
 	server=r.match_info['server'].lower()
 	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
