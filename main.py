@@ -207,10 +207,7 @@ async def get_country_list(server):
 		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
 		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
 			async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}",headers=headers)as r:
-				if r.status in(200,500):
-					data=await r.json();claimed=[c['name']for c in data.get('claimed',[])if c.get('name')]
-					if claimed:ctry_cache[server]=claimed,now
-					return claimed
+				if r.status in(200,500):data=await r.json();claimed=[c['name']for c in data.get('claimed',[])if c.get('name')];ctry_cache[server]=claimed,now;return claimed
 	except:pass
 	return[]
 async def get_country_members(server,country):
@@ -547,19 +544,6 @@ async def api_notes_delete(r):
 
 async def api_health(r):
     return cors({'status':'ok','mongo':mongo_ok,'ng_key_len':len(NG_KEY or ''),'ng_key_start':(NG_KEY or '')[:10]})
-
-async def api_debug_countries(r):
-	"""Debug — appel direct API NG sans cache."""
-	server=r.match_info.get('server','lime')
-	try:
-		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
-		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
-			async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}",headers=headers)as resp:
-				status=resp.status
-				data=await resp.json()
-				claimed=[c['name']for c in data.get('claimed',[])if c.get('name')]
-				return cors({'status':status,'claimed_count':len(claimed),'first5':claimed[:5],'key_used':(NG_KEY or '')[:15]+'...'})
-	except Exception as e:return cors({'error':str(e)},500)
 @require_auth
 async def api_online(r):
 	s=r.match_info['server'].lower()
@@ -882,7 +866,6 @@ async def start_web():
 		('GET','/api/referents/stats',api_referent_stats),
 		('GET','/api/referents/history',api_referent_history),
 		('GET','/api/referents/timeline',api_referent_timeline),
-		('GET','/api/debug/countries/{server}',api_debug_countries),
 		('GET','/api/notes',api_notes_get),
 		('POST','/api/notes/save',api_notes_save),
 		('POST','/api/notes/delete',api_notes_delete),
