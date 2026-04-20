@@ -106,6 +106,7 @@ def init_mongo():
 		db['presence'].create_index([('total',-1)])
 		# Index pour les recrutements
 		db['recruitments'].create_index([('server',ASCENDING),('country',ASCENDING),('ts',ASCENDING)])
+		db['notes'].create_index([('player',ASCENDING)],unique=True)
 		mongo_ok=True
 		print('✅ MongoDB OK',flush=True)
 	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
@@ -494,6 +495,50 @@ async def api_referent_timeline(r):
 	except Exception as e:return cors({'error':str(e)},500)
 
 # ══════════════════════════════════════════════
+# NOTES PARTAGÉES
+# ══════════════════════════════════════════════
+
+@require_auth
+async def api_notes_get(r):
+	"""Récupère toutes les notes joueurs."""
+	if not mongo_ok:return cors({'notes':{}})
+	try:
+		docs=list(db['notes'].find({},{'_id':0}))
+		notes={d['player']:{'text':d.get('text',''),'tag':d.get('tag',''),'updated':d.get('updated','')} for d in docs}
+		return cors({'notes':notes})
+	except Exception as e:return cors({'error':str(e)},500)
+
+@require_auth
+async def api_notes_save(r):
+	"""Sauvegarde ou met à jour une note joueur."""
+	try:
+		body=await r.json()
+		player=body.get('player','').strip()
+		text=body.get('text','').strip()
+		tag=body.get('tag','')
+		if not player:return cors({'error':'Joueur requis'},400)
+		now=(datetime.utcnow()+timedelta(hours=1)).strftime('%d/%m/%Y %H:%M')
+		if mongo_ok:
+			db['notes'].update_one(
+				{'player':player},
+				{'':{'player':player,'text':text,'tag':tag,'updated':now}},
+				upsert=True
+			)
+		return cors({'ok':True,'updated':now})
+	except Exception as e:return cors({'error':str(e)},500)
+
+@require_auth
+async def api_notes_delete(r):
+	"""Supprime la note d'un joueur."""
+	try:
+		body=await r.json()
+		player=body.get('player','').strip()
+		if not player:return cors({'error':'Joueur requis'},400)
+		if mongo_ok:db['notes'].delete_one({'player':player})
+		return cors({'ok':True})
+	except Exception as e:return cors({'error':str(e)},500)
+
+# ══════════════════════════════════════════════
 # API EXISTANTS (inchangés)
 # ══════════════════════════════════════════════
 
@@ -821,6 +866,9 @@ async def start_web():
 		('GET','/api/referents/stats',api_referent_stats),
 		('GET','/api/referents/history',api_referent_history),
 		('GET','/api/referents/timeline',api_referent_timeline),
+		('GET','/api/notes',api_notes_get),
+		('POST','/api/notes/save',api_notes_save),
+		('POST','/api/notes/delete',api_notes_delete),
 	]
 	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
 	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
