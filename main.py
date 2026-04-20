@@ -497,7 +497,8 @@ async def api_referent_timeline(r):
 # API EXISTANTS (inchangés)
 # ══════════════════════════════════════════════
 
-async def api_health(r):return cors({'status':'ok','mongo':mongo_ok})
+async def api_health(r):
+    return cors({'status':'ok','mongo':mongo_ok,'ng_key_len':len(NG_KEY or ''),'ng_key_start':(NG_KEY or '')[:10]})
 @require_auth
 async def api_online(r):
 	s=r.match_info['server'].lower()
