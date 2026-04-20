@@ -309,9 +309,9 @@ function acK(e,l,cb){const list=$(l),items=list.querySelectorAll('.aci'),cur=lis
 document.addEventListener('click',e=>{document.querySelectorAll('.acl').forEach(l=>{if(!l.parentElement.contains(e.target))l.style.display='none';});});
 
 async function chkAPI(){try{await api('/health');$('api-led').className='led on';$('api-txt').textContent='API OK';return true;}catch{$('api-led').className='led off';$('api-txt').textContent='DOWN';return false;}}
-async function loadWL(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist',{signal:c.signal});clearTimeout(t);const d=await r.json();WL=d.players||[];animStat('st-wcount',WL.length);sparkData.wc.push(WL.length);if(sparkData.wc.length>30)sparkData.wc.shift();drawSpark('spark-wc',sparkData.wc);}catch{}}
-async function loadWLM(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist_mocha',{signal:c.signal});clearTimeout(t);const d=await r.json();WLM=d.players||[];}catch{}}
-async function loadKP(){try{const d=await fetch(API+'/api/known_players').then(r=>r.json());oP=[...new Set([...(d.players||[]),...oP])].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));rAT('ca-pl','ppCA');rAT('st-pl','ppST');rAT('wl-pl','ppWL');}catch{}}
+async function loadWL(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist',{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json();WL=d.players||[];animStat('st-wcount',WL.length);sparkData.wc.push(WL.length);if(sparkData.wc.length>30)sparkData.wc.shift();drawSpark('spark-wc',sparkData.wc);}catch{}}
+async function loadWLM(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist_mocha',{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json();WLM=d.players||[];}catch{}}
+async function loadKP(){try{const d=await fetch(API+'/api/known_players',{headers:{..._authHeader()}}).then(r=>r.json());oP=[...new Set([...(d.players||[]),...oP])].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));rAT('ca-pl','ppCA');rAT('st-pl','ppST');rAT('wl-pl','ppWL');}catch{}}
 
 function animStat(id,val){
   const el=$(id);if(!el)return;
@@ -486,7 +486,7 @@ function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el
 async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
 async function wlRm(name){try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/remove':'/api/watchlist/remove',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} retiré`);}catch(e){showToast('Erreur : '+e.message);}}
 async function switchWl(s){cwl=s;document.querySelectorAll('.wtb').forEach(e=>e.classList.remove('act'));const a=$('wl-tab-'+s);if(a)a.classList.add('act');if($('wl-pt'))$('wl-pt').textContent='◈ Watchlist — '+s.toUpperCase();if($('wl-st'))$('wl-st').textContent='⚡ Statut live — '+s.toUpperCase();$('wl-manage').innerHTML='';$('wl-status').innerHTML='';if(s==='lime')await loadWL();else await loadWLM();wlR();wlRS();}
-async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>{setLastSeen(p,s);loadSessionDurations(p);});el.innerHTML=[...on.map(p=>{const pred=predictDecoTime(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span>${pred?`<span class="pred-badge ${pred.cls}">⏳ ${pred.text}</span>`:''}</div>`;}),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
+async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>{setLastSeen(p,s);loadSessionDurations(p);});el.innerHTML=[...on.map(p=>{const pred=predictDecoTime(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span>${pred?`<span class="pred-badge ${pred.cls}">⏳ ${pred.text}</span>`:''}</div>`;}),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
 .join('')||'<div class="empty">Aucune donnée</div>';}catch{el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur</div>`;}}
 
 async function loadStats(){
@@ -869,7 +869,7 @@ async function getPlayerGrade(player,server){
   const key=player+'@'+server;
   if(gradeCache[key]&&Date.now()-gradeCache[key].ts<120000)return gradeCache[key].rank;
   try{
-    const r=await fetch(`${API}/api/grade/${encodeURIComponent(player)}/${server}`);
+    const r=await fetch(`${API}/api/grade/${encodeURIComponent(player)}/${server}`,{headers:{..._authHeader()}});
     if(!r.ok)return null;
     const d=await r.json();
     gradeCache[key]={rank:d.rank,ts:Date.now()};
@@ -1347,10 +1347,10 @@ async function loadReferents(){
   grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
   try{
     const[rRefs,rStats7,rStats30,rStats90]=await Promise.all([
-      fetch(API+'/api/referents').then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=7').then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=30').then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=90').then(r=>r.json()),
+      fetch(API+'/api/referents',{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=7',{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=30',{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=90',{headers:{..._authHeader()}}).then(r=>r.json()),
     ]);
     refAllReferents=rRefs.watches||[];
     refAllStats=rStats90.stats||[];
@@ -1419,8 +1419,8 @@ async function refRefreshMembers(){
   try{
     // Récupérer membres + joueurs en ligne sur le serveur en parallèle
     const[checkData,onlineData]=await Promise.all([
-      fetch(`${API}/api/check/${refCurSrv}/${encodeURIComponent(refCurCtry)}`).then(r=>r.json()),
-      fetch(`${API}/api/online/${refCurSrv}`).then(r=>r.json()),
+      fetch(`${API}/api/check/${refCurSrv}/${encodeURIComponent(refCurCtry)}`,{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(`${API}/api/online/${refCurSrv}`,{headers:{..._authHeader()}}).then(r=>r.json()),
     ]);
     if(checkData.error){body.innerHTML=`<div class="empty" style="color:var(--red)">❌ ${checkData.error}</div>`;return;}
     const allMembers=checkData.members_total||0;
@@ -1482,7 +1482,7 @@ async function loadRefCmp(){
   const el=$('ref-cmp');
   el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
   try{
-    const d=await fetch(API+'/api/referents/stats?days='+refCmpPeriod).then(r=>r.json());
+    const d=await fetch(API+'/api/referents/stats?days='+refCmpPeriod,{headers:{..._authHeader()}}).then(r=>r.json());
     const stats=d.stats||[];
     if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (30 min)</div>';return;}
     const max=stats[0]?.total_recruits||1;
