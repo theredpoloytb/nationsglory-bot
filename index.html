@@ -1227,8 +1227,20 @@ select option{background:var(--bg2);color:var(--t1)}
         <button class="btn" style="font-size:.55rem;padding:.3rem .7rem" onclick="closeRefMembers()">Fermer</button>
       </div>
     </div>
-    <div class="pb" id="ref-members-body">
-      <div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>
+    <!-- Onglets -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--b1);padding:0 1rem">
+      <button id="ref-tabn-members" onclick="refShowTab('members')" style="background:none;border:none;border-bottom:1px solid var(--blue);color:var(--blue);font-family:var(--M);font-size:.55rem;letter-spacing:.1em;padding:.5rem .8rem;cursor:pointer;transition:color .2s">MEMBRES</button>
+      <button id="ref-tabn-history" onclick="refShowTab('history')" style="background:none;border:none;border-bottom:1px solid transparent;color:var(--t3);font-family:var(--M);font-size:.55rem;letter-spacing:.1em;padding:.5rem .8rem;cursor:pointer;transition:color .2s">HISTORIQUE</button>
+    </div>
+    <div class="pb" id="ref-tab-members">
+      <div id="ref-members-body">
+        <div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>
+      </div>
+    </div>
+    <div class="pb" id="ref-tab-history" style="display:none">
+      <div id="ref-hist-body">
+        <div class="empty">Cliquez sur "Historique" pour charger</div>
+      </div>
     </div>
   </div>
 
