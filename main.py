@@ -28,7 +28,7 @@ tree=app_commands.CommandTree(client)
 SERVERS={'blue':{'url':'https://blue.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔵'},'coral':{'url':'https://coral.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔴'},'orange':{'url':'https://orange.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟠'},'red':{'url':'https://red.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔴'},'yellow':{'url':'https://yellow.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟡'},'mocha':{'url':'https://mocha.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟤'},'white':{'url':'https://white.nationsglory.fr/standalone/dynmap_world.json','emoji':'⚪'},'jade':{'url':'https://jade.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟢'},'black':{'url':'https://black.nationsglory.fr/standalone/dynmap_world.json','emoji':'⚫'},'cyan':{'url':'https://cyan.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔵'},'lime':{'url':'https://lime.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟢'}}
 CACHE_TTL=900
 ctry_cache={}
-CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}
+CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization'}
 
 # ── JWT AUTH ──
 
