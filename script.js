@@ -97,7 +97,7 @@
       });
       const d = await r.json();
       if(d.ok){
-        sessionStorage.setItem(SESSION_KEY, data.token);
+        sessionStorage.setItem(SESSION_KEY, d.token);
         if(window._stopGateWatch) window._stopGateWatch();
         requestNotifPerms();
         unlockContent();
@@ -106,13 +106,22 @@
         gate.style.opacity = '0';
         setTimeout(() => { gate.style.display = 'none'; }, 600);
       } else {
+        const msg = d.error || 'MOT DE PASSE INCORRECT';
+        err.textContent = msg;
         err.style.opacity = '1';
         inp.value = '';
         inp.style.borderColor = 'rgba(255,24,64,.5)';
-        setTimeout(() => {
-          err.style.opacity = '0';
-          inp.style.borderColor = 'rgba(0,80,216,.2)';
-        }, 2500);
+        // Si bloqué, désactiver le champ
+        if(r.status === 429){
+          inp.disabled = true;
+          inp.placeholder = 'Bloqué 15 minutes...';
+          setTimeout(() => { inp.disabled = false; inp.placeholder = ''; err.style.opacity='0'; inp.style.borderColor='rgba(0,80,216,.2)'; }, 900000);
+        } else {
+          setTimeout(() => {
+            err.style.opacity = '0';
+            inp.style.borderColor = 'rgba(0,80,216,.2)';
+          }, 3000);
+        }
       }
     } catch(e){
       err.textContent = 'ERREUR SERVEUR';
