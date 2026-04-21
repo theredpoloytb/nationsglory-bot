@@ -207,8 +207,17 @@ async def get_country_list(server):
 		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
 		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
 			async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}",headers=headers)as r:
-				if r.status in(200,500):data=await r.json();claimed=[c['name']for c in data.get('claimed',[])if c.get('name')];ctry_cache[server]=claimed,now;return claimed
-	except:pass
+				print(f"[countries] {server} status={r.status} ng_key={'OK' if NG_KEY else 'MISSING'}",flush=True)
+				if r.status in(200,500):
+					data=await r.json()
+					raw=data.get('claimed',[])+data.get('availables',[])if isinstance(data,dict) else data
+					claimed=sorted([c['name']for c in raw if isinstance(c,dict)and c.get('name','').strip()])
+					print(f"[countries] {server} => {len(claimed)} pays",flush=True)
+					ctry_cache[server]=claimed,now;return claimed
+				else:
+					print(f"[countries] {server} HTTP {r.status}: {await r.text()}",flush=True)
+	except Exception as e:
+		print(f"[countries] {server} ERREUR: {e}",flush=True)
 	return[]
 async def get_country_members(server,country):
 	try:
@@ -562,7 +571,10 @@ async def api_countries(r):
 async def api_check(r):
 	s,c=r.match_info['server'].lower(),r.match_info['country']
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
-	members,name=await get_country_members(s,c)
+	# Normalise le nom du pays (case-insensitive) via la liste cached
+	country_list=await get_country_list(s)
+	match=next((x for x in country_list if x.lower()==c.lower()),c)
+	members,name=await get_country_members(s,match)
 	if not members:return cors({'error':'Pays introuvable'},404)
 	all_=await get_all_online();found,total={},0
 	for(sv,pl)in all_.items():
