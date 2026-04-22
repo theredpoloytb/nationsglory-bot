@@ -566,7 +566,10 @@ async def api_checkall(r):p=r.match_info['player'];all_=await get_all_online();r
 async def api_countries(r):
 	s=r.match_info['server'].lower()
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
-	return cors({'server':s,'countries':await get_country_list(s)})
+	raw=await get_country_list(s)
+	# Renvoie toujours une liste de strings (noms extraits)
+	names=[x['name']if isinstance(x,dict)else x for x in raw if(isinstance(x,dict)and x.get('name','').strip())or(isinstance(x,str)and x.strip())]
+	return cors({'server':s,'countries':names,'claimed':names})
 @require_auth
 async def api_check(r):
 	s,c=r.match_info['server'].lower(),r.match_info['country']
