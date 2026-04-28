@@ -698,6 +698,7 @@ select option{background:var(--bg2);color:var(--t1)}
   <button class="tab" onclick="nav('carte',this)">🗺 Carte</button>
   <button class="tab" onclick="nav('top5',this)">🏆 Top 5</button>
   <button class="tab" onclick="nav('referents',this)">🏳 Référents</button>
+  <button class="tab" onclick="nav('souspower',this)">⚡ Sous-Power</button>
   <button class="tab" onclick="nav('changelog',this)">◈ V2.0</button>
   <div class="nav-r"><span class="blink">■</span><span>SYSTÈME ACTIF</span></div>
 </nav>
@@ -1321,6 +1322,31 @@ select option{background:var(--bg2);color:var(--t1)}
 </section>
 
 </main>
+
+<section class="sec" id="s-souspower">
+  <div class="sh"><span class="sh-n">14</span><div class="sh-l"></div><span class="sh-t">Sous-Power — classement temps réel via Dynmap</span><div class="sh-l" style="transform:scaleX(-1)"></div></div>
+
+  <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+    <select id="sp-srv" style="background:var(--bg2);color:var(--t1);border:1px solid var(--b1);border-radius:var(--r);padding:.45rem .8rem;font-family:var(--M);font-size:.55rem;cursor:pointer">
+      <option value="">— Serveur —</option>
+      <option value="blue">🔵 Blue</option>
+      <option value="coral">🔴 Coral</option>
+      <option value="orange">🟠 Orange</option>
+      <option value="red">🔴 Red</option>
+      <option value="yellow">🟡 Yellow</option>
+      <option value="mocha">🟤 Mocha</option>
+      <option value="white">⚪ White</option>
+      <option value="jade">🟢 Jade</option>
+      <option value="black">⚫ Black</option>
+      <option value="cyan">🔵 Cyan</option>
+      <option value="lime">🟢 Lime</option>
+    </select>
+    <button class="btn" onclick="loadSouspower()" style="font-size:.55rem;padding:.45rem 1rem">⚡ Analyser</button>
+    <span id="sp-ts" style="font-family:var(--M);font-size:.46rem;color:var(--t3)"></span>
+  </div>
+
+  <div id="sp-result"></div>
+</section>
 
 <div class="page-flash" id="page-flash"></div>
 <div class="pp-overlay" id="pp-overlay" onclick="closePlayerPanel()"></div>
