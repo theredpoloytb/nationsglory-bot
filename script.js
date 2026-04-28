@@ -1,1 +1,1974 @@
-!function(){const e="mg_token_v3",t=document.querySelector(".main"),n=document.querySelector(".hdr"),a=document.querySelector(".nav");function s(){t&&(t.style.display="none"),n&&(n.style.display="none"),a&&(a.style.display="none")}function r(){const e=document.getElementById("init-lock");e&&e.remove(),t&&(t.style.display=""),n&&(n.style.display=""),a&&(a.style.display="")}function o(e,t){return Math.floor(Math.random()*(t-e+1))+e}if(sessionStorage.getItem(e)){const e=document.getElementById("pw-gate");e&&(e.style.display="none"),r()}else{s(),setTimeout(()=>{const e=document.getElementById("pw-input-el");e&&e.focus()},100);const t=setInterval(function(){document.getElementById("pw-gate")||sessionStorage.getItem(e)||(s(),document.body.innerHTML='\n      <div style="\n        position:fixed;inset:0;background:#000;\n        display:flex;flex-direction:column;\n        align-items:center;justify-content:center;\n        font-family:monospace;color:#4d9fff;text-align:center;gap:2rem;\n        z-index:99999;\n      ">\n        <div style="font-size:5rem">🕵️</div>\n        <div style="font-size:1.6rem;letter-spacing:.2em">INTRUSION DÉTECTÉE</div>\n        <div style="font-size:.85rem;color:rgba(26,111,255,.5);letter-spacing:.15em;max-width:420px;line-height:1.8">\n          La tentative de contournement a été enregistrée.<br>\n          IP transmise à l\'unité de surveillance.<br>\n          <span style="color:#f04040">Accès définitivement révoqué.</span>\n        </div>\n        <div style="font-size:.7rem;color:rgba(200,100,100,.4);letter-spacing:.1em" id="fake-ip">\n          Identification en cours...\n        </div>\n        <div style="font-size:.6rem;color:rgba(26,111,255,.2);margin-top:1rem">\n          מוסד גלורי — CLASSIFIED\n        </div>\n      </div>\n    ',setTimeout(()=>{const e=`${o(1,254)}.${o(0,255)}.${o(0,255)}.${o(1,254)}`;document.getElementById("fake-ip").textContent=`Adresse identifiée : ${e} — signalement en cours...`},1800))},500);window._stopGateWatch=()=>clearInterval(t)}window.pwCheck=async function(){const t=document.getElementById("pw-input-el"),n=document.getElementById("pw-err"),a=t.value;if(a)try{const s=await fetch("https://nationsglory-spy.onrender.com/api/auth-check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:a})}),o=await s.json();if(o.ok){sessionStorage.setItem(e,o.token),window._stopGateWatch&&window._stopGateWatch(),requestNotifPerms(),r();const t=document.getElementById("pw-gate");t.style.transition="opacity .6s",t.style.opacity="0",setTimeout(()=>{t.style.display="none"},600)}else{const e=o.error||"MOT DE PASSE INCORRECT";n.textContent=e,n.style.opacity="1",t.value="",t.style.borderColor="rgba(255,24,64,.5)",429===s.status?(t.disabled=!0,t.placeholder="Bloqué 15 minutes...",setTimeout(()=>{t.disabled=!1,t.placeholder="",n.style.opacity="0",t.style.borderColor="rgba(0,80,216,.2)"},9e5)):setTimeout(()=>{n.style.opacity="0",t.style.borderColor="rgba(0,80,216,.2)"},3e3)}}catch(e){n.textContent="ERREUR SERVEUR",n.style.opacity="1",setTimeout(()=>{n.style.opacity="0",n.textContent="CODE INVALIDE — ACCÈS REFUSÉ"},2500)}}}();const API="https://nationsglory-spy.onrender.com",SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"],EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"},STATIC_COUNTRIES_FALLBACK=["AfriqueDuSud","Afghanistan","Alaska","Albanie","Algerie","Allemagne","Altai","Amour","Angola","ArchipelCrozet","Argentine","Armenie","Arizona","Australie","Autriche","Azerbaidjan","Bahamas","Bahrein","Baja","Bangladesh","Belgique","Belize","Benin","Bhoutan","Bielorussie","Birmanie","Bolivie","Bosnie","Botswana","Bouriatie","Bresil","Bulgarie","BurkinaFaso","Californie","Cambodge","Cameroun","Canada","CentreAfrique","Chili","Chine","Chypre","Colombie","Congo","CoreeDuNord","CoreeDuSud","CoteDivoire","Croatie","Dakota","Danemark","Djibouti","Egypte","EmiratsArabesUnis","EmpireBissaoguineen","EmpireIrkoutsk","EmpireJordanien","EmpireOmanais","Equateur","Erythree","Espagne","Estonie","EtatsUnis","Ethiopie","Floride","France","Gabon","Georgie","Ghana","Grece","Groenland","Guatemala","Guangdong","Guangxi","Guizhou","Guyana","Guyane","Hainan","Iakoutie","Iamalie","Idaho","IleCoats","IleBolchevique","IleDeLaReunion","IleGraham","IleMaurice","IleVictoria","IleWrangel","IlesBaleares","IlesCanaries","IlesFeroe","IlesFidji","IlesGalapagos","IlesKerguelen","IlesSalomon","IlesSandwich","IlesVancouver","IleBouvet","Inde","Indonesie","Irak","Iran","Islande","Italie","Jamaique","Japon","Java","Kazakhstan","Kenya","Khabarovsk","Kirghizistan","Kosovo","Koweit","Krasnoy","Laos","Liban","Liberia","Libye","Lituanie","Lettonie","Luxembourg","Macedoine","Madagan","Madagascar","Magadan","Malaisie","Malawi","Mali","Malte","Maroc","Mauritanie","Mexique","Michigan","Minnesota","Moldavie","Mongolie","Montenegro","Montana","Mozambique","Namibie","Nepal","Nevada","Nicaragua","Niger","Nigeria","Norvege","NouvelleCaledonie","NouvelleGuinee","NouvelleZelande","NouvelleZemble","NouveauMexique","Nunavut","Ontario","Oregon","Ouganda","Ouzbekistan","Pakistan","Palaos","Papouasie","Paraguay","PaysBas","Perou","Philippines","Pologne","Portugal","Qatar","Quebec","Quinghai","RDCongo","RepubliqueTcheque","Roumanie","RoyaumeUni","Russie","SaharaOccidental","Sakhaline","Salvador","Sardaigne","Serbie","Sichuan","Slovaquie","Slovenie","Socotra","Somalie","Sonora","Soudan","Srilanka","StHelena","Suede","Suisse","Sumatra","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Taiwan","Tanzanie","Tasmanie","Tchad","Tchoukota","TerreAdelie","TerreBooth","TerreBurke","TerreDeFeu","TerreGrant","TerreLiard","TerreLow","TerreMasson","TerreMill","TerrePowell","TerreRoss","TerreSigny","TerreSiple","TerreSmith","TerreSnow","TerreSpaatz","TerreThor","TerreVega","Texas","Thailande","Tibet","Timor","Togo","Tomsk","Touva","TriniteEtTobago","Tunisie","Turkmenistan","Turquie","Uruguay","Utah","Venezuela","Vietnam","WallisEtFutuna","Washington","Wisconsin","Xinjiang","Yemen","Yunnam","Zambie","Zimbabwe"].sort((e,t)=>e.toLowerCase().localeCompare(t.toLowerCase())),CC_LS_KEY="mg_cc_v1",CC_LS_TTL=216e5;function _ccLoadLS(){try{const e=JSON.parse(localStorage.getItem(CC_LS_KEY)||"{}"),t=Date.now();Object.entries(e).forEach(([e,n])=>{t-n.ts<216e5&&(cc[e]=n.list)}),console.log("[countries] cache localStorage chargé:",Object.keys(cc))}catch{}}function _ccSaveLS(e,t){try{const n=JSON.parse(localStorage.getItem(CC_LS_KEY)||"{}");n[e]={list:t,ts:Date.now()},localStorage.setItem(CC_LS_KEY,JSON.stringify(n))}catch{}}async function getCountries(e){if(cc[e])return cc[e];try{const t=await fetch(API+"/api/countries/"+e,{headers:{..._authHeader()}});if(429===t.status)return console.warn("[countries] 429 rate-limit →",e,"fallback statique"),cc[e]=[...STATIC_COUNTRIES_FALLBACK],cc[e];const n=await t.json(),a=(n.countries||n.claimed||[]).map(e=>e.name||e).filter(Boolean).sort((e,t)=>e.toLowerCase().localeCompare(t.toLowerCase()));a.length?(cc[e]=a,_ccSaveLS(e,a)):cc[e]=[...STATIC_COUNTRIES_FALLBACK]}catch{cc[e]=[...STATIC_COUNTRIES_FALLBACK]}return cc[e]}_ccLoadLS();const BUG=e=>"red"===e||"mocha"===e,WARN='<div class="warn">⚠ Dynmap limité — données possiblement incomplètes</div>';let WL=[],WLM=[],cwl="lime",snd="off"!==localStorage.getItem("mg_sound"),ALR=[],prev={},hist=JSON.parse(localStorage.getItem("mg_h")||"[]"),cc={},oP=[];const $=e=>document.getElementById(e),ld=()=>'<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>',ld2=()=>ld(),rP=(e,t)=>t.find(t=>t.toLowerCase()===e.toLowerCase())||e,sparkData={total:[],wl:[],wc:[]};function drawSpark(e,t,n="rgba(0,80,216,.55)"){const a=$(e);if(!a||!t.length)return;const s=a.offsetWidth,r=a.offsetHeight;a.width=s*devicePixelRatio,a.height=r*devicePixelRatio;const o=a.getContext("2d");if(o.scale(devicePixelRatio,devicePixelRatio),t.length<2)return;const i=Math.min(...t),l=Math.max(...t)-i||1;o.beginPath(),t.forEach((e,n)=>{const a=n/(t.length-1)*s,c=r-(e-i)/l*r*.8-.1*r;n?o.lineTo(a,c):o.moveTo(a,c)}),o.strokeStyle=n,o.lineWidth=1,o.stroke();const c=o.createLinearGradient(0,0,0,r);c.addColorStop(0,"rgba(0,80,216,.1)"),c.addColorStop(1,"transparent"),o.lineTo(s,r),o.lineTo(0,r),o.closePath(),o.fillStyle=c,o.fill()}function showToast(e,t=3e3){const n=$("toast-wrap"),a=document.createElement("div");a.className="toast",a.textContent=e,n.appendChild(a),setTimeout(()=>{a.style.animation="toastOut .3s ease forwards",setTimeout(()=>a.remove(),300)},t)}(()=>{const e=$("bg"),t=e.getContext("2d"),n=()=>{e.width=innerWidth,e.height=innerHeight};n(),window.addEventListener("resize",n);const a=Array.from({length:55},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:.2*(Math.random()-.5),vy:.2*(Math.random()-.5),r:.9*Math.random()+.2,a:.2*Math.random()+.04}));let s=innerWidth/2,r=innerHeight/2,o=0;document.addEventListener("mousemove",e=>{s=e.clientX,r=e.clientY});const i=[[.14,.1,0,56,184,.055,.44],[.86,.84,26,111,255,.038,.42],[.5,.44,77,159,255,.025,.36]],l=()=>{o+=.003,t.clearRect(0,0,e.width,e.height),i.forEach(([n,a,s,r,i,l,c])=>{const d=e.width*(n+.038*Math.sin(.6*o+10*n)),p=e.height*(a+.028*Math.cos(.42*o+8*a)),m=t.createRadialGradient(d,p,0,d,p,e.width*c);m.addColorStop(0,`rgba(${s},${r},${i},${l})`),m.addColorStop(1,"transparent"),t.fillStyle=m,t.fillRect(0,0,e.width,e.height)}),a.forEach(n=>{n.x+=n.vx,n.y+=n.vy,n.x<0&&(n.x=e.width),n.x>e.width&&(n.x=0),n.y<0&&(n.y=e.height),n.y>e.height&&(n.y=0);const a=Math.hypot(n.x-s,n.y-r),o=a<90?1-a/90:0;t.beginPath(),t.arc(n.x,n.y,n.r+1.2*o,0,2*Math.PI),t.fillStyle=`rgba(26,111,255,${n.a+.16*o})`,t.fill()});for(let e=0;e<a.length;e++)for(let n=e+1;n<a.length;n++){const s=Math.hypot(a[e].x-a[n].x,a[e].y-a[n].y);s<80&&(t.beginPath(),t.moveTo(a[e].x,a[e].y),t.lineTo(a[n].x,a[n].y),t.strokeStyle=`rgba(0,80,216,${.028*(1-s/80)})`,t.lineWidth=.5,t.stroke())}requestAnimationFrame(l)};l()})(),(()=>{const e=document.createElement("canvas");e.id="trl",e.style.cssText="position:fixed;inset:0;z-index:9998;pointer-events:none",document.body.appendChild(e);const t=e.getContext("2d"),n=()=>{e.width=innerWidth,e.height=innerHeight};n(),window.addEventListener("resize",n);let a=[];document.addEventListener("mousemove",e=>{a.push({x:e.clientX,y:e.clientY,t:Date.now()}),a.length>14&&a.shift()});const s=()=>{t.clearRect(0,0,e.width,e.height);const n=Date.now();a.forEach((e,a)=>{const s=(a+1)/14*(1-(n-e.t)/220);s<=0||(t.beginPath(),t.arc(e.x,e.y,1.4*s,0,2*Math.PI),t.fillStyle=`rgba(26,111,255,${.14*s})`,t.fill())}),requestAnimationFrame(s)};s()})(),setInterval(()=>{$("clock").textContent=(new Date).toLocaleTimeString("fr-FR"),$("hdr-date").textContent=(new Date).toLocaleDateString("fr-FR")},1e3),document.addEventListener("keydown",e=>{if("INPUT"===e.target.tagName||"SELECT"===e.target.tagName)return;const t=document.querySelectorAll(".tab"),n={1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8};if(void 0!==n[e.key]&&t[n[e.key]])return t[n[e.key]].click(),void showToast(`Onglet ${e.key} — ${t[n[e.key]].textContent.trim()}`);("/"===e.key||"k"===e.key&&(e.ctrlKey||e.metaKey))&&(e.preventDefault(),t[2].click(),setTimeout(()=>$("ca-input").focus(),300))});let pct=0;const pctT=setInterval(()=>{pct=Math.min(pct+(8*Math.random()+2),92),$("l-pct")&&($("l-pct").textContent=Math.floor(pct)+"%")},85),msgs=["CHARGEMENT DES MODULES...","CONNEXION API SÉCURISÉE...","SYNCHRONISATION SERVEURS...","VÉRIFICATION INTÉGRITÉ...","CHIFFREMENT CANAL...","SYSTÈME PRÊT À DÉMARRER..."];let mi=0;const msgT=setInterval(()=>{mi<msgs.length-1&&$("l-msg")&&($("l-msg").textContent=msgs[mi++])},500);function _loaderReady(){clearInterval(pctT),clearInterval(msgT),$("l-pct")&&($("l-pct").textContent="100%"),$("l-fill")&&($("l-fill").style.width="100%"),setTimeout(()=>{const e=$("l-msg");e&&(e.textContent="SYSTÈME PRÊT — CLIQUEZ POUR ENTRER",e.classList.remove("blink"),e.classList.add("rdy"));const t=$("lbtn");t&&(t.style.display="block")},300)}function enterSite(){try{actx||(actx=new(window.AudioContext||window.webkitAudioContext)),actx.resume()}catch(e){}_au=!0,window.scrollTo(0,0),$("ldr").classList.add("out"),setTimeout(()=>{$("ldr").style.display="none",showToast("SYSTÈME OPÉRATIONNEL",2500)},900)}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",_loaderReady):setTimeout(_loaderReady,200),setTimeout(()=>{const e=$("lbtn");(e&&"none"===e.style.display||e&&!e.style.display)&&_loaderReady()},4e3);let scW=null,scOn=!1,scBarT=null;function scToggle(){scW&&(scOn?scW.pause():scW.play())}function scVol(e){scW&&scW.setVolume(parseInt(e))}function scStartBar(){scStopBar(),scBarT=setInterval(()=>{scW&&scW.getPosition(e=>{scW.getDuration(t=>{t>0&&($("scp-bf").style.width=e/t*100+"%")})})},500)}function scStopBar(){scBarT&&(clearInterval(scBarT),scBarT=null)}function _authHeader(){const e=sessionStorage.getItem("mg_token_v3");return e?{Authorization:"Bearer "+e}:{}}async function api(e){const t=await fetch(API+e,{headers:{..._authHeader()}});if(!t.ok)throw new Error("HTTP "+t.status);return t.json()}async function apiP(e,t){const n=await fetch(API+e,{method:"POST",headers:{"Content-Type":"application/json",..._authHeader()},body:JSON.stringify(t)});if(!n.ok)throw new Error("HTTP "+n.status);return n.json()}async function nav(e,t){sndNav(),pageFlash(),document.querySelectorAll(".sec").forEach(e=>e.classList.remove("active")),document.querySelectorAll(".tab").forEach(e=>e.classList.remove("active")),$("s-"+e).classList.add("active"),t.classList.add("active"),"watchlist"===e&&await switchWl("lime"),"countrywatch"===e&&(cwRender(),cwRefreshAll()),"online"===e&&($("ol-body").innerHTML=ld(),loadOnline()),"checkall"===e&&rAT("ca-pl","ppCA"),"stats"===e&&rAT("st-pl","ppST"),"historique"===e&&(updateHistPlayerFilter(),renderConnHist()),"notes"===e&&notesLoadFromAPI().then(()=>renderNotes()),"carte"===e&&loadCarte(),"top5"===e&&loadTop5(),"referents"===e&&loadReferents()}function rAT(e,t){const n=$(e);if(!n||!oP.length)return;n.innerHTML=oP.map(e=>`<span class="tag" onclick="${t}('${e.replace(/'/g,"\\'")}')">${e}</span>`).join("");const a=$("ca-pl-count");a&&"ca-pl"===e&&(a.textContent=oP.length+" joueurs")}function fPT(e,t){const n=$(t);if(!n)return;const a=$(e).value.trim().toLowerCase(),s=a?oP.filter(e=>e.toLowerCase().includes(a)):oP;if(!s.length)return void(n.innerHTML="");const r={"ca-pl":"ppCA","st-pl":"ppST","wl-pl":"ppWL"};n.innerHTML=s.slice(0,100).map(e=>`<span class="tag" onclick="${r[t]||"qCA"}('${e.replace(/'/g,"\\'")}')">${e}</span>`).join("")}function ppCA(e){$("ca-input").value=e,$("ca-pl").innerHTML="",$("ca-list").style.display="none",doCA()}function ppST(e){$("st-input").value=e,$("st-pl").innerHTML="",$("st-list").style.display="none",loadStats()}function ppWL(e){$("wl-add").value=e,$("wl-pl").innerHTML="",$("wl-acl").style.display="none"}function acF(e,t,n){const a=$(e).value.trim().toLowerCase(),s=$(t);if(!a||!n.length)return void(s.style.display="none");const r=n.filter(e=>e.toLowerCase().includes(a)).slice(0,10);r.length?(s.innerHTML=r.map(n=>`<div class="aci" onmousedown="acP('${e}','${t}','${n.replace(/'/g,"\\'")}')">${n}</div>`).join(""),s.style.display="block"):s.style.display="none"}function acFC(){const e=$("ck-srv").value;if(!e)return;const t=$("ck-country").value.trim().toLowerCase(),n=cc[e]||[];$("ck-suggest").innerHTML=(t?n.filter(e=>e.toLowerCase().includes(t)):n).map(e=>`<span class="tag" onclick="selC('${e.replace(/'/g,"\\'")}')">${e}</span>`).join(""),acF("ck-country","ck-list",n)}function acP(e,t,n){$(e).value=n,$(t).style.display="none"}function acK(e,t,n){const a=$(t),s=a.querySelectorAll(".aci"),r=a.querySelector(".sel");if("ArrowDown"===e.key){e.preventDefault();const t=r?r.nextElementSibling:s[0];r&&r.classList.remove("sel"),t&&t.classList.add("sel")}else if("ArrowUp"===e.key){e.preventDefault();const t=r?r.previousElementSibling:s[s.length-1];r&&r.classList.remove("sel"),t&&t.classList.add("sel")}else if("Enter"===e.key){if(r)return void r.onmousedown();a.style.display="none",n()}else"Escape"===e.key&&(a.style.display="none")}async function chkAPI(){try{return await api("/health"),$("api-led").className="led on",$("api-txt").textContent="API OK",!0}catch{return $("api-led").className="led off",$("api-txt").textContent="DOWN",!1}}async function loadWL(){try{const e=new AbortController,t=setTimeout(()=>e.abort(),6e3),n=await fetch(API+"/api/watchlist",{signal:e.signal,headers:{..._authHeader()}});clearTimeout(t);const a=await n.json();WL=a.players||[],animStat("st-wcount",WL.length),sparkData.wc.push(WL.length),sparkData.wc.length>30&&sparkData.wc.shift(),drawSpark("spark-wc",sparkData.wc)}catch{}}async function loadWLM(){try{const e=new AbortController,t=setTimeout(()=>e.abort(),6e3),n=await fetch(API+"/api/watchlist_mocha",{signal:e.signal,headers:{..._authHeader()}});clearTimeout(t);const a=await n.json();WLM=a.players||[]}catch{}}async function loadKP(){try{const e=await fetch(API+"/api/known_players",{headers:{..._authHeader()}}).then(e=>e.json());oP=[...new Set([...e.players||[],...oP])].sort((e,t)=>e.toLowerCase().localeCompare(t.toLowerCase())),rAT("ca-pl","ppCA"),rAT("st-pl","ppST"),rAT("wl-pl","ppWL")}catch{}}function animStat(e,t){const n=$(e);if(!n)return;(parseInt(n.textContent)||0)!==t&&(n.style.opacity=".12",setTimeout(()=>{n.textContent=t,n.style.opacity="1",n.classList.add("bump"),setTimeout(()=>n.classList.remove("bump"),350)},120))}async function loadDash(){$("srv-overview").children.length||($("srv-overview").innerHTML=ld());try{const e=await api("/api/online_all"),t=e.lime||[],n=new Set(oP);SRV.forEach(t=>(e[t]||[]).forEach(e=>n.add(e))),oP=[...n].sort((e,t)=>e.toLowerCase().localeCompare(t.toLowerCase())),WL.forEach(t=>{const n=t.toLowerCase(),a=(e.lime||[]).map(e=>e.toLowerCase()).includes(n),s=t+"@lime";a&&!prev[s]&&pAlert("connect",t,"lime"),!a&&prev[s]&&pAlert("disconnect",t,"lime"),prev[s]=a}),WLM.forEach(t=>{const n=t.toLowerCase(),a=(e.mocha||[]).map(e=>e.toLowerCase()).includes(n),s=t+"@mocha";a&&!prev[s]&&pAlert("connect",t,"mocha"),!a&&prev[s]&&pAlert("disconnect",t,"mocha"),prev[s]=a});let a=0;SRV.forEach(t=>a+=(e[t]||[]).length),animStat("st-total",a),sparkData.total.push(a),sparkData.total.length>30&&sparkData.total.shift(),drawSpark("spark-total",sparkData.total);const s=WL.filter(e=>t.map(e=>e.toLowerCase()).includes(e.toLowerCase())).length;animStat("st-wonline",s),updateWeather(s),sparkData.wl.push(s),sparkData.wl.length>30&&sparkData.wl.shift(),drawSpark("spark-wl",sparkData.wl);const r=Math.max(...SRV.map(t=>(e[t]||[]).length),1),o=$("srv-overview").querySelectorAll(".sc");o.length===SRV.length?SRV.forEach((t,n)=>{const a=(e[t]||[]).length,s=o[n],i=s.querySelector(".sc-n"),l=s.querySelector(".sbar-f");i&&parseInt(i.textContent)!==a&&(i.style.opacity=".1",setTimeout(()=>{i.textContent=a,i.style.opacity="1"},120)),l&&(l.style.width=Math.round(a/r*100)+"%")}):$("srv-overview").innerHTML=SRV.map(t=>{const n=(e[t]||[]).length,a=BUG(t);return`<div class="sc" onmouseenter="sndH()" onclick="gOL('${t}')" ${a?'style="border-color:rgba(255,119,0,.22)"':""}><div class="sc-top"><span class="sc-name">${t.toUpperCase()}</span><span class="sc-emo">${EMO[t]}</span></div><div class="sc-n">${n}</div>${a?'<div class="sc-lbl warn">⚠ INSTABLE</div>':'<div class="sc-lbl">EN LIGNE</div>'}<div class="sbar"><div class="sbar-f" style="width:${Math.round(n/r*100)}%"></div></div></div>`}).join("");const i=await api("/api/online/mocha").then(e=>e.players||[]).catch(()=>[]),l=(e,t,n,a)=>t.length?`<div style="font-family:var(--M);font-size:.46rem;color:${n};letter-spacing:.22em;margin-bottom:.18rem">${a}</div><div class="tags" style="margin-bottom:.35rem">${t.map(t=>{const n=e.map(e=>e.toLowerCase()).includes(t.toLowerCase()),a=getLastSeenText(t);return`<span class="tag ${n?"on":""}" onclick="openPlayerPanel('${t}')" title="Voir profil">${n?"🟢":"⚫"} ${t}${a?` <span class="wi-seen ${a.cls}">${a.text}</span>`:""}</span>`}).join("")}</div>`:"";$("wl-quick").innerHTML=(l(t,WL,"var(--grn)","🟢 LIME")||"")+(l(i,WLM,"var(--org)","🟤 MOCHA")||"")||'<div class="empty">Watchlists vides</div>',$("last-update")&&($("last-update").textContent=(new Date).toLocaleTimeString("fr-FR")),pushActivity(a),startCountdown(5),_firstCycle=!1,document.getElementById("wl-status")&&""!==document.getElementById("wl-status").innerHTML.trim()&&wlRS()}catch(e){$("srv-overview").innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne<br/><span style="font-size:.52rem;opacity:.6">${e.message}</span></div>`}}(()=>{const e=document.createElement("iframe");e.allow="autoplay",e.style.cssText="position:absolute;width:0;height:0;border:none;opacity:0;pointer-events:none",e.src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user-164072391-103154989/omer-adam-feat-arisa-tel-aviv&color=%23f0c040&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false",document.body.appendChild(e);const t=document.createElement("script");t.src="https://w.soundcloud.com/player/api.js",t.onload=()=>{scW=SC.Widget(e),scW.bind(SC.Widget.Events.READY,()=>scW.setVolume(70)),scW.bind(SC.Widget.Events.PLAY,()=>{scOn=!0,$("scp-tri").classList.add("p"),$("scp-eq").classList.add("on"),scStartBar()}),scW.bind(SC.Widget.Events.PAUSE,()=>{scOn=!1,$("scp-tri").classList.remove("p"),$("scp-eq").classList.remove("on"),scStopBar()}),scW.bind(SC.Widget.Events.FINISH,()=>{scOn=!1,$("scp-tri").classList.remove("p"),$("scp-eq").classList.remove("on"),$("scp-bf").style.width="0%"})},document.head.appendChild(t)})(),document.addEventListener("click",e=>{document.querySelectorAll(".acl").forEach(t=>{t.parentElement.contains(e.target)||(t.style.display="none")})});const _authed=()=>!!sessionStorage.getItem("mg_token_v3");let _firstCycle=!0;const CONN_HIST_KEY="mg_conn_hist_v2",CONN_HIST_MAX=500;let connHist=JSON.parse(localStorage.getItem(CONN_HIST_KEY)||"[]");function saveConnHist(){localStorage.setItem(CONN_HIST_KEY,JSON.stringify(connHist))}function addConnEvent(e,t,n){connHist.unshift({type:e,player:t,server:n,ts:Date.now(),time:(new Date).toLocaleTimeString("fr-FR"),date:(new Date).toLocaleDateString("fr-FR")}),connHist.length>500&&connHist.pop(),saveConnHist(),updateHistPlayerFilter(),document.getElementById("s-historique")?.classList.contains("active")&&renderConnHist()}function updateHistPlayerFilter(){const e=document.getElementById("hist-filter-player");if(!e)return;const t=e.value,n=[...new Set(connHist.map(e=>e.player))].sort((e,t)=>e.toLowerCase().localeCompare(t.toLowerCase()));e.innerHTML='<option value="">Tous les joueurs</option>'+n.map(e=>`<option value="${e}" ${e===t?"selected":""}>${e}</option>`).join("")}function renderConnHist(){const e=document.getElementById("conn-hist-body"),t=document.getElementById("hist-stats"),n=document.getElementById("hist-chart-body");if(!e)return;const a=document.getElementById("hist-filter-player")?.value||"",s=document.getElementById("hist-filter-type")?.value||"";let r=connHist;if(a&&(r=r.filter(e=>e.player===a)),s&&(r=r.filter(e=>e.type===s)),t){const e=connHist.length,n=connHist.filter(e=>"connect"===e.type).length,a=[...new Set(connHist.map(e=>e.player))].length;t.innerHTML=[{label:"Événements total",val:e,col:"var(--blue-pale)"},{label:"Connexions",val:n,col:"var(--grn)"},{label:"Déconnexions",val:e-n,col:"var(--red)"},{label:"Joueurs trackés",val:a,col:"var(--org)"}].map(e=>`<div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.6rem 1rem;min-width:120px">\n      <div style="font-family:var(--D);font-size:1.6rem;color:${e.col};line-height:1">${e.val}</div>\n      <div style="font-family:var(--M);font-size:.5rem;color:var(--t3);letter-spacing:.12em;margin-top:.2rem">${e.label}</div>\n    </div>`).join("")}if(r.length){if(e.innerHTML=`<table class="tbl">\n    <thead><tr><th>Type</th><th>Joueur</th><th>Serveur</th><th>Date</th><th>Heure</th></tr></thead>\n    <tbody>${r.slice(0,150).map(e=>`\n      <tr onclick="openPlayerPanel('${e.player}')">\n        <td><span style="color:${"connect"===e.type?"var(--grn)":"var(--red)"}">\n          ${"connect"===e.type?"🟢 Connexion":"🔴 Déco"}\n        </span></td>\n        <td style="color:var(--t1);font-weight:600">${e.player}</td>\n        <td><span class="stag">${(e.server||"").toUpperCase()}</span></td>\n        <td style="color:var(--t3)">${e.date||"—"}</td>\n        <td style="color:var(--t2)">${e.time}</td>\n      </tr>`).join("")}\n    </tbody>\n  </table>\n  ${r.length>150?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);text-align:center;margin-top:.6rem;letter-spacing:.1em">Affichage limité à 150 / ${r.length} événements — utilisez les filtres</div>`:""}`,n){const e={};connHist.forEach(t=>{e[t.player]||(e[t.player]={connect:0,disconnect:0}),e[t.player][t.type]=(e[t.player][t.type]||0)+1});const t=Object.entries(e).sort((e,t)=>t[1].connect+t[1].disconnect-(e[1].connect+e[1].disconnect)).slice(0,10);if(!t.length)return void(n.innerHTML='<div class="empty">Pas encore de données.</div>');const a=Math.max(...t.map(([,e])=>e.connect+e.disconnect),1);n.innerHTML=t.map(([e,t])=>{t.connect,t.disconnect;const n=Math.round(t.connect/a*100),s=Math.round(t.disconnect/a*100);return`<div style="margin-bottom:.7rem">\n        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.22rem">\n          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${e}')">${e}</span>\n          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${t.connect} co · ${t.disconnect} déco</span>\n        </div>\n        <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;background:var(--bg2)">\n          <div style="width:${n}%;background:var(--grn);opacity:.7;transition:width .3s"></div>\n          <div style="width:${s}%;background:var(--red);opacity:.6;transition:width .3s"></div>\n        </div>\n      </div>`}).join("")}}else e.innerHTML='<div class="empty">Aucun événement correspondant aux filtres.</div>'}function clearConnHist(){confirm("Vider tout l'historique des connexions ?")&&(connHist=[],saveConnHist(),document.getElementById("hist-filter-player").innerHTML='<option value="">Tous les joueurs</option>',renderConnHist(),showToast("Historique vidé"))}function pAlert(e,t,n){if(ALR.unshift({type:e,player:t,server:n,time:(new Date).toLocaleTimeString("fr-FR")}),ALR.length>60&&ALR.pop(),rAlerts(),!_authed()||_firstCycle)return;(WL.map(e=>e.toLowerCase()).includes(t.toLowerCase())||WLM.map(e=>e.toLowerCase()).includes(t.toLowerCase()))&&(addConnEvent(e,t,n),"connect"===e?(setLastSeen(t,n),startSession(t),sendBrowserNotif("connect",t,n)):(endSession(t),sendBrowserNotif("disconnect",t,n)),showPop(e,t,n))}function rAlerts(){$("alert-badge").textContent=ALR.length+" évts",$("alert-feed").innerHTML=ALR.length?ALR.map(e=>`<div class="fi"><div class="fi-d ${"connect"===e.type?"g":"r"}"></div><span class="fi-t">${e.time}</span><span class="fi-m">${"connect"===e.type?"🟢":"🔴"} <b style="cursor:pointer" onclick="openPlayerPanel('${e.player}')">${e.player}</b><span class="fi-s">${e.server.toUpperCase()}</span></span></div>`).join(""):'<div class="empty">En attente...</div>'}function gOL(e){document.querySelectorAll(".tab")[1].click(),$("ol-srv").value=e,$("ol-body").innerHTML=ld(),loadOLS(e)}function fOL(e){$("ol-srv").value=e,$("ol-body").innerHTML=ld(),loadOLS(e)}async function loadOLS(e){const t=$("ol-body"),n=BUG(e)?WARN:"";try{const a=(await api("/api/online/"+e)).players||[];t.innerHTML=n+(a.length?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);margin-bottom:.35rem"><span style="color:var(--gb)">${a.length}</span> joueurs — ${e.toUpperCase()}</div><div class="tags">${a.map(e=>`<span class="tag ${WL.map(e=>e.toLowerCase()).includes(e.toLowerCase())?"on":""}" onclick="openPlayerPanel('${e}')">${e}</span>`).join("")}</div>`:`<div class="empty">${BUG(e)?"0 joueur (dynmap limité)":"Aucun joueur sur "+e.toUpperCase()}</div>`)}catch(e){t.innerHTML=n+`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`}}async function loadOnline(){const e=$("ol-srv").value,t=$("ol-body");t.innerHTML=ld();try{if(e)await loadOLS(e);else{const e=await api("/api/online_all");let n=0;SRV.forEach(t=>n+=(e[t]||[]).length),t.innerHTML=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);margin-bottom:.55rem">TOTAL <span style="color:var(--gb)">${n}</span> joueurs</div><div class="sg">${SRV.map(t=>{const n=e[t]||[],a=BUG(t);return`<div class="sc" onmouseenter="sndH()" onclick="fOL('${t}')" ${a?'style="border-color:rgba(255,119,0,.22)"':""}><div class="sc-top"><span class="sc-name">${t.toUpperCase()}</span><span class="sc-emo">${EMO[t]}</span></div><div class="sc-n">${n.length}</div>${a?'<div class="sc-lbl warn">⚠ INSTABLE</div>':'<div class="sc-lbl">CLIQUER</div>'}<div class="tags" style="max-height:110px;overflow-y:auto;padding-right:2px" onclick="event.stopPropagation()">${n.slice(0,20).map(e=>`<span class="tag ${WL.map(e=>e.toLowerCase()).includes(e.toLowerCase())?"wl":""}" onclick="event.stopPropagation();qCA('${e}')">${e}</span>`).join("")}${n.length>20?`<span style="font-family:var(--M);font-size:.46rem;color:var(--t3)">+${n.length-20}</span>`:""}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(n.length/Math.max(...SRV.map(t=>(e[t]||[]).length),1)*100)}%"></div></div></div>`}).join("")}</div>`}}catch(e){t.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`}}async function doCA(){const e=$("ca-input").value.trim();if(!e)return;const t=rP(e,oP);$("ca-input").value=t;const n=$("ca-result");n.innerHTML=ld();try{const e=await api("/api/checkall/"+encodeURIComponent(t));e.servers.length&&sndF(),n.innerHTML=e.servers.length?`<div class="res ok"><div class="rt">Joueur localisé — ${t}</div>${e.servers.map(e=>`<div style="margin:.2rem 0">${EMO[e]} <span style="color:var(--g)">${e.toUpperCase()}</span></div>`).join("")}</div>`:`<div class="res err"><div class="rt">Résultat</div><span style="color:var(--t3)">${t} n'est connecté nulle part</span></div>`,hist=hist.filter(e=>e.p.toLowerCase()!==t.toLowerCase()),hist.unshift({p:t,servers:e.servers,t:(new Date).toLocaleTimeString("fr-FR")}),hist.length>15&&hist.pop(),localStorage.setItem("mg_h",JSON.stringify(hist)),rHist()}catch(e){n.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`}}function qCA(e){openPlayerPanel(e)}function rHist(){const e=$("ca-history");hist.length?e.innerHTML='<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>'+hist.slice(0,12).map(e=>`<tr><td style="color:var(--g)" onclick="qCA('${e.p}')">${e.p}</td><td>${e.servers.length?e.servers.map(e=>`<span class="stag">${e.toUpperCase()}</span>`).join(""):'<span style="color:var(--t3)">Hors ligne</span>'}</td><td style="color:var(--t3)">${e.t}</td></tr>`).join("")+"</tbody></table>":e.innerHTML='<div class="empty">Aucune recherche</div>'}async function loadCS(){const e=$("ck-srv").value;e&&(await getCountries(e),rCS(e))}function rCS(e){const t=$("ck-suggest"),n=cc[e]||[];n.length?t.innerHTML=n.map(e=>`<span class="tag" onclick="selC('${e.replace(/'/g,"\\'")}')">${e}</span>`).join(""):t.innerHTML=""}function selC(e){$("ck-country").value=e,$("ck-list").style.display="none",doCheck()}async function doCheck(){const e=$("ck-srv").value,t=$("ck-country").value.trim();if(!e||!t)return;await getCountries(e);const n=rP(t,cc[e]||[]);$("ck-country").value=n;const a=$("ck-result");a.innerHTML=ld();try{const t=await api(`/api/check/${e}/${encodeURIComponent(n)}`),s='<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>';0===t.online_total?a.innerHTML=`<div class="res ok"><div class="rt">Pays : ${t.country} — ${t.members_total} membres</div><span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(e)?s:""}</div>`:a.innerHTML=`<div class="res err"><div class="rt">Pays : ${t.country} — ${t.online_total}/${t.members_total} connectés</div>`+Object.entries(t.servers).sort((t,n)=>t[0]===e?-1:1).map(([t,n])=>`<div style="margin:.2rem 0">${EMO[t]} <span style="color:var(--g)">${t.toUpperCase()}</span>${BUG(t)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':""}${t===e?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':""} <span style="color:var(--t3);margin-left:.22rem">${n.join(", ")}</span></div>`).join("")+(Object.keys(t.servers).some(e=>BUG(e))||BUG(e)?s:"")+"</div>"}catch(e){a.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`}}function wlR(){const e=$("wl-manage"),t="mocha"===cwl?WLM:WL;t.length?e.innerHTML=t.map(e=>`<div class="wi"><span style="font-family:var(--M);font-size:.62rem">${e}</span><button class="btn btn-r" style="padding:.07rem .34rem;font-size:.48rem" onclick="wlRm('${e}')">✕</button></div>`).join(""):e.innerHTML='<div class="empty">Watchlist vide</div>'}async function wlAdd(){const e=$("wl-add").value.trim();if(!e)return;const t=rP(e,oP);$("wl-add").value="";try{const e=await apiP("mocha"===cwl?"/api/watchlist_mocha/add":"/api/watchlist/add",{player:t});"mocha"===cwl?WLM=e.players:WL=e.players,wlR(),wlRS(),showToast(`${t} ajouté à la watchlist`)}catch(e){showToast("Erreur : "+e.message)}}async function wlRm(e){try{const t=await apiP("mocha"===cwl?"/api/watchlist_mocha/remove":"/api/watchlist/remove",{player:e});"mocha"===cwl?WLM=t.players:WL=t.players,wlR(),wlRS(),showToast(`${e} retiré`)}catch(e){showToast("Erreur : "+e.message)}}async function switchWl(e){cwl=e,document.querySelectorAll(".wtb").forEach(e=>e.classList.remove("act"));const t=$("wl-tab-"+e);t&&t.classList.add("act"),$("wl-pt")&&($("wl-pt").textContent="◈ Watchlist — "+e.toUpperCase()),$("wl-st")&&($("wl-st").textContent="⚡ Statut live — "+e.toUpperCase()),$("wl-manage").innerHTML="",$("wl-status").innerHTML="","lime"===e?await loadWL():await loadWLM(),wlR(),wlRS()}async function wlRS(){const e=$("wl-status");if(!e)return;e.innerHTML=ld();const t="mocha"===cwl?"mocha":"lime",n="mocha"===cwl?WLM:WL;if(n.length)try{const a=new AbortController,s=setTimeout(()=>a.abort(),8e3),r=await fetch(API+"/api/online/"+t,{signal:a.signal,headers:{..._authHeader()}});clearTimeout(s);const o=(await r.json()).players||[],i=n.filter(e=>o.map(e=>e.toLowerCase()).includes(e.toLowerCase())),l=n.filter(e=>!o.map(e=>e.toLowerCase()).includes(e.toLowerCase()));i.forEach(e=>{setLastSeen(e,t),loadSessionDurations(e)}),e.innerHTML=[...i.map(e=>{const t=predictDecoTime(e);return`<div class="wi" onclick="openPlayerPanel('${e}')"><span style="font-family:var(--M);font-size:.62rem">${e}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${e}">${getSessionTime(e)||""}</span>${t?`<span class="pred-badge ${t.cls}">⏳ ${t.text}</span>`:""}</div>`}),...l.map(e=>{const t=getLastSeenText(e);return`<div class="wi" onclick="openPlayerPanel('${e}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${"fresh"===t?.cls?".7":".38"}">${e}</span><div class="wis off">${t?`<span class="wi-seen ${t.cls}">${t.text}</span>`:"◯ Hors ligne"}</div></div>`})].join("")||'<div class="empty">Aucune donnée</div>'}catch{e.innerHTML='<div class="empty" style="color:var(--red)">Erreur</div>'}else e.innerHTML='<div class="empty">Watchlist vide</div>'}async function loadStats(){const e=$("st-input").value.trim();if(!e)return;const t=rP(e,oP);$("st-input").value=t;const n=$("st-result");n.innerHTML=`<div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyse — ${t}</span></div><div class="pb">${ld()}</div></div>`;const[a,s,r]=await Promise.allSettled([api("/api/checkall/"+encodeURIComponent(t)),api("/api/pronostic/"+encodeURIComponent(t)),api("/api/plages/"+encodeURIComponent(t))]),o="fulfilled"===a.status?a.value:null,i="fulfilled"===s.status?s.value:null,l="fulfilled"===r.status?r.value:null,c=o?o.servers:[];let d="";if(d+='<div class="sb"><div class="sbt">◉ Localisation</div>',d+=c.length?c.map(e=>`<div class="ir"><span class="ik">${EMO[e]} Serveur</span><span class="iv ok">${e.toUpperCase()}</span></div>`).join(""):'<div class="ir"><span class="ik">Statut</span><span class="iv" style="color:var(--t3)">Hors ligne</span></div>',d+="</div>",d+='<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>',i?.pronostic?.length?(d+=`<div style="font-family:var(--M);font-size:.48rem;color:var(--t3);margin-bottom:.35rem">Basé sur ${i.total} connexions</div>`,d+=i.pronostic.map(e=>`<div class="pr"><span class="pd">${e.day}</span><div class="pb3"><div class="pbf" style="width:${e.pct}%"></div></div><span class="pp">${e.pct}%</span><span class="pt3">${e.avg_h}h${String(e.avg_m).padStart(2,"0")}</span></div>`).join("")):d+='<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Insuffisantes (min. 3)</span></div>',d+="</div>",d+='<div class="sb"><div class="sbt">🕐 Heatmap horaire</div>',l?.heatmap){const e=l.heatmap,t=l.days,n=Math.max(...e.flat(),1);d+='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--M);font-size:.47rem;width:100%"><tr><td style="color:var(--t3);padding-right:.34rem;white-space:nowrap">H→</td>';for(let e=0;e<24;e++)d+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem">${e}</td>`;d+="</tr>",t.forEach((t,a)=>{d+=`<tr><td style="color:var(--g);padding-right:.34rem;white-space:nowrap">${t}</td>`,e[a].forEach(e=>{const t=e?(.04+e/n*.82).toFixed(2):0,a=e?`rgba(0,56,184,${t})`:"rgba(2,5,12,.9)",s=e&&e/n>.6?`box-shadow:0 0 4px rgba(0,56,184,${(e/n*.3).toFixed(2)})`:"";d+=`<td style="width:14px;height:13px;background:${a};border-radius:1px;padding:0;${s}"></td>`}),d+="</tr>"}),d+="</table></div>"}else d+='<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>';if(d+="</div>",d+='<div class="sb"><div class="sbt">◷ Historique</div>',l?.heatmap){const e=l.heatmap,t=l.days,n=[];t.forEach((t,a)=>{const s=e[a].reduce((e,t)=>e+t,0);s&&n.push({day:t,total:s,peakH:e[a].indexOf(Math.max(...e[a]))})}),n.sort((e,t)=>t.total-e.total),n.length?(d+='<table class="tbl"><thead><tr><th>Jour</th><th>Connexions</th><th>Pic</th></tr></thead><tbody>',d+=n.map(e=>`<tr><td style="color:var(--g)">${e.day}</td><td style="color:var(--gb)">${e.total}</td><td style="color:var(--t3)">${e.peakH}h–${e.peakH+1}h</td></tr>`).join(""),d+="</tbody></table>"):d+='<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune connexion</span></div>'}else d+='<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>';d+="</div>",n.innerHTML=d}let actx=null,_au=!1;function gCtx(){return actx||(actx=new(window.AudioContext||window.webkitAudioContext)),"suspended"===actx.state&&actx.resume(),actx}function unlockAudio(){if(!_au){_au=!0;try{gCtx().resume()}catch(e){}}}function toggleSound(){snd=!snd,localStorage.setItem("mg_sound",snd?"on":"off");const e=$("sound-btn");e&&(e.textContent=snd?"🔊 SON":"🔇 SON",e.style.color=snd?"var(--g)":"var(--t3)"),showToast(snd?"Son activé":"Son désactivé")}function pT(e,t="sine",n=.08,a=.08,s=0){if(snd)try{const r=gCtx(),o=r.createOscillator(),i=r.createGain();o.connect(i),i.connect(r.destination),o.type=t,o.frequency.value=e;const l=r.currentTime+s;i.gain.setValueAtTime(0,l),i.gain.linearRampToValueAtTime(a,l+.01),i.gain.exponentialRampToValueAtTime(.001,l+n),o.start(l),o.stop(l+n)}catch(e){}}function sndNav(){pT(880,"sine",.06,.055),pT(1100,"sine",.05,.038,.04)}function sndH(){pT(660,"sine",.04,.018)}function sndF(){pT(523,"sine",.08,.09),pT(659,"sine",.08,.09,.07)}function sndA(e){e?[0,.14,.28,.42,.56].forEach((e,t)=>{pT(580+85*t,"square",.11,.28,e),pT(1160+110*t,"sine",.07,.12,e+.05)}):[0,.17,.34].forEach((e,t)=>{pT(490-95*t,"sawtooth",.14,.28,e),pT(245-48*t,"square",.11,.18,e+.07)})}function spk(e){if(snd)try{window.speechSynthesis.cancel();const t=new SpeechSynthesisUtterance(e);t.lang="fr-FR",t.rate=.88,t.pitch=1.25,t.volume=1;const n=window.speechSynthesis.getVoices(),a=n.find(e=>e.lang.startsWith("fr")&&e.name.toLowerCase().includes("female"))||n.find(e=>e.lang.startsWith("fr")&&(e.name.includes("Amélie")||e.name.includes("Audrey")||e.name.includes("Marie")||e.name.includes("Julie")||e.name.includes("Léa")||e.name.includes("Google français")))||n.find(e=>e.lang.startsWith("fr"));a&&(t.voice=a),window.speechSynthesis.speak(t)}catch(e){}}function showPop(e,t,n){sndA("connect"===e),setTimeout(()=>spk("connect"===e?`${t} vient de se connecter`:`${t} s'est déconnecté`),400);const a=$("apop"),s=document.createElement("div");s.className="an"+("disconnect"===e?" dc":""),s.innerHTML=`<div class="an-type">${"connect"===e?"🟢 Connexion détectée":"🔴 Déconnexion"}</div><div class="an-name">${t}</div><div class="an-meta"><span>${n.toUpperCase()}</span><span style="opacity:.3">·</span><span>${(new Date).toLocaleTimeString("fr-FR")}</span></div><span class="an-x" onclick="this.parentElement.remove()">✕</span>`,s.onclick=e=>{e.target.classList.contains("an-x")||qCA(t)},a.appendChild(s),setTimeout(()=>{s.style.animation="anOut .28s ease forwards",setTimeout(()=>s.remove(),280)},8e3)}function pageFlash(){const e=document.getElementById("page-flash");e.classList.remove("go"),e.offsetWidth,e.classList.add("go")}document.addEventListener("click",unlockAudio,{once:!0}),window.speechSynthesis&&(window.speechSynthesis.getVoices(),window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices());const actHistory=[],actLabels=[],MAX_ACT=30;function pushActivity(e){const t=new Date;actHistory.push(e),actLabels.push(t.getHours()+":"+String(t.getMinutes()).padStart(2,"0")),actHistory.length>MAX_ACT&&(actHistory.shift(),actLabels.shift()),drawActivityGraph()}function drawActivityGraph(){const e=document.getElementById("activity-graph");if(!e||actHistory.length<2)return;const t=e.parentElement.offsetWidth||400;e.width=t*devicePixelRatio,e.height=80*devicePixelRatio;const n=e.getContext("2d");n.scale(devicePixelRatio,devicePixelRatio);const a=Math.min(...actHistory),s=Math.max(...actHistory,1)-a||1,r=t-16;for(let e=0;e<=4;e++){const a=8+64*(1-e/4);n.beginPath(),n.moveTo(8,a),n.lineTo(t-8,a),n.strokeStyle="rgba(0,56,184,.05)",n.lineWidth=1,n.stroke()}const o=n.createLinearGradient(0,0,0,80);o.addColorStop(0,"rgba(0,56,184,.22)"),o.addColorStop(1,"rgba(0,56,184,.01)"),n.beginPath(),actHistory.forEach((e,t)=>{const o=8+t/(actHistory.length-1)*r,i=8+64*(1-(e-a)/s);0===t?n.moveTo(o,i):n.lineTo(o,i)}),n.lineTo(8+r,72),n.lineTo(8,72),n.closePath(),n.fillStyle=o,n.fill(),n.beginPath(),actHistory.forEach((e,t)=>{const o=8+t/(actHistory.length-1)*r,i=8+64*(1-(e-a)/s);0===t?n.moveTo(o,i):n.lineTo(o,i)}),n.strokeStyle="rgba(26,111,255,.7)",n.lineWidth=1.5,n.lineJoin="round",n.stroke();const i=8+r,l=8+64*(1-(actHistory[actHistory.length-1]-a)/s);n.beginPath(),n.arc(i,l,3,0,2*Math.PI),n.fillStyle="#4d9fff",n.fill(),n.beginPath(),n.arc(i,l,6,0,2*Math.PI),n.fillStyle="rgba(26,111,255,.2)",n.fill();const c=document.getElementById("graph-labels");if(c&&actLabels.length>0){const e=Math.max(1,Math.floor(actLabels.length/5)),t=actLabels.filter((t,n)=>n%e===0||n===actLabels.length-1);c.textContent="",t.forEach(e=>{const t=document.createElement("span");t.textContent=e,c.appendChild(t)})}}let cdTotal=5,cdLeft=5;function startCountdown(e=5){cdTotal=e,cdLeft=e,updateCountdown()}function updateCountdown(){const e=document.getElementById("cd-txt"),t=document.getElementById("cd-fill");e&&(e.textContent=cdLeft+"s"),t&&(t.style.width=cdLeft/cdTotal*100+"%")}function tickCountdown(){cdLeft=Math.max(0,cdLeft-1),updateCountdown()}const lastSeen={};function setLastSeen(e,t){lastSeen[e]={ts:Date.now(),server:t}}function getLastSeenText(e){const t=lastSeen[e];if(!t)return null;const n=Math.floor((Date.now()-t.ts)/1e3);return n<60?{text:`vu il y a ${n}s`,cls:"fresh"}:n<3600?{text:`vu il y a ${Math.floor(n/60)}min`,cls:"recent"}:{text:`vu il y a ${Math.floor(n/3600)}h`,cls:""}}let notifGranted=!1;async function requestNotifPerms(){if("Notification"in window)if("granted"!==Notification.permission){if("denied"!==Notification.permission){const e=await Notification.requestPermission();notifGranted="granted"===e}}else notifGranted=!0}function sendBrowserNotif(e,t,n){if(!notifGranted||"visible"===document.visibilityState)return;const a="connect"===e?`🟢 ${t} connecté`:`🔴 ${t} déconnecté`,s=`Serveur : ${n.toUpperCase()} · ${(new Date).toLocaleTimeString("fr-FR")}`;try{const e=new Notification(a,{body:s,icon:"https://nationsglory.fr/favicon.ico",silent:!1});e.onclick=()=>{window.focus(),e.close()}}catch(e){}}let ppOpen=!1;async function openPlayerPanel(e){const t=document.getElementById("player-panel"),n=document.getElementById("pp-overlay"),a=document.getElementById("pp-name"),s=document.getElementById("pp-body");a.textContent=e,s.innerHTML='<div class="pp-loading">◌ Chargement du profil...</div>',t.classList.add("open"),n.classList.add("open"),document.body.style.overflow="hidden",ppOpen=!0;const[r,o,i]=await Promise.allSettled([api("/api/checkall/"+encodeURIComponent(e)),api("/api/pronostic/"+encodeURIComponent(e)),api("/api/plages/"+encodeURIComponent(e))]),l="fulfilled"===r.status?r.value:null,c="fulfilled"===o.status?o.value:null,d="fulfilled"===i.status?i.value:null,p=getLastSeenText(e),m=l&&l.servers.length>0,u=`https://nationsglory.fr/profile/${encodeURIComponent(e)}`;let v="";if(v+=`<div class="pp-info-row">\n    <div class="pp-avatar"><img src="https://mc-heads.net/avatar/${encodeURIComponent(e)}/64" onerror="this.style.display='none'" alt=""></div>\n    <div class="pp-info-meta">\n      <div class="pp-meta-line">${WL.includes(e)?"🎯 Dans la watchlist LIME":""}${WLM.includes(e)?" 🟤 Dans la watchlist MOCHA":""}</div>\n      <div class="pp-status ${m?"on":"off"}">\n        <div class="led ${m?"on":"off"}" style="width:5px;height:5px;flex-shrink:0"></div>\n        ${m?l.servers.map(e=>`${EMO[e]} ${e.toUpperCase()}`).join(" · "):"Hors ligne"}\n      </div>\n      ${m?(()=>{const t=predictDecoTime(e);return t?`<div class="pred-badge ${t.cls}" style="margin-top:.3rem">⏳ ${t.text}</div>`:""})():""}\n      ${p?`<div class="pp-meta-line" style="margin-top:.28rem">${p.text}</div>`:""}\n    </div>\n  </div>`,v+=`<a class="pp-ng-link" href="${u}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`,v+='<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>',c?.pronostic?.length?(v+=`<div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-bottom:.3rem">Basé sur ${c.total} connexions</div>`,v+=c.pronostic.map(e=>`<div class="pr" style="padding:.28rem 0"><span class="pd">${e.day}</span><div class="pb3"><div class="pbf" style="width:${e.pct}%"></div></div><span class="pp" style="min-width:32px;color:var(--t3);text-align:right;font-size:.52rem">${e.pct}%</span><span style="min-width:44px;color:var(--t1);text-align:right;font-family:var(--M);font-size:.6rem">${e.avg_h}h${String(e.avg_m).padStart(2,"0")}</span></div>`).join("")):v+='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Pas assez de données</div>',v+="</div>",d?.heatmap){const e=d.heatmap,t=d.days,n=Math.max(...e.flat(),1);v+='<div class="pp-section"><div class="pp-sec-title">🕐 Heatmap horaire</div><div style="overflow-x:auto"><table class="pp-heatmap" style="border-collapse:collapse;font-family:var(--M);font-size:.44rem"><tr><td style="color:var(--t3);padding-right:.3rem;font-size:.38rem">H→</td>';for(let e=0;e<24;e+=2)v+=`<td colspan="2" style="color:var(--t3);text-align:center;padding:0 1px;font-size:.38rem">${e}</td>`;v+="</tr>",t.forEach((t,a)=>{v+=`<tr><td style="color:var(--g);padding-right:.3rem;white-space:nowrap;padding-top:2px;font-size:.44rem">${t}</td>`,e[a].forEach(e=>{const t=e?`rgba(0,56,184,${(.04+e/n*.82).toFixed(2)})`:"rgba(2,5,12,.9)";v+=`<td style="width:13px;height:11px;background:${t};border-radius:1px;padding:0"></td>`}),v+="</tr>"}),v+="</table></div></div>"}s.innerHTML=v}function closePlayerPanel(){document.getElementById("player-panel").classList.remove("open"),document.getElementById("pp-overlay").classList.remove("open"),document.body.style.overflow="",ppOpen=!1}function updateWeather(e){const t=document.getElementById("weather-icon"),n=document.getElementById("weather-label");if(!t||!n)return;const a=WL.length+WLM.length,s=a>0?e/a:0;let r,o,i;0===e?(r="🌙",o="CALME",i="calm"):s<.3?(r="🌤",o="ACTIVITÉ",i="active"):s<.6?(r="⚡",o="AGITÉ",i="hot"):(r="🔥",o="CRITIQUE",i="critical"),t.textContent!==r&&(t.style.transform="scale(1.4)",t.textContent=r,setTimeout(()=>t.style.transform="",300)),n.textContent=o,n.className="weather-label "+i}document.addEventListener("keydown",e=>{"Escape"===e.key&&ppOpen&&closePlayerPanel()}),(()=>{const e=document.getElementById("matrix-canvas");if(!e)return;const t=e.getContext("2d"),n=()=>{e.width=window.innerWidth,e.height=window.innerHeight};n(),window.addEventListener("resize",n);const a="アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF◈⊕◉◎",s=14;let r=Math.floor(e.width/s),o=Array(r).fill(1);const i=setInterval(()=>{t.fillStyle="rgba(1,4,8,.08)",t.fillRect(0,0,e.width,e.height),r=Math.floor(e.width/s),o.length!==r&&(o=Array(r).fill(1)),t.font="14px JetBrains Mono,monospace",o.forEach((n,r)=>{const i=a[Math.floor(45*Math.random())],l=Math.random()>.92;t.fillStyle=l?"#4d9fff":`rgba(0,80,216,${.6*Math.random()+.15})`,t.fillText(i,r*s,n*s),n*s>e.height&&Math.random()>.975&&(o[r]=0),o[r]++})},45),l=new MutationObserver(()=>{const e=document.getElementById("ldr");e&&"none"===e.style.display&&(clearInterval(i),l.disconnect())}),c=document.getElementById("ldr");c&&l.observe(c,{attributes:!0,attributeFilter:["style"]})})();const sessionStart={};function startSession(e){sessionStart[e]||(sessionStart[e]=Date.now())}function getSessionTime(e){if(!sessionStart[e])return null;const t=Math.floor((Date.now()-sessionStart[e])/1e3);return t<60?t+"s":t<3600?Math.floor(t/60)+"min "+String(t%60).padStart(2,"0")+"s":Math.floor(t/3600)+"h "+String(Math.floor(t%3600/60)).padStart(2,"0")+"min"}function predictDecoTime(e){const t=sessionStart[e];if(!t)return null;const n=Math.floor((Date.now()-t)/1e3/60),a=sessionDurations[e]||[];if(a.length<2)return null;const s=a.reduce((e,t)=>e+t,0)/a.length,r=Math.round(s-n);return r<=0?{text:"déco imminente",cls:"verysoon"}:r<=10?{text:`~${r}min restantes`,cls:"verysoon"}:r<=30?{text:`~${r}min restantes`,cls:"soon"}:{text:`~${r}min restantes`,cls:""}}setInterval(()=>{document.querySelectorAll(".session-timer[data-player]").forEach(e=>{const t=getSessionTime(e.dataset.player);t&&(e.textContent=t)})},1e3);const sessionDurations={};function endSession(e){if(sessionStart[e]){const t=Math.floor((Date.now()-sessionStart[e])/1e3/60);t>1&&(sessionDurations[e]||(sessionDurations[e]=[]),sessionDurations[e].push(t),sessionDurations[e].length>10&&sessionDurations[e].shift())}delete sessionStart[e]}async function loadSessionDurations(e){try{const t=await api("/api/plages/"+encodeURIComponent(e));if(!t||!t.heatmap)return;const n=t.heatmap;let a=0,s=0;if(n.forEach(e=>{let t=0,n=0;e.forEach(e=>{e>0?(t++,n=Math.max(n,t)):t=0}),n>0&&(a++,s+=60*n)}),a>0&&!sessionDurations[e]?.length){const t=Math.round(s/a);sessionDurations[e]=[t,t]}}catch(e){}}let cwWatches=[],cwCountries={};async function cwSave(){localStorage.setItem("mg_cw",JSON.stringify(cwWatches))}async function cwLoadCountries(){const e=$("cw-srv").value;if(e){$("cw-suggest").innerHTML='<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>';try{cwCountries[e]=await getCountries(e),cwFilterCountries()}catch{$("cw-suggest").innerHTML=""}}}function cwFilterCountries(){const e=$("cw-srv").value,t=$("cw-country").value.trim().toLowerCase(),n=cwCountries[e]||[],a=t?n.filter(e=>e.toLowerCase().includes(t)):n;$("cw-suggest").innerHTML=a.slice(0,60).map(e=>`<span class="tag" onclick="$('cw-country').value='${e.replace(/'/g,"'")}';$('cw-acl').style.display='none';cwFilterCountries()">${e}</span>`).join("");const s=$("cw-acl");t&&a.length?(s.innerHTML=a.slice(0,8).map(e=>`<div class="aci" onmousedown="$('cw-country').value='${e.replace(/'/g,"'")}';acl.style.display='none'">${e}</div>`).join(""),s.style.display="block"):s.style.display="none"}function cwAdd(){const e=$("cw-srv").value,t=$("cw-country").value.trim();if(!e||!t)return showToast("Sélectionne un serveur et un pays");if(cwWatches.find(n=>n.server===e&&n.country.toLowerCase()===t.toLowerCase()))return showToast("Déjà surveillé !");cwWatches.push({server:e,country:t,threshold:2,online:0,members:[],alertFired:!1}),cwSave(),cwRender(),cwRefreshAll(),$("cw-country").value="",showToast(`${t} (${e.toUpperCase()}) ajouté`)}async function cwRemove(e){const t=cwWatches[e];if(t){try{await apiP("/api/country_watches/remove",{server:t.server,country:t.country})}catch(e){}cwWatches.splice(e,1),cwSave(),cwRender(),showToast("Surveillance supprimée")}}async function cwRefreshOne(e){const t=cwWatches[e];if(t){try{const e=await api(`/api/check/${t.server}/${encodeURIComponent(t.country)}`),n=e.servers?.[t.server]||[],a=n.length,s=t.alertFired;if(t.online=a,t.members=n,t.hasNonRecruit=!1,t.alertFired=!1,a>=2){const e=await hasNonRecruit(n,t.server);t.hasNonRecruit=e,t.alertFired=e}t.alertFired&&!s&&(showPop("connect",`⚔ ${t.country}`,`${a} membres · assaut possible · ${t.server.toUpperCase()}`),sendBrowserNotif("connect",`🚨 Assaut possible sur ${t.country} — ${a} membres connectés`,t.server),sndA(!0),showToast(`🚨 ASSAUT POSSIBLE — ${t.country} · ${a} membres sur ${t.server.toUpperCase()}`)),cwSave()}catch(e){t.online=-1}cwRender()}}async function cwRefreshAll(){await Promise.all(cwWatches.map((e,t)=>cwRefreshOne(t)))}function cwRender(){const e=$("cw-list");e&&(cwWatches.length?e.innerHTML=cwWatches.map((e,t)=>{const n=e.alertFired,a=e.online>=2&&!e.hasNonRecruit&&!n;return`<div class="cw-item ${n?"alert":a?"recruit-only":""}" style="margin-bottom:.5rem">\n      <div class="cw-count ${n?"danger":""}">${e.online<0?"?":e.online}</div>\n      <div class="cw-info">\n        <div class="cw-name">${e.country}</div>\n        <div class="cw-meta">${EMO[e.server]||""} ${e.server.toUpperCase()} · assaut possible si ≥ 2 connectés</div>\n        ${e.members.length?`<div class="cw-members">${e.members.slice(0,8).map(t=>{const n=t+"@"+e.server,a=gradeCache[n]?.rank||"?";return`<span style="color:${a&&"recruit"!==a&&"?"!==a?"var(--grn)":"recruit"===a?"var(--red)":"var(--t3)"}">${t} <span style="font-size:.4rem;opacity:.7">[${a}]</span></span>`}).join(", ")}${e.members.length>8?` <span style="color:var(--t3)">+${e.members.length-8}</span>`:""}</div>`:""}\n      </div>\n      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">\n        <span class="cw-status ${n?"":"ok"}">${n?"🚨 ASSAUT POSSIBLE":"◯ PAS ASSEZ"}</span>\n        <button class="btn btn-r" style="padding:.08rem .35rem;font-size:.46rem" onclick="cwRemove(${t})">✕</button>\n      </div>\n    </div>`}).join(""):e.innerHTML='<div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div>')}setInterval(cwRefreshAll,3e4);const gradeCache={};async function getPlayerGrade(e,t){const n=e+"@"+t;if(gradeCache[n]&&Date.now()-gradeCache[n].ts<12e4)return gradeCache[n].rank;try{const a=await fetch(`${API}/api/grade/${encodeURIComponent(e)}/${t}`,{headers:{..._authHeader()}});if(!a.ok)return null;const s=await a.json();return gradeCache[n]={rank:s.rank,ts:Date.now()},s.rank}catch{return null}}async function hasNonRecruit(e,t){return(await Promise.allSettled(e.slice(0,12).map(e=>getPlayerGrade(e,t)))).some(e=>"fulfilled"===e.status&&e.value&&""!==e.value&&"recruit"!==e.value)}async function init(){const e=$("sound-btn");e&&!snd&&(e.textContent="🔇 SON",e.style.color="var(--t3)"),_authed()&&requestNotifPerms(),api("/api/country_watches").then(e=>{cwWatches=e.watches||[];JSON.parse(localStorage.getItem("mg_cw")||"[]").forEach(e=>{cwWatches.find(t=>t.server===e.server&&t.country===e.country)||cwWatches.push(e)}),cwRender()}).catch(()=>{cwWatches=JSON.parse(localStorage.getItem("mg_cw")||"[]"),cwRender()}),rHist();const t=await chkAPI();$("scan-led").className=t?"led on":"led off",t&&(await loadWL(),await loadWLM(),loadKP(),await loadDash(),startCountdown(5),setInterval(tickCountdown,1e3),setInterval(async()=>{await loadWL(),await loadDash()},5e3))}function rmCalc(){const e=parseFloat(document.getElementById("rm-power")?.value)||0;let t=parseFloat(document.getElementById("rm-warzone")?.value)||0;const n=parseFloat(document.getElementById("rm-claims")?.value)||0;if(e<=0)return void showToast("⚠ Entre un power total valide");t>e&&(t=e);const a=Math.pow(.96,18),s=e-t,r=Math.round(s*a),o=e-r,i=Math.max(0,n-8),l=document.getElementById("rm-results");l&&(l.style.display="block");const c=document.getElementById("rm-lost"),d=document.getElementById("rm-remain"),p=document.getElementById("rm-claims-out"),m=document.getElementById("rm-alert");if(c&&(c.textContent=o.toLocaleString("fr-FR"),c.style.animation="none",setTimeout(()=>{c.style.animation="bump .35s cubic-bezier(.34,1.56,.64,1)"},10)),d&&(d.textContent=r.toLocaleString("fr-FR"),d.style.animation="none",setTimeout(()=>{d.style.animation="bump .35s cubic-bezier(.34,1.56,.64,1)"},10)),p&&(p.textContent=i.toLocaleString("fr-FR"),p.style.animation="none",setTimeout(()=>{p.style.animation="bump .35s cubic-bezier(.34,1.56,.64,1)"},10)),m){m.style.display="block";const e=r-i;if(r>=i)m.style.background="rgba(0,240,122,.06)",m.style.border="1px solid rgba(0,240,122,.25)",m.style.color="#00f07a",m.innerHTML=`\n        ✅ &nbsp;<strong>SAFE</strong> — Le pays survit au Red Matter<br>\n        <span style="opacity:.7">Power restant : <strong>${r.toLocaleString("fr-FR")}</strong> · Claims restants : <strong>${i.toLocaleString("fr-FR")}</strong> · Avance : <strong>+${e.toLocaleString("fr-FR")}</strong> power</span>\n      `;else{m.style.background="rgba(255,24,64,.06)",m.style.border="1px solid rgba(255,24,64,.25)",m.style.color="#ff1840";const t=Math.abs(e);m.innerHTML=`\n        ☢ &nbsp;<strong>SOUS-POWER</strong> — Le pays sera en sous-power !<br>\n        <span style="opacity:.7">Power restant : <strong>${r.toLocaleString("fr-FR")}</strong> · Claims restants : <strong>${i.toLocaleString("fr-FR")}</strong> · Il manque : <strong>${t.toLocaleString("fr-FR")}</strong> power</span>\n      `}}try{const e=new(window.AudioContext||window.webkitAudioContext),t=e.createOscillator(),n=e.createGain();t.connect(n),n.connect(e.destination),t.frequency.setValueAtTime(80,e.currentTime),t.frequency.exponentialRampToValueAtTime(40,e.currentTime+.3),n.gain.setValueAtTime(.3,e.currentTime),n.gain.exponentialRampToValueAtTime(.001,e.currentTime+.4),t.start(e.currentTime),t.stop(e.currentTime+.4)}catch(e){}}init();let playerNotes={},noteSelectedTag="";async function notesLoadFromAPI(){try{const e=await api("/api/notes");playerNotes=e.notes||{}}catch{}}function noteSaveStore(){}function noteSelectTag(e){document.querySelectorAll(".note-tag-btn").forEach(e=>e.style.outline="none"),noteSelectedTag!==e.dataset.tag?(noteSelectedTag=e.dataset.tag,e.style.outline="2px solid currentColor"):noteSelectedTag=""}function noteLoadExisting(){const e=document.getElementById("note-player")?.value.trim();if(!e||!playerNotes[e])return document.getElementById("note-text").value="",noteSelectedTag="",void document.querySelectorAll(".note-tag-btn").forEach(e=>e.style.outline="none");const t=playerNotes[e];document.getElementById("note-text").value=t.text||"",noteSelectedTag=t.tag||"",document.querySelectorAll(".note-tag-btn").forEach(e=>{e.style.outline=e.dataset.tag===noteSelectedTag?"2px solid currentColor":"none"})}async function noteSave(){const e=document.getElementById("note-player")?.value.trim(),t=document.getElementById("note-text")?.value.trim();if(!e)return showToast("⚠ Entre un pseudo");if(!t&&!noteSelectedTag)return showToast("⚠ Ajoute une note ou une étiquette");try{await apiP("/api/notes/save",{player:e,text:t,tag:noteSelectedTag}),playerNotes[e]={text:t,tag:noteSelectedTag,updated:(new Date).toLocaleString("fr-FR")},renderNotes();const n=document.getElementById("note-feedback");n&&(n.textContent="✓ Note sauvegardée",n.style.opacity="1",setTimeout(()=>n.style.opacity="0",2e3)),showToast(`Note sauvegardée — ${e}`)}catch(e){showToast("❌ Erreur sauvegarde")}}async function noteDelete(){const e=document.getElementById("note-player")?.value.trim();if(!e||!playerNotes[e])return showToast("Aucune note pour ce joueur");try{await apiP("/api/notes/delete",{player:e}),delete playerNotes[e],document.getElementById("note-text").value="",noteSelectedTag="",document.querySelectorAll(".note-tag-btn").forEach(e=>e.style.outline="none"),renderNotes(),showToast(`Note supprimée — ${e}`)}catch(e){showToast("❌ Erreur suppression")}}const NOTE_TAG_STYLES={ennemi:{color:"var(--red)",bg:"rgba(255,51,85,.12)",label:"⚔ Ennemi"},"allié":{color:"var(--grn)",bg:"rgba(0,232,122,.1)",label:"🤝 Allié"},neutre:{color:"var(--blue-pale)",bg:"rgba(91,163,255,.1)",label:"◯ Neutre"},espion:{color:"var(--org)",bg:"rgba(255,153,0,.1)",label:"🕵 Espion"},vip:{color:"#ffd700",bg:"rgba(255,215,0,.08)",label:"⭐ VIP"}};function getNoteTagHtml(e){const t=NOTE_TAG_STYLES[e];return t?`<span style="font-family:var(--M);font-size:.5rem;padding:.12rem .45rem;border-radius:3px;background:${t.bg};color:${t.color};letter-spacing:.08em">${t.label}</span>`:""}function renderNotes(){const e=document.getElementById("notes-list");if(!e)return;const t=document.getElementById("note-search")?.value.trim().toLowerCase()||"";let n=Object.entries(playerNotes);t&&(n=n.filter(([e,n])=>e.toLowerCase().includes(t)||(n.text||"").toLowerCase().includes(t))),n.length?(n.sort((e,t)=>e[0].toLowerCase().localeCompare(t[0].toLowerCase())),e.innerHTML=n.map(([e,t])=>{t.tag&&NOTE_TAG_STYLES[t.tag];return`<div style="padding:.65rem .85rem;border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;gap:.7rem;cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="noteEditPlayer('${e}')">\n      <img src="https://mc-heads.net/avatar/${encodeURIComponent(e)}/28" style="width:28px;height:28px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">\n      <div style="flex:1;min-width:0">\n        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">\n          <span style="font-family:var(--M);font-size:.65rem;color:var(--t1)">${e}</span>\n          ${t.tag?getNoteTagHtml(t.tag):""}\n        </div>\n        ${t.text?`<div style="font-family:var(--M);font-size:.58rem;color:var(--t3);line-height:1.5;white-space:pre-wrap">${t.text.substring(0,120)}${t.text.length>120?"…":""}</div>`:""}\n        <div style="font-family:var(--M);font-size:.46rem;color:var(--t4);margin-top:.2rem">${t.updated||""}</div>\n      </div>\n      <button class="btn btn-r" style="padding:.07rem .3rem;font-size:.46rem;flex-shrink:0" onclick="event.stopPropagation();noteDeleteDirect('${e}')">✕</button>\n    </div>`}).join("")):e.innerHTML='<div class="empty">Aucune note trouvée</div>'}function noteEditPlayer(e){document.getElementById("note-player").value=e,noteLoadExisting(),document.getElementById("note-player").scrollIntoView({behavior:"smooth",block:"center"})}async function noteDeleteDirect(e){try{await apiP("/api/notes/delete",{player:e}),delete playerNotes[e],renderNotes(),showToast(`Note supprimée — ${e}`)}catch{showToast("❌ Erreur suppression")}}const _origOpenPP=openPlayerPanel;window.openPlayerPanel=async function(e){await _origOpenPP(e);const t=document.getElementById("pp-body");if(!t)return;const n=playerNotes[e],a=document.createElement("div");a.className="pp-section",a.id="pp-note-section";n?.tag&&NOTE_TAG_STYLES[n.tag];a.innerHTML=`<div class="pp-sec-title">📝 Note personnelle</div>\n    <div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.7rem .9rem;margin-top:.4rem">\n      ${n?.tag?`<div style="margin-bottom:.4rem">${getNoteTagHtml(n.tag)}</div>`:""}\n      ${n?.text?`<div style="font-family:var(--M);font-size:.6rem;color:var(--t2);line-height:1.6;white-space:pre-wrap">${n.text}</div>`:"<div style=\"font-family:var(--M);font-size:.58rem;color:var(--t4)\">Aucune note — <span style=\"color:var(--blue-pale);cursor:pointer\" onclick=\"closePlayerPanel();setTimeout(()=>{nav('notes',document.querySelector('.tab:nth-child(10)'));document.getElementById('note-player').value='"+e+"';noteLoadExisting();},200)\">Ajouter une note ↗</span></div>"}\n      ${n?.updated?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.35rem">Modifié : ${n.updated}</div>`:""}\n    </div>`,t.appendChild(a)};let carteData={};async function loadCarte(){const e=document.getElementById("carte-grid");document.getElementById("carte-ranking");e&&(e.innerHTML='<div class="ld" style="grid-column:1/-1">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>');try{const e=await api("/api/online_all");carteData=e,renderCarte(e)}catch(t){e&&(e.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${t.message}</div>`)}}function getCarteColor(e,t){if(0===e)return{bg:"rgba(1,10,26,.8)",border:"rgba(0,56,184,.12)",text:"var(--t4)",glow:""};const n=t>0?e/t:0;return n<.2?{bg:"rgba(0,40,120,.25)",border:"rgba(0,80,216,.3)",text:"var(--blue-pale)",glow:"0 0 8px rgba(0,80,216,.15)"}:n<.45?{bg:"rgba(0,60,160,.35)",border:"rgba(26,111,255,.5)",text:"#7ec8ff",glow:"0 0 12px rgba(26,111,255,.2)"}:n<.7?{bg:"rgba(255,120,0,.12)",border:"rgba(255,120,0,.4)",text:"var(--org)",glow:"0 0 14px rgba(255,120,0,.2)"}:{bg:"rgba(255,30,60,.12)",border:"rgba(255,30,60,.5)",text:"var(--red)",glow:"0 0 18px rgba(255,30,60,.25)"}}function renderCarte(e){const t=document.getElementById("carte-grid"),n=document.getElementById("carte-ranking"),a=document.getElementById("carte-total-txt");if(!t)return;const s=SRV.map(t=>({s:t,cnt:(e[t]||[]).length,bug:BUG(t)})),r=Math.max(...s.map(e=>e.cnt),1);let o=s.reduce((e,t)=>e+t.cnt,0);a&&(a.textContent=`${o} joueurs connectés en tout`),t.innerHTML=s.map(({s:t,cnt:n,bug:a})=>{const s=getCarteColor(n,r),o=WL.concat(WLM).filter(n=>(e[t]||[]).map(e=>e.toLowerCase()).includes(n.toLowerCase())),i=r>0?Math.round(n/r*100):0;return`<div onclick="gOL('${t}')" style="background:${s.bg};border:1px solid ${s.border};border-radius:var(--r);padding:1rem 1.1rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;box-shadow:${s.glow}" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">\n      <div style="position:absolute;bottom:0;left:0;width:${i}%;height:3px;background:${s.border};transition:width .4s;opacity:.7"></div>\n      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">\n        <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.2em;color:${s.text}">${t.toUpperCase()}</span>\n        <span style="font-size:.9rem">${EMO[t]}</span>\n      </div>\n      <div style="font-family:var(--D);font-size:2.4rem;color:${s.text};line-height:1;text-shadow:${s.glow}">${n}</div>\n      <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);letter-spacing:.12em;margin-top:.25rem">${a?"⚠ INSTABLE":"EN LIGNE"}</div>\n      ${o.length?`<div style="margin-top:.4rem;font-family:var(--M);font-size:.48rem;color:var(--grn);letter-spacing:.06em">🎯 ${o.join(", ")}</div>`:""}\n    </div>`}).join("");const i=[...s].sort((e,t)=>t.cnt-e.cnt);n&&(n.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Serveur</th><th>Joueurs</th><th>Part</th><th>Cibles</th></tr></thead><tbody>${i.map((t,n)=>{const a=getCarteColor(t.cnt,r),s=o>0?Math.round(t.cnt/o*100):0,i=WL.concat(WLM).filter(n=>(e[t.s]||[]).map(e=>e.toLowerCase()).includes(n.toLowerCase())),l=0===n?"🥇":1===n?"🥈":2===n?"🥉":"";return`<tr onclick="gOL('${t.s}')">\n          <td style="color:var(--t3)">${l||"#"+(n+1)}</td>\n          <td><span style="color:${a.text};font-family:var(--D);letter-spacing:.15em">${t.s.toUpperCase()}</span>${t.bug?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':""}</td>\n          <td style="color:var(--t1);font-family:var(--D);font-size:1.1rem">${t.cnt}</td>\n          <td><div style="display:flex;align-items:center;gap:.4rem"><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${s}%;height:100%;background:${a.border}"></div></div><span style="color:var(--t3);font-size:.55rem">${s}%</span></div></td>\n          <td>${i.length?`<span style="color:var(--grn);font-size:.58rem">🎯 ${i.join(", ")}</span>`:'<span style="color:var(--t4)">—</span>'}</td>\n        </tr>`}).join("")}</tbody></table>`)}const presenceCount={};function trackPresence(e){SRV.forEach(t=>{(e[t]||[]).forEach(e=>{presenceCount[e]||(presenceCount[e]={total:0,servers:{}}),presenceCount[e].total++,presenceCount[e].servers[t]=(presenceCount[e].servers[t]||0)+1})})}let top5AllData={},top5ServerData=[];async function loadTop5(){const e=document.getElementById("top5-inter");e&&(e.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>');try{const[e,t]=await Promise.all([api("/api/online_all"),api("/api/top_players?limit=20")]);top5AllData=e,trackPresence(e),renderTop5Inter(t.players||[],e),await renderTop5BySrv()}catch(t){e&&(e.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${t.message}</div>`)}}function renderTop5Inter(e,t){const n=document.getElementById("top5-inter");if(!n)return;if(!e.length)return void(n.innerHTML='<div class="empty">Pas encore de données — le classement se construit automatiquement au fil du temps.</div>');const a={};SRV.forEach(e=>(t[e]||[]).forEach(t=>{a[t]||(a[t]=[]),a[t].push(e)}));const s=e.slice(0,5),r=s[0]?.total||1,o=["🥇","🥈","🥉","④","⑤"];n.innerHTML=s.map((e,t)=>{const n=WL.concat(WLM).map(e=>e.toLowerCase()).includes(e.player.toLowerCase()),s=a[e.player]||[],i=s.length>0,l=e.servers?Object.entries(e.servers).sort((e,t)=>t[1]-e[1])[0]:null;return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${e.player}')">\n      <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${o[t]}</div>\n      <img src="https://mc-heads.net/avatar/${encodeURIComponent(e.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">\n      <div style="flex:1;min-width:0">\n        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap">\n          <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${e.player}</span>\n          ${n?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':""}\n          ${i?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>':'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}\n        </div>\n        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">\n          <div style="width:120px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(e.total/r*100)}%;height:100%;background:var(--blue-lt);transition:width .4s"></div></div>\n          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${e.total} connexions</span>\n          ${l?`<span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">· Fav : <span style="color:var(--blue-pale)">${l[0].toUpperCase()}</span></span>`:""}\n        </div>\n        ${i?`<div style="margin-top:.2rem">${s.map(e=>`<span class="stag">${e.toUpperCase()}</span>`).join(" ")}</div>`:""}\n        ${e.last_seen?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.15rem">Dernière co : ${e.last_seen}</div>`:""}\n      </div>\n    </div>`}).join("")}async function renderTop5BySrv(){const e=document.getElementById("top5-srv");if(!e)return;const t=document.getElementById("top5-srv-sel")?.value||"lime";e.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';try{const[n,a]=await Promise.all([api(`/api/top_players/${t}?limit=10`),api(`/api/online/${t}`)]),s=n.players||[],r=(a.players||[]).map(e=>e.toLowerCase());if(!s.length)return void(e.innerHTML=`<div class="empty">Pas encore de données pour ${t.toUpperCase()}</div>`);const o=s[0]?.servers?.[t]||1,i=["🥇","🥈","🥉","④","⑤"];e.innerHTML=s.slice(0,5).map((e,n)=>{const a=e.servers?.[t]||0,s=WL.concat(WLM).map(e=>e.toLowerCase()).includes(e.player.toLowerCase()),l=r.includes(e.player.toLowerCase());return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${e.player}')">\n        <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${i[n]||"#"+(n+1)}</div>\n        <img src="https://mc-heads.net/avatar/${encodeURIComponent(e.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">\n        <div style="flex:1;min-width:0">\n          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">\n            <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${e.player}</span>\n            ${s?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':""}\n            ${l?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>':'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}\n          </div>\n          <div style="display:flex;align-items:center;gap:.5rem">\n            <div style="width:100px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(a/o*100)}%;height:100%;background:var(--blue-lt)"></div></div>\n            <span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">${a} connexions</span>\n          </div>\n          ${e.last_seen?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.15rem">Dernière co : ${e.last_seen}</div>`:""}\n        </div>\n      </div>`}).join("")}catch(t){e.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${t.message}</div>`}}setInterval(()=>{const e=document.querySelector(".sec.active");e&&("s-top5"===e.id&&loadTop5(),"s-carte"===e.id&&loadCarte())},3e4);const _origLoadDash=loadDash;window.loadDash=async function(){await _origLoadDash();try{const e=await api("/api/online_all");trackPresence(e),0===Object.keys(top5AllData).length&&(top5AllData=e)}catch(e){}};let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refCmpPeriod=90;const refCountryCache={};async function refLoadCountries(){const e=$("ref-add-srv").value;if(e){$("ref-suggest").innerHTML='<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>';try{refCountryCache[e]=await getCountries(e),refFilterCountries()}catch(e){$("ref-suggest").innerHTML=""}}else $("ref-suggest").innerHTML=""}function refFilterCountries(){const e=$("ref-add-srv").value,t=$("ref-add-country").value.trim().toLowerCase(),n=refCountryCache[e]||[],a=t?n.filter(e=>e.toLowerCase().includes(t)):n;$("ref-suggest").innerHTML=a.slice(0,60).map(e=>`<span class="tag" onclick="refSelectTag('${e.replace(/'/g,"\\'")}')">${e}</span>`).join("");const s=$("ref-add-acl");t&&a.length?(s.innerHTML=a.slice(0,8).map(e=>`<div class="aci" onmousedown="refSelectTag('${e.replace(/'/g,"\\'")}')">${e}</div>`).join(""),s.style.display="block"):s.style.display="none"}function refSelectTag(e){$("ref-add-country").value=e,$("ref-add-acl").style.display="none",refFilterCountries()}async function loadReferents(){const e=$("ref-grid");e.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';try{const[e,t,n,a]=await Promise.all([fetch(API+"/api/referents",{headers:{..._authHeader()}}).then(e=>e.json()),fetch(API+"/api/referents/stats?days=7",{headers:{..._authHeader()}}).then(e=>e.json()),fetch(API+"/api/referents/stats?days=30",{headers:{..._authHeader()}}).then(e=>e.json()),fetch(API+"/api/referents/stats?days=90",{headers:{..._authHeader()}}).then(e=>e.json())]);refAllReferents=e.watches||[],refAllStats=a.stats||[],$("ref-gs-total").textContent=refAllReferents.length,$("ref-gs-week").textContent=(t.stats||[]).reduce((e,t)=>e+t.total_recruits,0),$("ref-gs-month").textContent=(n.stats||[]).reduce((e,t)=>e+t.total_recruits,0);const s=(a.stats||[])[0];s&&($("ref-gs-leader").textContent=s.country_name,$("ref-gs-leader-sub").textContent=s.total_recruits+" recrues — "+s.server.toUpperCase()),renderRefGrid(),loadRefCmp()}catch(t){e.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>'}}function renderRefGrid(){const e=$("ref-grid");refAllReferents.length?e.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem">${refAllReferents.map(e=>{const t=refAllStats.find(t=>t.server===e.server&&t.country.toLowerCase()===e.country.toLowerCase()),n=t?.total_recruits||0,a=refCurSrv===e.server&&refCurCtry===e.country;return`<div onclick="openRefMembers('${e.server}','${e.country.replace(/'/g,"\\'")}')"\n      style="background:var(--bg2);border:1px solid ${a?"var(--blue-lt)":"var(--b1)"};border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s;${a?"box-shadow:0 0 0 1px var(--blue-mid)":""}"\n      onmouseenter="this.style.borderColor='var(--b3)'" onmouseleave="this.style.borderColor='${a?"var(--blue-lt)":"var(--b1)"}'">\n      <div style="padding:.7rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">\n        <span style="font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)">${e.name||e.country}</span>\n        <span style="font-family:var(--M);font-size:.55rem;color:var(--t3);background:var(--bg3);padding:.12rem .4rem;border-radius:3px">${e.server.toUpperCase()}</span>\n      </div>\n      <div style="padding:.65rem 1rem">\n        <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">\n          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">MEMBRES</span>\n          <span style="font-family:var(--D);font-size:1rem;color:var(--t1)">${e.member_count||"—"}</span>\n        </div>\n        <div style="display:flex;justify-content:space-between;margin-bottom:.45rem">\n          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">RECRUES 30J</span>\n          <span style="font-family:var(--D);font-size:1rem;color:${n>0?"var(--grn)":"var(--t4)"}">${n}</span>\n        </div>\n        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden">\n          <div style="width:${Math.min(5*n,100)}%;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px"></div>\n        </div>\n      </div>\n      <div style="padding:.38rem 1rem;border-top:1px solid var(--b1);background:rgba(0,0,0,.18);display:flex;justify-content:space-between;align-items:center">\n        <span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Click pour voir les membres</span>\n        <span style="font-family:var(--M);font-size:.52rem;color:${n>0?"var(--grn)":"var(--t4)"}">${n>0?"▲ "+n+" recrues":"—"}</span>\n      </div>\n    </div>`}).join("")}</div>`:e.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en un ci-dessus</div>'}async function openRefMembers(e,t){refCurSrv=e,refCurCtry=t;const n=refAllReferents.find(n=>n.server===e&&n.country.toLowerCase()===t.toLowerCase());$("ref-mp-title").textContent=(n?.name||t).toUpperCase(),$("ref-mp-sub").textContent=e.toUpperCase()+" · "+(n?.member_count||"?")+" membres",$("ref-members-panel").style.display="block",$("ref-members-panel").scrollIntoView({behavior:"smooth",block:"start"}),renderRefGrid(),await refRefreshMembers()}async function refRefreshMembers(){if(!refCurSrv||!refCurCtry)return;const e=$("ref-members-body");e.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';try{const[t,n]=await Promise.all([fetch(`${API}/api/check/${refCurSrv}/${encodeURIComponent(refCurCtry)}`,{headers:{..._authHeader()}}).then(e=>e.json()),fetch(`${API}/api/online/${refCurSrv}`,{headers:{..._authHeader()}}).then(e=>e.json())]);if(t.error)return void(e.innerHTML=`<div class="empty" style="color:var(--red)">❌ ${t.error}</div>`);const a=t.members_total||0,s=((n.players||[]).map(e=>e.toLowerCase()),t.servers?.[refCurSrv]||[]),r=Object.entries(t.servers||{}).filter(([e])=>e!==refCurSrv).flatMap(([e,t])=>t.map(t=>({player:t,server:e}))),o=new Set([...s,...r.map(e=>e.player)].map(e=>e.toLowerCase())),i=refAllReferents.find(e=>e.server===refCurSrv&&e.country.toLowerCase()===refCurCtry.toLowerCase())?.members_snapshot||[],l=t.online_total||0;e.innerHTML=`\n      <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap">\n        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">\n          <span style="font-family:var(--D);font-size:1.8rem;color:var(--grn);margin-right:.3rem">${l}</span>en ligne\n        </div>\n        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">\n          <span style="font-family:var(--D);font-size:1.8rem;color:var(--t2);margin-right:.3rem">${a}</span>membres total\n        </div>\n        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">\n          <span style="font-family:var(--D);font-size:1.8rem;color:var(--blue-pale);margin-right:.3rem">${i.length||a}</span>dans snapshot\n        </div>\n      </div>\n      ${s.length?`\n        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--grn);margin-bottom:.5rem">🟢 EN LIGNE — ${refCurSrv.toUpperCase()} (${s.length})</div>\n        <div class="tags" style="margin-bottom:1rem">\n          ${s.map(e=>`<span class="tag on" onclick="openPlayerPanel('${e.replace(/'/g,"\\'")}') " style="cursor:pointer">🟢 ${e}</span>`).join("")}\n        </div>`:""}\n      ${r.length?`\n        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--org);margin-bottom:.5rem">🟡 EN LIGNE AILLEURS (${r.length})</div>\n        <div class="tags" style="margin-bottom:1rem">\n          ${r.map(({player:e,server:t})=>`<span class="tag" onclick="openPlayerPanel('${e.replace(/'/g,"\\'")}') " style="cursor:pointer;border-color:rgba(255,153,0,.35);color:var(--org)">🟡 ${e} <span style="font-size:.42rem;opacity:.7">${t.toUpperCase()}</span></span>`).join("")}\n        </div>`:""}\n      ${i.length?`\n        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--t3);margin-bottom:.5rem">⚫ HORS LIGNE (${i.filter(e=>!o.has(e.toLowerCase())).length})</div>\n        <div class="tags">\n          ${i.filter(e=>!o.has(e.toLowerCase())).map(e=>`<span class="tag" onclick="openPlayerPanel('${e.replace(/'/g,"\\'")}') " style="cursor:pointer">⚫ ${e}</span>`).join("")}\n        </div>`:s.length||r.length?"":'<div class="empty">Aucun membre connu hors ligne — le snapshot se remplira au prochain scan (5 min)</div>'}\n    `}catch(t){e.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${t.message}</div>`}}async function loadRefHistory(){if(!refCurSrv||!refCurCtry)return;const e=$("ref-hist-body");if(e){e.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';try{const t=(await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${encodeURIComponent(refCurCtry)}&limit=200&departures=1`,{headers:{..._authHeader()}}).then(e=>e.json())).events||[];if(!t.length)return void(e.innerHTML='<div class="empty">Aucun événement enregistré — le tracking démarre au prochain scan (30 min)</div>');const n=t.filter(e=>!e.departure),a=t.filter(e=>e.departure);e.innerHTML=`\n      <div style="display:flex;gap:2rem;margin-bottom:1rem;flex-wrap:wrap">\n        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--grn)">${n.length}</span> recrutements</div>\n        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--red)">${a.length}</span> départs</div>\n      </div>\n      <div style="display:flex;gap:.5rem;margin-bottom:.8rem">\n        <button class="btn" id="ref-hist-tab-all" onclick="refHistFilter('all')" style="font-size:.5rem;padding:.2rem .6rem">Tous (${t.length})</button>\n        <button class="btn" id="ref-hist-tab-recruit" onclick="refHistFilter('recruit')" style="font-size:.5rem;padding:.2rem .6rem">Recrutements</button>\n        <button class="btn" id="ref-hist-tab-depart" onclick="refHistFilter('depart')" style="font-size:.5rem;padding:.2rem .6rem">Départs</button>\n      </div>\n      <div id="ref-hist-list">\n        ${renderHistEvents(t)}\n      </div>\n    `,e._allEvents=t}catch(t){e.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${t.message}</div>`}}}function renderHistEvents(e){return e.length?e.map(e=>{const t=!!e.departure,n=t?"var(--red)":"var(--grn)",a=t?"🚪":"🆕",s=t?"DÉPART":"RECRUTEMENT";return`<div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .2rem;border-bottom:1px solid var(--b1)">\n      <img src="https://mc-heads.net/avatar/${encodeURIComponent(e.player)}/24" style="width:24px;height:24px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">\n      <div style="flex:1;min-width:0">\n        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">\n          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${e.player.replace(/'/g,"'")}')">${e.player}</span>\n          <span style="font-family:var(--M);font-size:.46rem;padding:.08rem .35rem;border-radius:3px;background:${t?"rgba(255,51,85,.12)":"rgba(0,232,122,.1)"};color:${n}">${a} ${s}</span>\n        </div>\n        <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);margin-top:.15rem">${e.ts} · ${e.members_before}→${e.members_after} membres</div>\n      </div>\n    </div>`}).join(""):'<div class="empty">Aucun événement</div>'}function refHistFilter(e){const t=$("ref-hist-body");if(!t||!t._allEvents)return;let n=t._allEvents;"recruit"===e?n=n.filter(e=>!e.departure):"depart"===e&&(n=n.filter(e=>e.departure));const a=$("ref-hist-list");a&&(a.innerHTML=renderHistEvents(n)),document.querySelectorAll('[id^="ref-hist-tab-"]').forEach(e=>e.style.borderColor="");const s=$("ref-hist-tab-"+e);s&&(s.style.borderColor="var(--blue)")}function refShowTab(e){["members","history"].forEach(t=>{const n=$("ref-tab-"+t),a=$("ref-tabn-"+t);n&&(n.style.display=t===e?"block":"none"),a&&(a.style.color=t===e?"var(--blue)":"var(--t3)",a.style.borderBottom=t===e?"1px solid var(--blue)":"1px solid transparent")}),"history"===e&&loadRefHistory()}function closeRefMembers(){$("ref-members-panel").style.display="none",refCurSrv=null,refCurCtry=null,renderRefGrid()}async function loadRefCmp(){const e=$("ref-cmp");e.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';try{const t=(await fetch(API+"/api/referents/stats?days="+refCmpPeriod,{headers:{..._authHeader()}}).then(e=>e.json())).stats||[];if(!t.length)return void(e.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (30 min)</div>');const n=t[0]?.total_recruits||1,a=["#1a6fff","#0050d8","#0038b8","#5ba3ff","#344d72"];e.innerHTML=t.map((e,t)=>`<div onclick="openRefMembers('${e.server}','${e.country.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">\n      <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)">${e.country_name}</span>\n      <span style="font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:55px">${e.server.toUpperCase()}</span>\n      <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">\n        <div style="width:${Math.round(e.total_recruits/n*100)}%;height:100%;background:${a[t%a.length]};border-radius:4px;transition:width .6s"></div>\n      </div>\n      <span style="font-family:var(--D);font-size:1.1rem;min-width:35px;text-align:right;color:var(--t1)">${e.total_recruits}</span>\n      <span style="font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:65px;text-align:right">${e.unique_players} joueurs</span>\n    </div>`).join("")}catch(t){e.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>'}}function setCmpRefPeriod(e,t){refCmpPeriod=e,t.closest(".ph").querySelectorAll(".btn").forEach(e=>{e.style.background="",e.style.borderColor="",e.style.color=""}),t.style.background="rgba(0,56,184,.2)",t.style.borderColor="rgba(26,111,255,.4)",t.style.color="var(--blue-pale)",loadRefCmp()}async function addReferentEntry(){const e=$("ref-add-srv").value,t=$("ref-add-country").value.trim();if(!e||!t)return showToast("⚠ Sélectionne un serveur et un pays");try{const n=await fetch(API+"/api/referents/add",{method:"POST",headers:{"Content-Type":"application/json",..._authHeader()},body:JSON.stringify({server:e,country:t})}).then(e=>e.json());if(n.error)return showToast("❌ "+n.error);$("ref-add-country").value="",showToast("✅ "+t+" ("+e.toUpperCase()+") ajouté"),await loadReferents()}catch(e){showToast("❌ Erreur réseau")}}async function removeReferentEntry(e,t){if(confirm("Retirer "+t+" ("+e.toUpperCase()+") de la surveillance ?"))try{const n=await fetch(API+"/api/referents/remove",{method:"POST",headers:{"Content-Type":"application/json",..._authHeader()},body:JSON.stringify({server:e,country:t})}).then(e=>e.json());if(n.error)return showToast("❌ "+n.error);showToast("🗑 "+t+" retiré"),closeRefMembers(),await loadReferents()}catch(e){showToast("❌ Erreur réseau")}}setInterval(()=>{const e=document.querySelector(".sec.active");e&&"s-referents"===e.id&&(loadReferents(),refCurSrv&&refRefreshMembers())},3e5);
+// ═══════════════════════════════════════════════════════════
+// PASSWORD GATE — protection renforcée
+// ═══════════════════════════════════════════════════════════
+(function(){
+  const SESSION_KEY = 'mg_token_v3';
+  const MAIN = document.querySelector('.main');
+  const HDR  = document.querySelector('.hdr');
+  const NAV  = document.querySelector('.nav');
+
+  // Cache le contenu réel dès le départ
+  function lockContent() {
+    if(MAIN) MAIN.style.display = 'none';
+    if(HDR)  HDR.style.display  = 'none';
+    if(NAV)  NAV.style.display  = 'none';
+  }
+
+  // Révèle le contenu seulement après auth validée
+  function unlockContent() {
+    const lock = document.getElementById('init-lock');
+    if(lock) lock.remove();
+    if(MAIN) MAIN.style.display = '';
+    if(HDR)  HDR.style.display  = '';
+    if(NAV)  NAV.style.display  = '';
+  }
+
+  // Vérifie en permanence que le gate est toujours là (anti-inspecteur)
+  function watchGate() {
+    const gate = document.getElementById('pw-gate');
+    // Si quelqu'un supprime le gate sans être authentifié → troll
+    if(!gate && !sessionStorage.getItem(SESSION_KEY)) {
+      trollUser();
+    }
+  }
+
+  function trollUser() {
+    lockContent();
+    document.body.innerHTML = `
+      <div style="
+        position:fixed;inset:0;background:#000;
+        display:flex;flex-direction:column;
+        align-items:center;justify-content:center;
+        font-family:monospace;color:#4d9fff;text-align:center;gap:2rem;
+        z-index:99999;
+      ">
+        <div style="font-size:5rem">🕵️</div>
+        <div style="font-size:1.6rem;letter-spacing:.2em">INTRUSION DÉTECTÉE</div>
+        <div style="font-size:.85rem;color:rgba(26,111,255,.5);letter-spacing:.15em;max-width:420px;line-height:1.8">
+          La tentative de contournement a été enregistrée.<br>
+          IP transmise à l'unité de surveillance.<br>
+          <span style="color:#f04040">Accès définitivement révoqué.</span>
+        </div>
+        <div style="font-size:.7rem;color:rgba(200,100,100,.4);letter-spacing:.1em" id="fake-ip">
+          Identification en cours...
+        </div>
+        <div style="font-size:.6rem;color:rgba(26,111,255,.2);margin-top:1rem">
+          מוסד גלורי — CLASSIFIED
+        </div>
+      </div>
+    `;
+    // Fausse IP pour faire peur
+    setTimeout(() => {
+      const fake = `${rand(1,254)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`;
+      document.getElementById('fake-ip').textContent =
+        `Adresse identifiée : ${fake} — signalement en cours...`;
+    }, 1800);
+  }
+
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+  // Auth déjà validée en session → débloquer directement
+  if(sessionStorage.getItem(SESSION_KEY)){
+    const gate = document.getElementById('pw-gate');
+    if(gate) gate.style.display = 'none';
+    unlockContent();
+  } else {
+    lockContent();
+    setTimeout(() => {
+      const el = document.getElementById('pw-input-el');
+      if(el) el.focus();
+    }, 100);
+    // Surveille toutes les 500ms si le gate est supprimé
+    const observer = setInterval(watchGate, 500);
+    // On arrête de surveiller une fois authentifié
+    window._stopGateWatch = () => clearInterval(observer);
+  }
+
+  window.pwCheck = async function(){
+    const inp = document.getElementById('pw-input-el');
+    const err = document.getElementById('pw-err');
+    const val = inp.value;
+    if(!val) return;
+    try{
+      const r = await fetch('https://nationsglory-spy.onrender.com/api/auth-check', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: val})
+      });
+      const d = await r.json();
+      if(d.ok){
+        sessionStorage.setItem(SESSION_KEY, d.token);
+        if(window._stopGateWatch) window._stopGateWatch();
+        requestNotifPerms();
+        unlockContent();
+        const gate = document.getElementById('pw-gate');
+        gate.style.transition = 'opacity .6s';
+        gate.style.opacity = '0';
+        setTimeout(() => { gate.style.display = 'none'; }, 600);
+      } else {
+        const msg = d.error || 'MOT DE PASSE INCORRECT';
+        err.textContent = msg;
+        err.style.opacity = '1';
+        inp.value = '';
+        inp.style.borderColor = 'rgba(255,24,64,.5)';
+        // Si bloqué, désactiver le champ
+        if(r.status === 429){
+          inp.disabled = true;
+          inp.placeholder = 'Bloqué 15 minutes...';
+          setTimeout(() => { inp.disabled = false; inp.placeholder = ''; err.style.opacity='0'; inp.style.borderColor='rgba(0,80,216,.2)'; }, 900000);
+        } else {
+          setTimeout(() => {
+            err.style.opacity = '0';
+            inp.style.borderColor = 'rgba(0,80,216,.2)';
+          }, 3000);
+        }
+      }
+    } catch(e){
+      err.textContent = 'ERREUR SERVEUR';
+      err.style.opacity = '1';
+      setTimeout(() => {
+        err.style.opacity = '0';
+        err.textContent = 'CODE INVALIDE — ACCÈS REFUSÉ';
+      }, 2500);
+    }
+  };
+})();
+
+
+// ═══════════════════════════════════════════════════════════
+// MAIN APPLICATION
+// ═══════════════════════════════════════════════════════════
+const API='https://nationsglory-spy.onrender.com';
+const SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
+const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
+// Fallback statique — utilisé UNIQUEMENT si l'API rate-limite ET que le cache localStorage est vide
+const STATIC_COUNTRIES_FALLBACK=["AfriqueDuSud","Afghanistan","Alaska","Albanie","Algerie","Allemagne","Altai","Amour","Angola","ArchipelCrozet","Argentine","Armenie","Arizona","Australie","Autriche","Azerbaidjan","Bahamas","Bahrein","Baja","Bangladesh","Belgique","Belize","Benin","Bhoutan","Bielorussie","Birmanie","Bolivie","Bosnie","Botswana","Bouriatie","Bresil","Bulgarie","BurkinaFaso","Californie","Cambodge","Cameroun","Canada","CentreAfrique","Chili","Chine","Chypre","Colombie","Congo","CoreeDuNord","CoreeDuSud","CoteDivoire","Croatie","Dakota","Danemark","Djibouti","Egypte","EmiratsArabesUnis","EmpireBissaoguineen","EmpireIrkoutsk","EmpireJordanien","EmpireOmanais","Equateur","Erythree","Espagne","Estonie","EtatsUnis","Ethiopie","Floride","France","Gabon","Georgie","Ghana","Grece","Groenland","Guatemala","Guangdong","Guangxi","Guizhou","Guyana","Guyane","Hainan","Iakoutie","Iamalie","Idaho","IleCoats","IleBolchevique","IleDeLaReunion","IleGraham","IleMaurice","IleVictoria","IleWrangel","IlesBaleares","IlesCanaries","IlesFeroe","IlesFidji","IlesGalapagos","IlesKerguelen","IlesSalomon","IlesSandwich","IlesVancouver","IleBouvet","Inde","Indonesie","Irak","Iran","Islande","Italie","Jamaique","Japon","Java","Kazakhstan","Kenya","Khabarovsk","Kirghizistan","Kosovo","Koweit","Krasnoy","Laos","Liban","Liberia","Libye","Lituanie","Lettonie","Luxembourg","Macedoine","Madagan","Madagascar","Magadan","Malaisie","Malawi","Mali","Malte","Maroc","Mauritanie","Mexique","Michigan","Minnesota","Moldavie","Mongolie","Montenegro","Montana","Mozambique","Namibie","Nepal","Nevada","Nicaragua","Niger","Nigeria","Norvege","NouvelleCaledonie","NouvelleGuinee","NouvelleZelande","NouvelleZemble","NouveauMexique","Nunavut","Ontario","Oregon","Ouganda","Ouzbekistan","Pakistan","Palaos","Papouasie","Paraguay","PaysBas","Perou","Philippines","Pologne","Portugal","Qatar","Quebec","Quinghai","RDCongo","RepubliqueTcheque","Roumanie","RoyaumeUni","Russie","SaharaOccidental","Sakhaline","Salvador","Sardaigne","Serbie","Sichuan","Slovaquie","Slovenie","Socotra","Somalie","Sonora","Soudan","Srilanka","StHelena","Suede","Suisse","Sumatra","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Taiwan","Tanzanie","Tasmanie","Tchad","Tchoukota","TerreAdelie","TerreBooth","TerreBurke","TerreDeFeu","TerreGrant","TerreLiard","TerreLow","TerreMasson","TerreMill","TerrePowell","TerreRoss","TerreSigny","TerreSiple","TerreSmith","TerreSnow","TerreSpaatz","TerreThor","TerreVega","Texas","Thailande","Tibet","Timor","Togo","Tomsk","Touva","TriniteEtTobago","Tunisie","Turkmenistan","Turquie","Uruguay","Utah","Venezuela","Vietnam","WallisEtFutuna","Washington","Wisconsin","Xinjiang","Yemen","Yunnam","Zambie","Zimbabwe"].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+// Cache countries dans localStorage (TTL 6h) pour éviter les appels répétés
+const CC_LS_KEY='mg_cc_v1';const CC_LS_TTL=6*3600*1000;
+function _ccLoadLS(){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');const now=Date.now();Object.entries(r).forEach(([s,v])=>{if(now-v.ts<CC_LS_TTL)cc[s]=v.list;});console.log('[countries] cache localStorage chargé:',Object.keys(cc));}catch{}}
+function _ccSaveLS(server,list){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');r[server]={list,ts:Date.now()};localStorage.setItem(CC_LS_KEY,JSON.stringify(r));}catch{}}
+_ccLoadLS();
+// Récupère la liste des pays pour un serveur — avec fallback sur cache/statique si rate-limit
+async function getCountries(server){
+  if(cc[server])return cc[server];
+  try{
+    const d=await fetch(API+'/api/countries/'+server,{headers:{..._authHeader()}});
+    if(d.status===429){console.warn('[countries] 429 rate-limit →',server,'fallback statique');cc[server]=[...STATIC_COUNTRIES_FALLBACK];return cc[server];}
+    const j=await d.json();
+    const raw=j.countries||j.claimed||[];
+    const list=raw.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+    if(list.length){cc[server]=list;_ccSaveLS(server,list);}
+    else{cc[server]=[...STATIC_COUNTRIES_FALLBACK];}
+  }catch{cc[server]=[...STATIC_COUNTRIES_FALLBACK];}
+  return cc[server];
+}
+const BUG=s=>s==='red'||s==='mocha';
+const WARN=`<div class="warn">⚠ Dynmap limité — données possiblement incomplètes</div>`;
+let WL=[],WLM=[],cwl='lime',snd=localStorage.getItem('mg_sound')!=='off';
+let ALR=[],prev={},hist=JSON.parse(localStorage.getItem('mg_h')||'[]'),cc={},oP=[];
+const $=id=>document.getElementById(id);
+const ld=()=>`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+const ld2=()=>ld();
+const rP=(i,p)=>p.find(x=>x.toLowerCase()===i.toLowerCase())||i;
+
+const sparkData={total:[],wl:[],wc:[]};
+function drawSpark(canvasId,data,color='rgba(0,80,216,.55)'){
+  const c=$(canvasId);if(!c||!data.length)return;
+  const W=c.offsetWidth,H=c.offsetHeight;c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  if(data.length<2)return;
+  const mn=Math.min(...data),mx=Math.max(...data),range=mx-mn||1;
+  ctx.beginPath();
+  data.forEach((v,i)=>{const x=i/(data.length-1)*W,y=H-(v-mn)/range*H*.8-H*.1;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle=color;ctx.lineWidth=1;ctx.stroke();
+  const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'rgba(0,80,216,.1)');grad.addColorStop(1,'transparent');
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+}
+
+(()=>{
+  const c=$('bg'),ctx=c.getContext('2d');
+  const sz=()=>{c.width=innerWidth;c.height=innerHeight};sz();window.addEventListener('resize',sz);
+  const pts=Array.from({length:55},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*.9+.2,a:Math.random()*.2+.04}));
+  let mx=innerWidth/2,my=innerHeight/2,t=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+  const orbs=[[.14,.1,0,56,184,.055,.44],[.86,.84,26,111,255,.038,.42],[.5,.44,77,159,255,.025,.36]];
+  const draw=()=>{
+    t+=.003;ctx.clearRect(0,0,c.width,c.height);
+    orbs.forEach(([ox,oy,r,g,b,a,s])=>{
+      const px=c.width*(ox+Math.sin(t*.6+ox*10)*.038),py=c.height*(oy+Math.cos(t*.42+oy*8)*.028);
+      const grd=ctx.createRadialGradient(px,py,0,px,py,c.width*s);
+      grd.addColorStop(0,`rgba(${r},${g},${b},${a})`);grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd;ctx.fillRect(0,0,c.width,c.height);
+    });
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
+      const d=Math.hypot(p.x-mx,p.y-my),br=d<90?1-d/90:0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r+br*1.2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(26,111,255,${p.a+br*.16})`;ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
+      if(d<80){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,80,216,${.028*(1-d/80)})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    requestAnimationFrame(draw);
+  };draw();
+})();
+
+(()=>{
+  // Trail canvas uniquement — le curseur SVG est géré nativement en CSS
+  const tc=document.createElement('canvas');
+  tc.id='trl';tc.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none';
+  document.body.appendChild(tc);
+  const ctx=tc.getContext('2d');
+  const sync=()=>{tc.width=innerWidth;tc.height=innerHeight};sync();
+  window.addEventListener('resize',sync);
+  let trail=[],MAX=14;
+  document.addEventListener('mousemove',e=>{
+    trail.push({x:e.clientX,y:e.clientY,t:Date.now()});
+    if(trail.length>MAX)trail.shift();
+  });
+  const draw=()=>{
+    ctx.clearRect(0,0,tc.width,tc.height);
+    const now=Date.now();
+    trail.forEach((p,i)=>{
+      const s=(i+1)/MAX*(1-(now-p.t)/220);
+      if(s<=0)return;
+      ctx.beginPath();ctx.arc(p.x,p.y,1.4*s,0,Math.PI*2);
+      ctx.fillStyle=`rgba(26,111,255,${s*.14})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  };draw();
+})();
+
+setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('fr-FR');$('hdr-date').textContent=new Date().toLocaleDateString('fr-FR');},1000);
+
+function showToast(msg,duration=3000){
+  const wrap=$('toast-wrap'),t=document.createElement('div');
+  t.className='toast';t.textContent=msg;wrap.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut .3s ease forwards';setTimeout(()=>t.remove(),300);},duration);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  const tabs=document.querySelectorAll('.tab');
+  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8};
+  if(map[e.key]!==undefined&&tabs[map[e.key]]){tabs[map[e.key]].click();showToast(`Onglet ${e.key} — ${tabs[map[e.key]].textContent.trim()}`);return;}
+  if(e.key==='/'||e.key==='k'&&(e.ctrlKey||e.metaKey)){e.preventDefault();tabs[2].click();setTimeout(()=>$('ca-input').focus(),300);}
+});
+
+let pct=0;
+const pctT=setInterval(()=>{pct=Math.min(pct+(Math.random()*8+2),92);if($('l-pct'))$('l-pct').textContent=Math.floor(pct)+'%';},85);
+const msgs=['CHARGEMENT DES MODULES...','CONNEXION API SÉCURISÉE...','SYNCHRONISATION SERVEURS...','VÉRIFICATION INTÉGRITÉ...','CHIFFREMENT CANAL...','SYSTÈME PRÊT À DÉMARRER...'];
+let mi=0;const msgT=setInterval(()=>{if(mi<msgs.length-1&&$('l-msg'))$('l-msg').textContent=msgs[mi++];},500);
+
+function _loaderReady(){
+  clearInterval(pctT);clearInterval(msgT);
+  if($('l-pct'))$('l-pct').textContent='100%';
+  if($('l-fill'))$('l-fill').style.width='100%';
+  setTimeout(()=>{
+    const m=$('l-msg');
+    if(m){m.textContent='SYSTÈME PRÊT — CLIQUEZ POUR ENTRER';m.classList.remove('blink');m.classList.add('rdy');}
+    const b=$('lbtn');if(b)b.style.display='block';
+  },300);
+}
+// DOMContentLoaded = dès que le HTML est parsé, sans attendre iframes/images
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',_loaderReady);
+}else{
+  // Déjà prêt (script chargé en defer ou page déjà interactive)
+  setTimeout(_loaderReady,200);
+}
+// Fallback absolu : si au bout de 4s c'est toujours pas ready, on force
+setTimeout(()=>{
+  const b=$('lbtn');
+  if(b&&b.style.display==='none'||b&&!b.style.display){_loaderReady();}
+},4000);
+function enterSite(){
+  try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}
+  _au=true;window.scrollTo(0,0);
+  $('ldr').classList.add('out');
+  setTimeout(()=>{$('ldr').style.display='none';showToast('SYSTÈME OPÉRATIONNEL',2500);},900);
+}
+
+let scW=null,scOn=false,scBarT=null;
+(()=>{
+  const ifr=document.createElement('iframe');ifr.allow='autoplay';
+  ifr.style.cssText='position:absolute;width:0;height:0;border:none;opacity:0;pointer-events:none';
+  ifr.src='https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user-164072391-103154989/omer-adam-feat-arisa-tel-aviv&color=%23f0c040&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false';
+  document.body.appendChild(ifr);
+  const s=document.createElement('script');s.src='https://w.soundcloud.com/player/api.js';
+  s.onload=()=>{
+    scW=SC.Widget(ifr);
+    scW.bind(SC.Widget.Events.READY,()=>scW.setVolume(70));
+    scW.bind(SC.Widget.Events.PLAY,()=>{scOn=true;$('scp-tri').classList.add('p');$('scp-eq').classList.add('on');scStartBar();});
+    scW.bind(SC.Widget.Events.PAUSE,()=>{scOn=false;$('scp-tri').classList.remove('p');$('scp-eq').classList.remove('on');scStopBar();});
+    scW.bind(SC.Widget.Events.FINISH,()=>{scOn=false;$('scp-tri').classList.remove('p');$('scp-eq').classList.remove('on');$('scp-bf').style.width='0%';});
+  };document.head.appendChild(s);
+})();
+function scToggle(){if(!scW)return;scOn?scW.pause():scW.play();}
+function scVol(v){if(scW)scW.setVolume(parseInt(v));}
+function scStartBar(){scStopBar();scBarT=setInterval(()=>{if(!scW)return;scW.getPosition(p=>{scW.getDuration(d=>{if(d>0)$('scp-bf').style.width=(p/d*100)+'%';});});},500);}
+function scStopBar(){if(scBarT){clearInterval(scBarT);scBarT=null;}}
+
+
+function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'Authorization':'Bearer '+t}:{};}
+async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+
+async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){notesLoadFromAPI().then(()=>renderNotes());}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}}
+
+function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
+function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
+function ppCA(p){$('ca-input').value=p;$('ca-pl').innerHTML='';$('ca-list').style.display='none';doCA();}
+function ppST(p){$('st-input').value=p;$('st-pl').innerHTML='';$('st-list').style.display='none';loadStats();}
+function ppWL(p){$('wl-add').value=p;$('wl-pl').innerHTML='';$('wl-acl').style.display='none';}
+function acF(ii,li,pool){const v=$(ii).value.trim().toLowerCase(),l=$(li);if(!v||!pool.length){l.style.display='none';return;}const m=pool.filter(p=>p.toLowerCase().includes(v)).slice(0,10);if(!m.length){l.style.display='none';return;}l.innerHTML=m.map(p=>`<div class="aci" onmousedown="acP('${ii}','${li}','${p.replace(/'/g,"\\'")}')">${p}</div>`).join('');l.style.display='block';}
+function acFC(){const s=$('ck-srv').value;if(!s)return;const v=$('ck-country').value.trim().toLowerCase(),p=cc[s]||[];$('ck-suggest').innerHTML=(v?p.filter(c=>c.toLowerCase().includes(v)):p).map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');acF('ck-country','ck-list',p);}
+function acP(i,l,v){$(i).value=v;$(l).style.display='none';}
+function acK(e,l,cb){const list=$(l),items=list.querySelectorAll('.aci'),cur=list.querySelector('.sel');if(e.key==='ArrowDown'){e.preventDefault();const n=cur?cur.nextElementSibling:items[0];if(cur)cur.classList.remove('sel');if(n)n.classList.add('sel');}else if(e.key==='ArrowUp'){e.preventDefault();const p=cur?cur.previousElementSibling:items[items.length-1];if(cur)cur.classList.remove('sel');if(p)p.classList.add('sel');}else if(e.key==='Enter'){if(cur){cur.onmousedown();return;}list.style.display='none';cb();}else if(e.key==='Escape')list.style.display='none';}
+document.addEventListener('click',e=>{document.querySelectorAll('.acl').forEach(l=>{if(!l.parentElement.contains(e.target))l.style.display='none';});});
+
+async function chkAPI(){try{await api('/health');$('api-led').className='led on';$('api-txt').textContent='API OK';return true;}catch{$('api-led').className='led off';$('api-txt').textContent='DOWN';return false;}}
+async function loadWL(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist',{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json();WL=d.players||[];animStat('st-wcount',WL.length);sparkData.wc.push(WL.length);if(sparkData.wc.length>30)sparkData.wc.shift();drawSpark('spark-wc',sparkData.wc);}catch{}}
+async function loadWLM(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist_mocha',{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json();WLM=d.players||[];}catch{}}
+async function loadKP(){try{const d=await fetch(API+'/api/known_players',{headers:{..._authHeader()}}).then(r=>r.json());oP=[...new Set([...(d.players||[]),...oP])].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));rAT('ca-pl','ppCA');rAT('st-pl','ppST');rAT('wl-pl','ppWL');}catch{}}
+
+function animStat(id,val){
+  const el=$(id);if(!el)return;
+  const prev=parseInt(el.textContent)||0;if(prev===val)return;
+  el.style.opacity='.12';
+  setTimeout(()=>{el.textContent=val;el.style.opacity='1';el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),350);},120);
+}
+
+async function loadDash(){
+  if(!$('srv-overview').children.length)$('srv-overview').innerHTML=ld();
+  try{
+    const all=await api('/api/online_all'),lp=all['lime']||[];
+    const pool=new Set(oP);SRV.forEach(s=>(all[s]||[]).forEach(p=>pool.add(p)));
+    oP=[...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+    WL.forEach(p=>{const lc=p.toLowerCase(),on=(all['lime']||[]).map(x=>x.toLowerCase()).includes(lc),k=p+'@lime';if(on&&!prev[k])pAlert('connect',p,'lime');if(!on&&prev[k])pAlert('disconnect',p,'lime');prev[k]=on;});
+    WLM.forEach(p=>{const lc=p.toLowerCase(),on=(all['mocha']||[]).map(x=>x.toLowerCase()).includes(lc),k=p+'@mocha';if(on&&!prev[k])pAlert('connect',p,'mocha');if(!on&&prev[k])pAlert('disconnect',p,'mocha');prev[k]=on;});
+    let tot=0;SRV.forEach(s=>tot+=(all[s]||[]).length);
+    animStat('st-total',tot);
+    sparkData.total.push(tot);if(sparkData.total.length>30)sparkData.total.shift();drawSpark('spark-total',sparkData.total);
+    const wonline=WL.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase())).length;
+    animStat('st-wonline',wonline);updateWeather(wonline);
+    sparkData.wl.push(wonline);if(sparkData.wl.length>30)sparkData.wl.shift();drawSpark('spark-wl',sparkData.wl);
+    const mx=Math.max(...SRV.map(s=>(all[s]||[]).length),1);
+    const cards=$('srv-overview').querySelectorAll('.sc');
+    if(cards.length===SRV.length){SRV.forEach((s,i)=>{const cnt=(all[s]||[]).length,c=cards[i],n=c.querySelector('.sc-n'),b=c.querySelector('.sbar-f');if(n&&parseInt(n.textContent)!==cnt){n.style.opacity='.1';setTimeout(()=>{n.textContent=cnt;n.style.opacity='1';},120);}if(b)b.style.width=Math.round(cnt/mx*100)+'%';});}
+    else $('srv-overview').innerHTML=SRV.map(s=>{const cnt=(all[s]||[]).length,bug=BUG(s);return`<div class="sc" onmouseenter="sndH()" onclick="gOL('${s}')" ${bug?'style="border-color:rgba(255,119,0,.22)"':''}><div class="sc-top"><span class="sc-name">${s.toUpperCase()}</span><span class="sc-emo">${EMO[s]}</span></div><div class="sc-n">${cnt}</div>${bug?'<div class="sc-lbl warn">⚠ INSTABLE</div>':'<div class="sc-lbl">EN LIGNE</div>'}<div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/mx*100)}%"></div></div></div>`;}).join('');
+    const mp=await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
+    const mk=(pl,l,c,lb)=>l.length?`<div style="font-family:var(--M);font-size:.46rem;color:${c};letter-spacing:.22em;margin-bottom:.18rem">${lb}</div><div class="tags" style="margin-bottom:.35rem">${l.map(p=>{const on=pl.map(x=>x.toLowerCase()).includes(p.toLowerCase());const seen=getLastSeenText(p);return`<span class="tag ${on?'on':''}" onclick="openPlayerPanel('${p}')" title="Voir profil">${on?'🟢':'⚫'} ${p}${seen?` <span class="wi-seen ${seen.cls}">${seen.text}</span>`:''}</span>`;}).join('')}</div>`:'';
+    $('wl-quick').innerHTML=(mk(lp,WL,'var(--grn)','🟢 LIME')||'')+(mk(mp,WLM,'var(--org)','🟤 MOCHA')||'')||'<div class="empty">Watchlists vides</div>';
+    if($('last-update'))$('last-update').textContent=new Date().toLocaleTimeString('fr-FR');
+    pushActivity(tot);startCountdown(5);
+    _firstCycle=false;
+    if(document.getElementById('wl-status')&&document.getElementById('wl-status').innerHTML.trim()!=='')wlRS();
+  }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne<br/><span style="font-size:.52rem;opacity:.6">${e.message}</span></div>`;}
+}
+const _authed=()=>!!sessionStorage.getItem('mg_token_v3');
+let _firstCycle=true;
+
+// ═══ HISTORIQUE CONNEXIONS ═══
+const CONN_HIST_KEY='mg_conn_hist_v2';
+const CONN_HIST_MAX=500;
+let connHist=JSON.parse(localStorage.getItem(CONN_HIST_KEY)||'[]');
+
+function saveConnHist(){localStorage.setItem(CONN_HIST_KEY,JSON.stringify(connHist));}
+
+function addConnEvent(type,player,server){
+  connHist.unshift({type,player,server,ts:Date.now(),time:new Date().toLocaleTimeString('fr-FR'),date:new Date().toLocaleDateString('fr-FR')});
+  if(connHist.length>CONN_HIST_MAX)connHist.pop();
+  saveConnHist();
+  updateHistPlayerFilter();
+  if(document.getElementById('s-historique')?.classList.contains('active')) renderConnHist();
+}
+
+function updateHistPlayerFilter(){
+  const sel=document.getElementById('hist-filter-player');if(!sel)return;
+  const cur=sel.value;
+  const players=[...new Set(connHist.map(e=>e.player))].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+  sel.innerHTML='<option value="">Tous les joueurs</option>'+players.map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+}
+
+function renderConnHist(){
+  const body=document.getElementById('conn-hist-body');
+  const statsEl=document.getElementById('hist-stats');
+  const chartEl=document.getElementById('hist-chart-body');
+  if(!body)return;
+  const fp=document.getElementById('hist-filter-player')?.value||'';
+  const ft=document.getElementById('hist-filter-type')?.value||'';
+  let filtered=connHist;
+  if(fp)filtered=filtered.filter(e=>e.player===fp);
+  if(ft)filtered=filtered.filter(e=>e.type===ft);
+
+  // Stats rapides
+  if(statsEl){
+    const total=connHist.length;
+    const connects=connHist.filter(e=>e.type==='connect').length;
+    const players=[...new Set(connHist.map(e=>e.player))].length;
+    statsEl.innerHTML=[
+      {label:'Événements total',val:total,col:'var(--blue-pale)'},
+      {label:'Connexions',val:connects,col:'var(--grn)'},
+      {label:'Déconnexions',val:total-connects,col:'var(--red)'},
+      {label:'Joueurs trackés',val:players,col:'var(--org)'}
+    ].map(s=>`<div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.6rem 1rem;min-width:120px">
+      <div style="font-family:var(--D);font-size:1.6rem;color:${s.col};line-height:1">${s.val}</div>
+      <div style="font-family:var(--M);font-size:.5rem;color:var(--t3);letter-spacing:.12em;margin-top:.2rem">${s.label}</div>
+    </div>`).join('');
+  }
+
+  // Tableau historique
+  if(!filtered.length){body.innerHTML='<div class="empty">Aucun événement correspondant aux filtres.</div>';return;}
+  body.innerHTML=`<table class="tbl">
+    <thead><tr><th>Type</th><th>Joueur</th><th>Serveur</th><th>Date</th><th>Heure</th></tr></thead>
+    <tbody>${filtered.slice(0,150).map(e=>`
+      <tr onclick="openPlayerPanel('${e.player}')">
+        <td><span style="color:${e.type==='connect'?'var(--grn)':'var(--red)'}">
+          ${e.type==='connect'?'🟢 Connexion':'🔴 Déco'}
+        </span></td>
+        <td style="color:var(--t1);font-weight:600">${e.player}</td>
+        <td><span class="stag">${(e.server||'').toUpperCase()}</span></td>
+        <td style="color:var(--t3)">${e.date||'—'}</td>
+        <td style="color:var(--t2)">${e.time}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+  ${filtered.length>150?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);text-align:center;margin-top:.6rem;letter-spacing:.1em">Affichage limité à 150 / ${filtered.length} événements — utilisez les filtres</div>`:''}`;
+
+  // Graphe activité par joueur
+  if(chartEl){
+    const byPlayer={};
+    connHist.forEach(e=>{
+      if(!byPlayer[e.player])byPlayer[e.player]={connect:0,disconnect:0};
+      byPlayer[e.player][e.type]=(byPlayer[e.player][e.type]||0)+1;
+    });
+    const sorted=Object.entries(byPlayer).sort((a,b)=>(b[1].connect+b[1].disconnect)-(a[1].connect+a[1].disconnect)).slice(0,10);
+    if(!sorted.length){chartEl.innerHTML='<div class="empty">Pas encore de données.</div>';return;}
+    const maxVal=Math.max(...sorted.map(([,v])=>v.connect+v.disconnect),1);
+    chartEl.innerHTML=sorted.map(([player,v])=>{
+      const total=v.connect+v.disconnect;
+      const pctC=Math.round(v.connect/maxVal*100);
+      const pctD=Math.round(v.disconnect/maxVal*100);
+      return`<div style="margin-bottom:.7rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.22rem">
+          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${player}')">${player}</span>
+          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${v.connect} co · ${v.disconnect} déco</span>
+        </div>
+        <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;background:var(--bg2)">
+          <div style="width:${pctC}%;background:var(--grn);opacity:.7;transition:width .3s"></div>
+          <div style="width:${pctD}%;background:var(--red);opacity:.6;transition:width .3s"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function clearConnHist(){
+  if(!confirm('Vider tout l\'historique des connexions ?'))return;
+  connHist=[];saveConnHist();
+  document.getElementById('hist-filter-player').innerHTML='<option value="">Tous les joueurs</option>';
+  renderConnHist();
+  showToast('Historique vidé');
+}
+
+function pAlert(t,p,s){
+  ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});
+  if(ALR.length>60)ALR.pop();
+  rAlerts();
+  if(!_authed()||_firstCycle)return;
+  const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());
+  if(inWL){
+    addConnEvent(t,p,s);
+    if(t==='connect'){setLastSeen(p,s);startSession(p);sendBrowserNotif('connect',p,s);}
+    else{endSession(p);sendBrowserNotif('disconnect',p,s);}
+    showPop(t,p,s);
+  }
+}
+function rAlerts(){$('alert-badge').textContent=ALR.length+' évts';$('alert-feed').innerHTML=ALR.length?ALR.map(a=>`<div class="fi"><div class="fi-d ${a.type==='connect'?'g':'r'}"></div><span class="fi-t">${a.time}</span><span class="fi-m">${a.type==='connect'?'🟢':'🔴'} <b style="cursor:pointer" onclick="openPlayerPanel('${a.player}')">${a.player}</b><span class="fi-s">${a.server.toUpperCase()}</span></span></div>`).join(''):'<div class="empty">En attente...</div>';}
+
+function gOL(s){document.querySelectorAll('.tab')[1].click();$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
+function fOL(s){$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
+async function loadOLS(srv){const body=$('ol-body'),w=BUG(srv)?WARN:'';try{const d=await api('/api/online/'+srv),pl=d.players||[];body.innerHTML=w+(pl.length?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);margin-bottom:.35rem"><span style="color:var(--gb)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div><div class="tags">${pl.map(p=>`<span class="tag ${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'on':''}" onclick="openPlayerPanel('${p}')">${p}</span>`).join('')}</div>`:`<div class="empty">${BUG(srv)?'0 joueur (dynmap limité)':'Aucun joueur sur '+srv.toUpperCase()}</div>`);}catch(e){body.innerHTML=w+`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
+async function loadOnline(){const srv=$('ol-srv').value,body=$('ol-body');body.innerHTML=ld();try{if(!srv){const all=await api('/api/online_all');let tot=0;SRV.forEach(s=>tot+=(all[s]||[]).length);body.innerHTML=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);margin-bottom:.55rem">TOTAL <span style="color:var(--gb)">${tot}</span> joueurs</div><div class="sg">${SRV.map(s=>{const pl=all[s]||[],bug=BUG(s);return`<div class="sc" onmouseenter="sndH()" onclick="fOL('${s}')" ${bug?'style="border-color:rgba(255,119,0,.22)"':''}><div class="sc-top"><span class="sc-name">${s.toUpperCase()}</span><span class="sc-emo">${EMO[s]}</span></div><div class="sc-n">${pl.length}</div>${bug?'<div class="sc-lbl warn">⚠ INSTABLE</div>':'<div class="sc-lbl">CLIQUER</div>'}<div class="tags" style="max-height:110px;overflow-y:auto;padding-right:2px" onclick="event.stopPropagation()">${pl.slice(0,20).map(p=>`<span class="tag ${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'wl':''}" onclick="event.stopPropagation();qCA('${p}')">${p}</span>`).join('')}${pl.length>20?`<span style="font-family:var(--M);font-size:.46rem;color:var(--t3)">+${pl.length-20}</span>`:''}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(pl.length/Math.max(...SRV.map(ss=>(all[ss]||[]).length),1)*100)}%"></div></div></div>`;}).join('')}</div>`;}else await loadOLS(srv);}catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
+
+async function doCA(){const raw=$('ca-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('ca-input').value=p;const res=$('ca-result');res.innerHTML=ld();try{const d=await api('/api/checkall/'+encodeURIComponent(p));if(d.servers.length)sndF();res.innerHTML=d.servers.length?`<div class="res ok"><div class="rt">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div style="margin:.2rem 0">${EMO[s]} <span style="color:var(--g)">${s.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="res err"><div class="rt">Résultat</div><span style="color:var(--t3)">${p} n'est connecté nulle part</span></div>`;hist=hist.filter(h=>h.p.toLowerCase()!==p.toLowerCase());hist.unshift({p,servers:d.servers,t:new Date().toLocaleTimeString('fr-FR')});if(hist.length>15)hist.pop();localStorage.setItem('mg_h',JSON.stringify(hist));rHist();}catch(e){res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`;}}
+function qCA(player){openPlayerPanel(player);}
+function rHist(){const el=$('ca-history');if(!hist.length){el.innerHTML='<div class="empty">Aucune recherche</div>';return;}el.innerHTML=`<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>`+hist.slice(0,12).map(h=>`<tr><td style="color:var(--g)" onclick="qCA('${h.p}')">${h.p}</td><td>${h.servers.length?h.servers.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--t3)">Hors ligne</span>'}</td><td style="color:var(--t3)">${h.t}</td></tr>`).join('')+'</tbody></table>';}
+
+async function loadCS(){const s=$('ck-srv').value;if(!s)return;await getCountries(s);rCS(s);}
+function rCS(s){const el=$('ck-suggest'),p=cc[s]||[];if(!p.length){el.innerHTML='';return;}el.innerHTML=p.map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');}
+function selC(c){$('ck-country').value=c;$('ck-list').style.display='none';doCheck();}
+async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : ${d.country} — ${d.online_total}/${d.members_total} connectés</div>`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
+
+function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}el.innerHTML=wl.map(p=>`<div class="wi"><span style="font-family:var(--M);font-size:.62rem">${p}</span><button class="btn btn-r" style="padding:.07rem .34rem;font-size:.48rem" onclick="wlRm('${p}')">✕</button></div>`).join('');}
+async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
+async function wlRm(name){try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/remove':'/api/watchlist/remove',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} retiré`);}catch(e){showToast('Erreur : '+e.message);}}
+async function switchWl(s){cwl=s;document.querySelectorAll('.wtb').forEach(e=>e.classList.remove('act'));const a=$('wl-tab-'+s);if(a)a.classList.add('act');if($('wl-pt'))$('wl-pt').textContent='◈ Watchlist — '+s.toUpperCase();if($('wl-st'))$('wl-st').textContent='⚡ Statut live — '+s.toUpperCase();$('wl-manage').innerHTML='';$('wl-status').innerHTML='';if(s==='lime')await loadWL();else await loadWLM();wlR();wlRS();}
+async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>{setLastSeen(p,s);loadSessionDurations(p);});el.innerHTML=[...on.map(p=>{const pred=predictDecoTime(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span>${pred?`<span class="pred-badge ${pred.cls}">⏳ ${pred.text}</span>`:''}</div>`;}),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
+.join('')||'<div class="empty">Aucune donnée</div>';}catch{el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur</div>`;}}
+
+async function loadStats(){
+  const raw=$('st-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('st-input').value=p;
+  const res=$('st-result');res.innerHTML=`<div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
+  const[lR,pR,plR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/pronostic/'+encodeURIComponent(p)),api('/api/plages/'+encodeURIComponent(p))]);
+  const loc=lR.status==='fulfilled'?lR.value:null,prn=pR.status==='fulfilled'?pR.value:null,plg=plR.status==='fulfilled'?plR.value:null;
+  const srvs=loc?loc.servers:[];let h='';
+  h+=`<div class="sb"><div class="sbt">◉ Localisation</div>`;
+  h+=srvs.length?srvs.map(s=>`<div class="ir"><span class="ik">${EMO[s]} Serveur</span><span class="iv ok">${s.toUpperCase()}</span></div>`).join(''):`<div class="ir"><span class="ik">Statut</span><span class="iv" style="color:var(--t3)">Hors ligne</span></div>`;
+  h+='</div>';
+  h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
+  if(prn?.pronostic?.length){h+=`<div style="font-family:var(--M);font-size:.48rem;color:var(--t3);margin-bottom:.35rem">Basé sur ${prn.total} connexions</div>`;h+=prn.pronostic.map(r=>`<div class="pr"><span class="pd">${r.day}</span><div class="pb3"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp">${r.pct}%</span><span class="pt3">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');}
+  else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Insuffisantes (min. 3)</span></div>`;
+  h+='</div>';
+  h+=`<div class="sb"><div class="sbt">🕐 Heatmap horaire</div>`;
+  if(plg?.heatmap){const hm=plg.heatmap,days=plg.days,mx=Math.max(...hm.flat(),1);h+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--M);font-size:.47rem;width:100%"><tr><td style="color:var(--t3);padding-right:.34rem;white-space:nowrap">H→</td>`;for(let i=0;i<24;i++)h+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem">${i}</td>`;h+='</tr>';days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.34rem;white-space:nowrap">${day}</td>`;hm[di].forEach(v=>{const intensity=v?(.04+v/mx*.82).toFixed(2):0;const bg=v?`rgba(0,56,184,${intensity})`:'rgba(2,5,12,.9)';const glow=v&&v/mx>.6?`box-shadow:0 0 4px rgba(0,56,184,${(v/mx*.3).toFixed(2)})`:'';h+=`<td style="width:14px;height:13px;background:${bg};border-radius:1px;padding:0;${glow}"></td>`;});h+='</tr>';});h+='</table></div>';}
+  else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>`;
+  h+='</div>';
+  h+=`<div class="sb"><div class="sbt">◷ Historique</div>`;
+  if(plg?.heatmap){const hm=plg.heatmap,days=plg.days,rows=[];days.forEach((day,di)=>{const tot=hm[di].reduce((a,v)=>a+v,0);if(tot)rows.push({day,total:tot,peakH:hm[di].indexOf(Math.max(...hm[di]))});});rows.sort((a,b)=>b.total-a.total);if(rows.length){h+=`<table class="tbl"><thead><tr><th>Jour</th><th>Connexions</th><th>Pic</th></tr></thead><tbody>`;h+=rows.map(r=>`<tr><td style="color:var(--g)">${r.day}</td><td style="color:var(--gb)">${r.total}</td><td style="color:var(--t3)">${r.peakH}h–${r.peakH+1}h</td></tr>`).join('');h+='</tbody></table>';}else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune connexion</span></div>`;}
+  else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>`;
+  h+='</div>';res.innerHTML=h;
+}
+
+let actx=null,_au=false;
+function gCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}
+function unlockAudio(){if(_au)return;_au=true;try{gCtx().resume();}catch(e){}}
+document.addEventListener('click',unlockAudio,{once:true});
+function toggleSound(){snd=!snd;localStorage.setItem('mg_sound',snd?'on':'off');const b=$('sound-btn');if(b){b.textContent=snd?'🔊 SON':'🔇 SON';b.style.color=snd?'var(--g)':'var(--t3)';}showToast(snd?'Son activé':'Son désactivé');}
+function pT(f,t='sine',d=.08,v=.08,dl=0){if(!snd)return;try{const ctx=gCtx(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=t;o.frequency.value=f;const ts=ctx.currentTime+dl;g.gain.setValueAtTime(0,ts);g.gain.linearRampToValueAtTime(v,ts+.01);g.gain.exponentialRampToValueAtTime(.001,ts+d);o.start(ts);o.stop(ts+d);}catch(e){}}
+function sndNav(){pT(880,'sine',.06,.055);pT(1100,'sine',.05,.038,.04);}
+function sndH(){pT(660,'sine',.04,.018);}
+function sndF(){pT(523,'sine',.08,.09);pT(659,'sine',.08,.09,.07);}
+function sndA(c){if(c){[0,.14,.28,.42,.56].forEach((dl,i)=>{pT(580+i*85,'square',.11,.28,dl);pT(1160+i*110,'sine',.07,.12,dl+.05);});}else{[0,.17,.34].forEach((dl,i)=>{pT(490-i*95,'sawtooth',.14,.28,dl);pT(245-i*48,'square',.11,.18,dl+.07);});}}
+function spk(t){if(!snd)return;try{window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='fr-FR';m.rate=.88;m.pitch=1.25;m.volume=1;const voices=window.speechSynthesis.getVoices();const v=voices.find(v=>v.lang.startsWith('fr')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('fr')&&(v.name.includes('Amélie')||v.name.includes('Audrey')||v.name.includes('Marie')||v.name.includes('Julie')||v.name.includes('Léa')||v.name.includes('Google français')))||voices.find(v=>v.lang.startsWith('fr'));if(v)m.voice=v;window.speechSynthesis.speak(m);}catch(e){}}
+if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();}
+function showPop(type,player,server){
+  sndA(type==='connect');setTimeout(()=>spk(type==='connect'?`${player} vient de se connecter`:`${player} s'est déconnecté`),400);
+  const pop=$('apop'),n=document.createElement('div');
+  n.className='an'+(type==='disconnect'?' dc':'');
+  n.innerHTML=`<div class="an-type">${type==='connect'?'🟢 Connexion détectée':'🔴 Déconnexion'}</div><div class="an-name">${player}</div><div class="an-meta"><span>${server.toUpperCase()}</span><span style="opacity:.3">·</span><span>${new Date().toLocaleTimeString('fr-FR')}</span></div><span class="an-x" onclick="this.parentElement.remove()">✕</span>`;
+  n.onclick=e=>{if(e.target.classList.contains('an-x'))return;qCA(player);};
+  pop.appendChild(n);
+  setTimeout(()=>{n.style.animation='anOut .28s ease forwards';setTimeout(()=>n.remove(),280);},8000);
+}
+
+function pageFlash(){
+  const f=document.getElementById('page-flash');
+  f.classList.remove('go');void f.offsetWidth;
+  f.classList.add('go');
+}
+
+const actHistory=[];const actLabels=[];
+const MAX_ACT=30;
+function pushActivity(total){
+  const now=new Date();
+  actHistory.push(total);actLabels.push(now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'));
+  if(actHistory.length>MAX_ACT){actHistory.shift();actLabels.shift();}
+  drawActivityGraph();
+}
+function drawActivityGraph(){
+  const c=document.getElementById('activity-graph');if(!c||actHistory.length<2)return;
+  const W=c.parentElement.offsetWidth||400,H=80;
+  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const mn=Math.min(...actHistory),mx=Math.max(...actHistory,1),range=mx-mn||1;
+  const pad=8,gW=W-pad*2,gH=H-pad*2;
+  for(let i=0;i<=4;i++){const y=pad+gH*(1-i/4);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.strokeStyle='rgba(0,56,184,.05)';ctx.lineWidth=1;ctx.stroke();}
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,56,184,.22)');grad.addColorStop(1,'rgba(0,56,184,.01)');
+  ctx.beginPath();
+  actHistory.forEach((v,i)=>{const x=pad+i/(actHistory.length-1)*gW,y=pad+gH*(1-(v-mn)/range);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad+gW,H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();
+  actHistory.forEach((v,i)=>{const x=pad+i/(actHistory.length-1)*gW,y=pad+gH*(1-(v-mn)/range);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle='rgba(26,111,255,.7)';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
+  const lx=pad+gW,ly=pad+gH*(1-(actHistory[actHistory.length-1]-mn)/range);
+  ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);ctx.fillStyle='#4d9fff';ctx.fill();
+  ctx.beginPath();ctx.arc(lx,ly,6,0,Math.PI*2);ctx.fillStyle='rgba(26,111,255,.2)';ctx.fill();
+  const lel=document.getElementById('graph-labels');
+  if(lel&&actLabels.length>0){
+    const step=Math.max(1,Math.floor(actLabels.length/5));
+    const shown=actLabels.filter((_,i)=>i%step===0||i===actLabels.length-1);
+    lel.textContent='';shown.forEach(l=>{const s=document.createElement('span');s.textContent=l;lel.appendChild(s);});
+  }
+}
+
+let cdTotal=5,cdLeft=5;
+function startCountdown(total=5){cdTotal=total;cdLeft=total;updateCountdown();}
+function updateCountdown(){
+  const txt=document.getElementById('cd-txt'),fill=document.getElementById('cd-fill');
+  if(txt)txt.textContent=cdLeft+'s';
+  if(fill)fill.style.width=(cdLeft/cdTotal*100)+'%';
+}
+function tickCountdown(){cdLeft=Math.max(0,cdLeft-1);updateCountdown();}
+
+const lastSeen={};
+function setLastSeen(player,server){lastSeen[player]={ts:Date.now(),server};}
+function getLastSeenText(player){
+  const s=lastSeen[player];if(!s)return null;
+  const sec=Math.floor((Date.now()-s.ts)/1000);
+  if(sec<60)return{text:`vu il y a ${sec}s`,cls:'fresh'};
+  if(sec<3600)return{text:`vu il y a ${Math.floor(sec/60)}min`,cls:'recent'};
+  return{text:`vu il y a ${Math.floor(sec/3600)}h`,cls:''};
+}
+
+let notifGranted=false;
+async function requestNotifPerms(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='granted'){notifGranted=true;return;}
+  if(Notification.permission!=='denied'){const p=await Notification.requestPermission();notifGranted=p==='granted';}
+}
+function sendBrowserNotif(type,player,server){
+  if(!notifGranted||document.visibilityState==='visible')return;
+  const icon='https://nationsglory.fr/favicon.ico';
+  const title=type==='connect'?`🟢 ${player} connecté`:`🔴 ${player} déconnecté`;
+  const body=`Serveur : ${server.toUpperCase()} · ${new Date().toLocaleTimeString('fr-FR')}`;
+  try{const n=new Notification(title,{body,icon,silent:false});n.onclick=()=>{window.focus();n.close();};}catch(e){}
+}
+
+let ppOpen=false;
+async function openPlayerPanel(player){
+  const panel=document.getElementById('player-panel');
+  const overlay=document.getElementById('pp-overlay');
+  const nameEl=document.getElementById('pp-name');
+  const body=document.getElementById('pp-body');
+  nameEl.textContent=player;
+  body.innerHTML=`<div class="pp-loading">◌ Chargement du profil...</div>`;
+  panel.classList.add('open');overlay.classList.add('open');
+  document.body.style.overflow='hidden';
+  ppOpen=true;
+  const[caR,prR,plR]=await Promise.allSettled([
+    api('/api/checkall/'+encodeURIComponent(player)),
+    api('/api/pronostic/'+encodeURIComponent(player)),
+    api('/api/plages/'+encodeURIComponent(player))
+  ]);
+  const ca=caR.status==='fulfilled'?caR.value:null;
+  const pr=prR.status==='fulfilled'?prR.value:null;
+  const pl=plR.status==='fulfilled'?plR.value:null;
+  const seen=getLastSeenText(player);
+  const online=ca&&ca.servers.length>0;
+  const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
+  let h='';
+  h+=`<div class="pp-info-row">
+    <div class="pp-avatar"><img src="https://mc-heads.net/avatar/${encodeURIComponent(player)}/64" onerror="this.style.display='none'" alt=""></div>
+    <div class="pp-info-meta">
+      <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
+      <div class="pp-status ${online?'on':'off'}">
+        <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
+        ${online?ca.servers.map(s=>`${EMO[s]} ${s.toUpperCase()}`).join(' · '):'Hors ligne'}
+      </div>
+      ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
+      ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
+    </div>
+  </div>`;
+  h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
+  h+=`<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>`;
+  if(pr?.pronostic?.length){
+    h+=`<div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-bottom:.3rem">Basé sur ${pr.total} connexions</div>`;
+    h+=pr.pronostic.map(r=>`<div class="pr" style="padding:.28rem 0"><span class="pd">${r.day}</span><div class="pb3"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp" style="min-width:32px;color:var(--t3);text-align:right;font-size:.52rem">${r.pct}%</span><span style="min-width:44px;color:var(--t1);text-align:right;font-family:var(--M);font-size:.6rem">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');
+  }else h+=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Pas assez de données</div>`;
+  h+='</div>';
+  if(pl?.heatmap){
+    const hm=pl.heatmap,days=pl.days,mxH=Math.max(...hm.flat(),1);
+    h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Heatmap horaire</div><div style="overflow-x:auto"><table class="pp-heatmap" style="border-collapse:collapse;font-family:var(--M);font-size:.44rem"><tr><td style="color:var(--t3);padding-right:.3rem;font-size:.38rem">H→</td>`;
+    for(let i=0;i<24;i+=2)h+=`<td colspan="2" style="color:var(--t3);text-align:center;padding:0 1px;font-size:.38rem">${i}</td>`;
+    h+='</tr>';
+    days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.3rem;white-space:nowrap;padding-top:2px;font-size:.44rem">${day}</td>`;hm[di].forEach(v=>{const bg=v?`rgba(0,56,184,${(.04+v/mxH*.82).toFixed(2)})`:'rgba(2,5,12,.9)';h+=`<td style="width:13px;height:11px;background:${bg};border-radius:1px;padding:0"></td>`;});h+='</tr>';});
+    h+='</table></div></div>';
+  }
+  body.innerHTML=h;
+}
+function closePlayerPanel(){
+  document.getElementById('player-panel').classList.remove('open');
+  document.getElementById('pp-overlay').classList.remove('open');
+  document.body.style.overflow='';ppOpen=false;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ppOpen)closePlayerPanel();});
+
+(()=>{
+  const c=document.getElementById('matrix-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const resize=()=>{c.width=window.innerWidth;c.height=window.innerHeight;};
+  resize();window.addEventListener('resize',resize);
+  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF◈⊕◉◎';
+  const fs=14;let cols=Math.floor(c.width/fs);
+  let drops=Array(cols).fill(1);
+  const draw=()=>{
+    ctx.fillStyle='rgba(1,4,8,.08)';ctx.fillRect(0,0,c.width,c.height);
+    cols=Math.floor(c.width/fs);if(drops.length!==cols)drops=Array(cols).fill(1);
+    ctx.font=fs+'px JetBrains Mono,monospace';
+    drops.forEach((y,i)=>{
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const bright=Math.random()>.92;
+      ctx.fillStyle=bright?'#4d9fff':`rgba(0,80,216,${Math.random()*.6+.15})`;
+      ctx.fillText(ch,i*fs,y*fs);
+      if(y*fs>c.height&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    });
+  };
+  const interval=setInterval(draw,45);
+  const obs=new MutationObserver(()=>{
+    const ldr=document.getElementById('ldr');
+    if(ldr&&ldr.style.display==='none'){clearInterval(interval);obs.disconnect();}
+  });
+  const ldr=document.getElementById('ldr');
+  if(ldr)obs.observe(ldr,{attributes:true,attributeFilter:['style']});
+})();
+
+function updateWeather(onlineCount){
+  const icon=document.getElementById('weather-icon');
+  const label=document.getElementById('weather-label');
+  if(!icon||!label)return;
+  const wl=WL.length+WLM.length;
+  const ratio=wl>0?onlineCount/wl:0;
+  let ic,lb,cls;
+  if(onlineCount===0){ic='🌙';lb='CALME';cls='calm';}
+  else if(ratio<.3){ic='🌤';lb='ACTIVITÉ';cls='active';}
+  else if(ratio<.6){ic='⚡';lb='AGITÉ';cls='hot';}
+  else{ic='🔥';lb='CRITIQUE';cls='critical';}
+  if(icon.textContent!==ic){icon.style.transform='scale(1.4)';icon.textContent=ic;setTimeout(()=>icon.style.transform='',300);}
+  label.textContent=lb;
+  label.className='weather-label '+cls;
+}
+
+const sessionStart={};
+function startSession(player){if(!sessionStart[player])sessionStart[player]=Date.now();}
+function getSessionTime(player){
+  if(!sessionStart[player])return null;
+  const sec=Math.floor((Date.now()-sessionStart[player])/1000);
+  if(sec<60)return sec+'s';
+  if(sec<3600)return Math.floor(sec/60)+'min '+String(sec%60).padStart(2,'0')+'s';
+  return Math.floor(sec/3600)+'h '+String(Math.floor(sec%3600/60)).padStart(2,'0')+'min';
+}
+setInterval(()=>{
+  document.querySelectorAll('.session-timer[data-player]').forEach(el=>{
+    const t=getSessionTime(el.dataset.player);
+    if(t)el.textContent=t;
+  });
+},1000);
+
+function predictDecoTime(player){
+  const s=sessionStart[player];
+  if(!s)return null;
+  const elapsed=Math.floor((Date.now()-s)/1000/60);
+  const durs=sessionDurations[player]||[];
+  if(durs.length<2)return null;
+  const avg=durs.reduce((a,b)=>a+b,0)/durs.length;
+  const remaining=Math.round(avg-elapsed);
+  if(remaining<=0)return{text:'déco imminente',cls:'verysoon'};
+  if(remaining<=10)return{text:`~${remaining}min restantes`,cls:'verysoon'};
+  if(remaining<=30)return{text:`~${remaining}min restantes`,cls:'soon'};
+  return{text:`~${remaining}min restantes`,cls:''};
+}
+
+const sessionDurations={};
+function endSession(player){
+  if(sessionStart[player]){
+    const dur=Math.floor((Date.now()-sessionStart[player])/1000/60);
+    if(dur>1){
+      if(!sessionDurations[player])sessionDurations[player]=[];
+      sessionDurations[player].push(dur);
+      if(sessionDurations[player].length>10)sessionDurations[player].shift();
+    }
+  }
+  delete sessionStart[player];
+}
+
+async function loadSessionDurations(player){
+  try{
+    const d=await api('/api/plages/'+encodeURIComponent(player));
+    if(!d||!d.heatmap)return;
+    const hm=d.heatmap;
+    let totalSessions=0,totalDur=0;
+    hm.forEach(dayRow=>{
+      let streak=0,maxStreak=0;
+      dayRow.forEach(v=>{if(v>0){streak++;maxStreak=Math.max(maxStreak,streak);}else{streak=0;}});
+      if(maxStreak>0){totalSessions++;totalDur+=maxStreak*60;}
+    });
+    if(totalSessions>0&&!sessionDurations[player]?.length){
+      const avgMin=Math.round(totalDur/totalSessions);
+      sessionDurations[player]=[avgMin,avgMin];
+    }
+  }catch(e){}
+}
+
+let cwWatches=[];
+let cwCountries={};
+
+async function cwSave(){localStorage.setItem('mg_cw',JSON.stringify(cwWatches));}
+
+async function cwLoadCountries(){
+  const s=$('cw-srv').value;if(!s)return;
+  $('cw-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
+  try{
+    cwCountries[s]=await getCountries(s);
+    cwFilterCountries();
+  }catch{$('cw-suggest').innerHTML='';}
+}
+
+function cwFilterCountries(){
+  const s=$('cw-srv').value,v=$('cw-country').value.trim().toLowerCase();
+  const p=cwCountries[s]||[];
+  const f=v?p.filter(x=>x.toLowerCase().includes(v)):p;
+  $('cw-suggest').innerHTML=f.slice(0,60).map(x=>`<span class="tag" onclick="$('cw-country').value='${x.replace(/'/g,"\'")}';$('cw-acl').style.display='none';cwFilterCountries()">${x}</span>`).join('');
+  const acl=$('cw-acl');
+  if(v&&f.length){
+    acl.innerHTML=f.slice(0,8).map(x=>`<div class="aci" onmousedown="$('cw-country').value='${x.replace(/'/g,"\'")}';acl.style.display='none'">${x}</div>`).join('');
+    acl.style.display='block';
+  }else acl.style.display='none';
+}
+
+function cwAdd(){
+  const s=$('cw-srv').value,country=$('cw-country').value.trim();
+  if(!s||!country)return showToast('Sélectionne un serveur et un pays');
+  const exists=cwWatches.find(w=>w.server===s&&w.country.toLowerCase()===country.toLowerCase());
+  if(exists)return showToast('Déjà surveillé !');
+  cwWatches.push({server:s,country,threshold:2,online:0,members:[],alertFired:false});
+  cwSave();cwRender();cwRefreshAll();
+  $('cw-country').value='';
+  showToast(`${country} (${s.toUpperCase()}) ajouté`);
+}
+
+async function cwRemove(idx){
+  const w=cwWatches[idx];if(!w)return;
+  try{await apiP('/api/country_watches/remove',{server:w.server,country:w.country});}catch(e){}
+  cwWatches.splice(idx,1);cwSave();cwRender();
+  showToast('Surveillance supprimée');
+}
+
+async function cwRefreshOne(idx){
+  const w=cwWatches[idx];if(!w)return;
+  try{
+    const d=await api(`/api/check/${w.server}/${encodeURIComponent(w.country)}`);
+    const members=d.servers?.[w.server]||[];
+    const online=members.length;
+    const wasAlert=w.alertFired;
+    w.online=online;w.members=members;w.hasNonRecruit=false;w.alertFired=false;
+    if(online>=2){const _nr=await hasNonRecruit(members,w.server);w.hasNonRecruit=_nr;w.alertFired=_nr;}
+    if(w.alertFired&&!wasAlert){
+      showPop('connect',`⚔ ${w.country}`,`${online} membres · assaut possible · ${w.server.toUpperCase()}`);
+      sendBrowserNotif('connect',`🚨 Assaut possible sur ${w.country} — ${online} membres connectés`,w.server);
+      sndA(true);
+      showToast(`🚨 ASSAUT POSSIBLE — ${w.country} · ${online} membres sur ${w.server.toUpperCase()}`);
+    }
+    cwSave();
+  }catch(e){w.online=-1;}
+  cwRender();
+}
+
+async function cwRefreshAll(){await Promise.all(cwWatches.map((_,i)=>cwRefreshOne(i)));}
+
+function cwRender(){
+  const el=$('cw-list');if(!el)return;
+  if(!cwWatches.length){el.innerHTML='<div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div>';return;}
+  el.innerHTML=cwWatches.map((w,i)=>{
+    const alert=w.alertFired;const recruitOnly=w.online>=2&&!w.hasNonRecruit&&!alert;
+    const cnt=w.online<0?'?':w.online;
+    return`<div class="cw-item ${alert?'alert':recruitOnly?'recruit-only':''}" style="margin-bottom:.5rem">
+      <div class="cw-count ${alert?'danger':''}">${cnt}</div>
+      <div class="cw-info">
+        <div class="cw-name">${w.country}</div>
+        <div class="cw-meta">${EMO[w.server]||''} ${w.server.toUpperCase()} · assaut possible si ≥ 2 connectés</div>
+        ${w.members.length?`<div class="cw-members">${w.members.slice(0,8).map(p=>{const k=p+'@'+w.server;const g=gradeCache[k]?.rank||'?';const col=g&&g!=='recruit'&&g!=='?'?'var(--grn)':g==='recruit'?'var(--red)':'var(--t3)';return`<span style="color:${col}">${p} <span style="font-size:.4rem;opacity:.7">[${g}]</span></span>`;}).join(', ')}${w.members.length>8?` <span style="color:var(--t3)">+${w.members.length-8}</span>`:''}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">
+        <span class="cw-status ${alert?'':'ok'}">${alert?'🚨 ASSAUT POSSIBLE':'◯ PAS ASSEZ'}</span>
+        <button class="btn btn-r" style="padding:.08rem .35rem;font-size:.46rem" onclick="cwRemove(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+setInterval(cwRefreshAll, 30000);
+
+const gradeCache={};
+async function getPlayerGrade(player,server){
+  const key=player+'@'+server;
+  if(gradeCache[key]&&Date.now()-gradeCache[key].ts<120000)return gradeCache[key].rank;
+  try{
+    const r=await fetch(`${API}/api/grade/${encodeURIComponent(player)}/${server}`,{headers:{..._authHeader()}});
+    if(!r.ok)return null;
+    const d=await r.json();
+    gradeCache[key]={rank:d.rank,ts:Date.now()};
+    return d.rank;
+  }catch{return null;}
+}
+async function hasNonRecruit(members,server){
+  const results=await Promise.allSettled(members.slice(0,12).map(p=>getPlayerGrade(p,server)));
+  return results.some(r=>r.status==='fulfilled'&&r.value&&r.value!==''&&r.value!=='recruit');
+}
+
+async function init(){
+  const b=$('sound-btn');if(b&&!snd){b.textContent='🔇 SON';b.style.color='var(--t3)';}
+  if(_authed()) requestNotifPerms();
+  api('/api/country_watches').then(d=>{cwWatches=d.watches||[];const stored=JSON.parse(localStorage.getItem('mg_cw')||'[]');stored.forEach(w=>{if(!cwWatches.find(x=>x.server===w.server&&x.country===w.country))cwWatches.push(w);});cwRender();}).catch(()=>{cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');cwRender();});
+  rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
+  if(ok){
+    await loadWL();await loadWLM();loadKP();await loadDash();
+    startCountdown(5);
+    setInterval(tickCountdown,1000);
+    setInterval(async()=>{await loadWL();await loadDash();},5000);
+  }
+}
+init();
+
+// ═══════════════════════════════════════════════════════════
+// RED MATTER SIMULATOR — FONCTION MANQUANTE AJOUTÉE EN V2
+// ═══════════════════════════════════════════════════════════
+function rmCalc() {
+  const power   = parseFloat(document.getElementById('rm-power')?.value)   || 0;
+  let   warzone = parseFloat(document.getElementById('rm-warzone')?.value)  || 0;
+  const claims  = parseFloat(document.getElementById('rm-claims')?.value)   || 0;
+
+  if (power <= 0) {
+    showToast('⚠ Entre un power total valide');
+    return;
+  }
+
+  // Sécurité : warzone ne peut pas dépasser le total
+  if (warzone > power) warzone = power;
+
+  // Formule exacte (identique au script Python officiel)
+  // 1. Power soumis au poison = total - warzone
+  // 2. Multiplicateur = 0.96^18 ≈ 0.4796
+  // 3. Power restant = arrondi(soumis × multiplicateur)
+  // 4. Perte = total - power_restant  (pas juste soumis - restant)
+  // 5. Claims restants = claims - 8 (min 0)
+  // 6. Sous-power si power_restant < claims_restants
+  const factor      = Math.pow(0.96, 18);
+  const soumis      = power - warzone;
+  const powerAfter  = Math.round(soumis * factor);
+  const powerLost   = power - powerAfter;          // perte depuis le TOTAL
+  const claimsAfter = Math.max(0, claims - 8);
+
+  // Affichage résultats
+  const results = document.getElementById('rm-results');
+  if (results) results.style.display = 'block';
+
+  const elLost   = document.getElementById('rm-lost');
+  const elRemain = document.getElementById('rm-remain');
+  const elClaims = document.getElementById('rm-claims-out');
+  const elAlert  = document.getElementById('rm-alert');
+
+  if (elLost)   { elLost.textContent   = powerLost.toLocaleString('fr-FR');   elLost.style.animation='none'; setTimeout(()=>{elLost.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
+  if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.style.animation='none'; setTimeout(()=>{elRemain.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
+  if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.style.animation='none'; setTimeout(()=>{elClaims.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
+
+  // Verdict : sous-power si power_restant < claims_restants (règle exacte NationsGlory)
+  if (elAlert) {
+    elAlert.style.display = 'block';
+    const diff = powerAfter - claimsAfter;
+    const isSafe = powerAfter >= claimsAfter;
+
+    if (isSafe) {
+      elAlert.style.background = 'rgba(0,240,122,.06)';
+      elAlert.style.border     = '1px solid rgba(0,240,122,.25)';
+      elAlert.style.color      = '#00f07a';
+      elAlert.innerHTML = `
+        ✅ &nbsp;<strong>SAFE</strong> — Le pays survit au Red Matter<br>
+        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Claims restants : <strong>${claimsAfter.toLocaleString('fr-FR')}</strong> · Avance : <strong>+${diff.toLocaleString('fr-FR')}</strong> power</span>
+      `;
+    } else {
+      elAlert.style.background = 'rgba(255,24,64,.06)';
+      elAlert.style.border     = '1px solid rgba(255,24,64,.25)';
+      elAlert.style.color      = '#ff1840';
+      const manquant = Math.abs(diff);
+      elAlert.innerHTML = `
+        ☢ &nbsp;<strong>SOUS-POWER</strong> — Le pays sera en sous-power !<br>
+        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Claims restants : <strong>${claimsAfter.toLocaleString('fr-FR')}</strong> · Il manque : <strong>${manquant.toLocaleString('fr-FR')}</strong> power</span>
+      `;
+    }
+  }
+
+  // Son impact
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(80, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.3);
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTES SUR LES CIBLES
+// ═══════════════════════════════════════════════════════════
+let playerNotes={};
+let noteSelectedTag='';
+
+async function notesLoadFromAPI(){
+  try{const d=await api('/api/notes');playerNotes=d.notes||{};}catch{}
+}
+function noteSaveStore(){/* legacy noop */}
+
+function noteSelectTag(btn){
+  document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+  if(noteSelectedTag===btn.dataset.tag){noteSelectedTag='';return;}
+  noteSelectedTag=btn.dataset.tag;
+  btn.style.outline='2px solid currentColor';
+}
+
+function noteLoadExisting(){
+  const p=document.getElementById('note-player')?.value.trim();
+  if(!p||!playerNotes[p]){
+    document.getElementById('note-text').value='';
+    noteSelectedTag='';
+    document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+    return;
+  }
+  const n=playerNotes[p];
+  document.getElementById('note-text').value=n.text||'';
+  noteSelectedTag=n.tag||'';
+  document.querySelectorAll('.note-tag-btn').forEach(b=>{
+    b.style.outline=b.dataset.tag===noteSelectedTag?'2px solid currentColor':'none';
+  });
+}
+
+async function noteSave(){
+  const p=document.getElementById('note-player')?.value.trim();
+  const txt=document.getElementById('note-text')?.value.trim();
+  if(!p)return showToast('⚠ Entre un pseudo');
+  if(!txt&&!noteSelectedTag)return showToast('⚠ Ajoute une note ou une étiquette');
+  try{
+    await apiP('/api/notes/save',{player:p,text:txt,tag:noteSelectedTag});
+    playerNotes[p]={text:txt,tag:noteSelectedTag,updated:new Date().toLocaleString('fr-FR')};
+    renderNotes();
+    const fb=document.getElementById('note-feedback');
+    if(fb){fb.textContent='✓ Note sauvegardée';fb.style.opacity='1';setTimeout(()=>fb.style.opacity='0',2000);}
+    showToast(`Note sauvegardée — ${p}`);
+  }catch(e){showToast('❌ Erreur sauvegarde');}
+}
+
+async function noteDelete(){
+  const p=document.getElementById('note-player')?.value.trim();
+  if(!p||!playerNotes[p])return showToast('Aucune note pour ce joueur');
+  try{
+    await apiP('/api/notes/delete',{player:p});
+    delete playerNotes[p];
+    document.getElementById('note-text').value='';
+    noteSelectedTag='';
+    document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
+    renderNotes();
+    showToast(`Note supprimée — ${p}`);
+  }catch(e){showToast('❌ Erreur suppression');}
+}
+
+const NOTE_TAG_STYLES={
+  'ennemi':{color:'var(--red)',bg:'rgba(255,51,85,.12)',label:'⚔ Ennemi'},
+  'allié':{color:'var(--grn)',bg:'rgba(0,232,122,.1)',label:'🤝 Allié'},
+  'neutre':{color:'var(--blue-pale)',bg:'rgba(91,163,255,.1)',label:'◯ Neutre'},
+  'espion':{color:'var(--org)',bg:'rgba(255,153,0,.1)',label:'🕵 Espion'},
+  'vip':{color:'#ffd700',bg:'rgba(255,215,0,.08)',label:'⭐ VIP'},
+};
+
+function getNoteTagHtml(tag){
+  const s=NOTE_TAG_STYLES[tag];if(!s)return'';
+  return`<span style="font-family:var(--M);font-size:.5rem;padding:.12rem .45rem;border-radius:3px;background:${s.bg};color:${s.color};letter-spacing:.08em">${s.label}</span>`;
+}
+
+function renderNotes(){
+  const el=document.getElementById('notes-list');if(!el)return;
+  const search=document.getElementById('note-search')?.value.trim().toLowerCase()||'';
+  let entries=Object.entries(playerNotes);
+  if(search)entries=entries.filter(([p,n])=>p.toLowerCase().includes(search)||(n.text||'').toLowerCase().includes(search));
+  if(!entries.length){el.innerHTML='<div class="empty">Aucune note trouvée</div>';return;}
+  entries.sort((a,b)=>a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+  el.innerHTML=entries.map(([player,n])=>{
+    const s=n.tag?NOTE_TAG_STYLES[n.tag]:null;
+    return`<div style="padding:.65rem .85rem;border-bottom:1px solid var(--b1);display:flex;align-items:flex-start;gap:.7rem;cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="noteEditPlayer('${player}')">
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(player)}/28" style="width:28px;height:28px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.65rem;color:var(--t1)">${player}</span>
+          ${n.tag?getNoteTagHtml(n.tag):''}
+        </div>
+        ${n.text?`<div style="font-family:var(--M);font-size:.58rem;color:var(--t3);line-height:1.5;white-space:pre-wrap">${n.text.substring(0,120)}${n.text.length>120?'…':''}</div>`:''}
+        <div style="font-family:var(--M);font-size:.46rem;color:var(--t4);margin-top:.2rem">${n.updated||''}</div>
+      </div>
+      <button class="btn btn-r" style="padding:.07rem .3rem;font-size:.46rem;flex-shrink:0" onclick="event.stopPropagation();noteDeleteDirect('${player}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function noteEditPlayer(player){
+  document.getElementById('note-player').value=player;
+  noteLoadExisting();
+  document.getElementById('note-player').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+async function noteDeleteDirect(player){
+  try{
+    await apiP('/api/notes/delete',{player});
+    delete playerNotes[player];renderNotes();showToast(`Note supprimée — ${player}`);
+  }catch{showToast('❌ Erreur suppression');}
+}
+
+// Badge note dans panel joueur — injecté dans openPlayerPanel
+const _origOpenPP=openPlayerPanel;
+window.openPlayerPanel=async function(player){
+  await _origOpenPP(player);
+  // Injecter section note dans le panel
+  const body=document.getElementById('pp-body');
+  if(!body)return;
+  const n=playerNotes[player];
+  const noteSection=document.createElement('div');
+  noteSection.className='pp-section';
+  noteSection.id='pp-note-section';
+  const s=n?.tag?NOTE_TAG_STYLES[n.tag]:null;
+  noteSection.innerHTML=`<div class="pp-sec-title">📝 Note personnelle</div>
+    <div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.7rem .9rem;margin-top:.4rem">
+      ${n?.tag?`<div style="margin-bottom:.4rem">${getNoteTagHtml(n.tag)}</div>`:''}
+      ${n?.text?`<div style="font-family:var(--M);font-size:.6rem;color:var(--t2);line-height:1.6;white-space:pre-wrap">${n.text}</div>`:'<div style="font-family:var(--M);font-size:.58rem;color:var(--t4)">Aucune note — <span style="color:var(--blue-pale);cursor:pointer" onclick="closePlayerPanel();setTimeout(()=>{nav(\'notes\',document.querySelector(\'.tab:nth-child(10)\'));document.getElementById(\'note-player\').value=\''+player+'\';noteLoadExisting();},200)">Ajouter une note ↗</span></div>'}
+      ${n?.updated?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.35rem">Modifié : ${n.updated}</div>`:''}
+    </div>`;
+  body.appendChild(noteSection);
+};
+
+
+// ═══════════════════════════════════════════════════════════
+// CARTE DES SERVEURS
+// ═══════════════════════════════════════════════════════════
+let carteData={};
+
+async function loadCarte(){
+  const grid=document.getElementById('carte-grid');
+  const ranking=document.getElementById('carte-ranking');
+  if(grid)grid.innerHTML='<div class="ld" style="grid-column:1/-1">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
+  try{
+    const all=await api('/api/online_all');
+    carteData=all;
+    renderCarte(all);
+  }catch(e){
+    if(grid)grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
+  }
+}
+
+function getCarteColor(cnt,max){
+  if(cnt===0)return{bg:'rgba(1,10,26,.8)',border:'rgba(0,56,184,.12)',text:'var(--t4)',glow:''};
+  const r=max>0?cnt/max:0;
+  if(r<.2)return{bg:'rgba(0,40,120,.25)',border:'rgba(0,80,216,.3)',text:'var(--blue-pale)',glow:'0 0 8px rgba(0,80,216,.15)'};
+  if(r<.45)return{bg:'rgba(0,60,160,.35)',border:'rgba(26,111,255,.5)',text:'#7ec8ff',glow:'0 0 12px rgba(26,111,255,.2)'};
+  if(r<.7)return{bg:'rgba(255,120,0,.12)',border:'rgba(255,120,0,.4)',text:'var(--org)',glow:'0 0 14px rgba(255,120,0,.2)'};
+  return{bg:'rgba(255,30,60,.12)',border:'rgba(255,30,60,.5)',text:'var(--red)',glow:'0 0 18px rgba(255,30,60,.25)'};
+}
+
+function renderCarte(all){
+  const grid=document.getElementById('carte-grid');
+  const ranking=document.getElementById('carte-ranking');
+  const totalEl=document.getElementById('carte-total-txt');
+  if(!grid)return;
+  const counts=SRV.map(s=>({s,cnt:(all[s]||[]).length,bug:BUG(s)}));
+  const max=Math.max(...counts.map(x=>x.cnt),1);
+  let total=counts.reduce((a,x)=>a+x.cnt,0);
+  if(totalEl)totalEl.textContent=`${total} joueurs connectés en tout`;
+
+  grid.innerHTML=counts.map(({s,cnt,bug})=>{
+    const c=getCarteColor(cnt,max);
+    const wlOn=(WL.concat(WLM)).filter(p=>(all[s]||[]).map(x=>x.toLowerCase()).includes(p.toLowerCase()));
+    const pct=max>0?Math.round(cnt/max*100):0;
+    return`<div onclick="gOL('${s}')" style="background:${c.bg};border:1px solid ${c.border};border-radius:var(--r);padding:1rem 1.1rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;box-shadow:${c.glow}" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">
+      <div style="position:absolute;bottom:0;left:0;width:${pct}%;height:3px;background:${c.border};transition:width .4s;opacity:.7"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.2em;color:${c.text}">${s.toUpperCase()}</span>
+        <span style="font-size:.9rem">${EMO[s]}</span>
+      </div>
+      <div style="font-family:var(--D);font-size:2.4rem;color:${c.text};line-height:1;text-shadow:${c.glow}">${cnt}</div>
+      <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);letter-spacing:.12em;margin-top:.25rem">${bug?'⚠ INSTABLE':'EN LIGNE'}</div>
+      ${wlOn.length?`<div style="margin-top:.4rem;font-family:var(--M);font-size:.48rem;color:var(--grn);letter-spacing:.06em">🎯 ${wlOn.join(', ')}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Classement
+  const sorted=[...counts].sort((a,b)=>b.cnt-a.cnt);
+  if(ranking){
+    ranking.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Serveur</th><th>Joueurs</th><th>Part</th><th>Cibles</th></tr></thead><tbody>${
+      sorted.map((x,i)=>{
+        const c=getCarteColor(x.cnt,max);
+        const pct2=total>0?Math.round(x.cnt/total*100):0;
+        const wl2=(WL.concat(WLM)).filter(p=>(all[x.s]||[]).map(v=>v.toLowerCase()).includes(p.toLowerCase()));
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return`<tr onclick="gOL('${x.s}')">
+          <td style="color:var(--t3)">${medal||'#'+(i+1)}</td>
+          <td><span style="color:${c.text};font-family:var(--D);letter-spacing:.15em">${x.s.toUpperCase()}</span>${x.bug?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}</td>
+          <td style="color:var(--t1);font-family:var(--D);font-size:1.1rem">${x.cnt}</td>
+          <td><div style="display:flex;align-items:center;gap:.4rem"><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${pct2}%;height:100%;background:${c.border}"></div></div><span style="color:var(--t3);font-size:.55rem">${pct2}%</span></div></td>
+          <td>${wl2.length?`<span style="color:var(--grn);font-size:.58rem">🎯 ${wl2.join(', ')}</span>`:'<span style="color:var(--t4)">—</span>'}</td>
+        </tr>`;
+      }).join('')
+    }</tbody></table>`;
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// TOP 5 JOUEURS ACTIFS
+// ═══════════════════════════════════════════════════════════
+// Compteur de présences par joueur/serveur pendant la session
+const presenceCount={};  // {player: {total:N, servers:{srv:N}}}
+
+function trackPresence(all){
+  SRV.forEach(s=>{
+    (all[s]||[]).forEach(p=>{
+      if(!presenceCount[p])presenceCount[p]={total:0,servers:{}};
+      presenceCount[p].total++;
+      presenceCount[p].servers[s]=(presenceCount[p].servers[s]||0)+1;
+    });
+  });
+}
+
+let top5AllData={};
+let top5ServerData=[];
+
+async function loadTop5(){
+  const interEl=document.getElementById('top5-inter');
+  if(interEl)interEl.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
+  try{
+    // Charger en parallèle : joueurs en ligne + classement serveur
+    const [all, topData] = await Promise.all([
+      api('/api/online_all'),
+      api('/api/top_players?limit=20')
+    ]);
+    top5AllData=all;
+    trackPresence(all);
+    renderTop5Inter(topData.players||[], all);
+    await renderTop5BySrv();
+  }catch(e){
+    if(interEl)interEl.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
+  }
+}
+
+function renderTop5Inter(players, allOnline){
+  const el=document.getElementById('top5-inter');if(!el)return;
+  if(!players.length){el.innerHTML='<div class="empty">Pas encore de données — le classement se construit automatiquement au fil du temps.</div>';return;}
+
+  // Qui est en ligne maintenant ?
+  const nowOnline={};
+  SRV.forEach(s=>(allOnline[s]||[]).forEach(p=>{if(!nowOnline[p])nowOnline[p]=[];nowOnline[p].push(s);}));
+
+  const top=players.slice(0,5);
+  const maxScore=top[0]?.total||1;
+  const medals=['🥇','🥈','🥉','④','⑤'];
+  el.innerHTML=top.map((x,i)=>{
+    const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
+    const currentSrvs=nowOnline[x.player]||[];
+    const isOnline=currentSrvs.length>0;
+    // Serveur favori = celui avec le plus de connexions
+    const topSrv=x.servers?Object.entries(x.servers).sort((a,b)=>b[1]-a[1])[0]:null;
+    return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
+      <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]}</div>
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
+          ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
+          ${isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <div style="width:120px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(x.total/maxScore*100)}%;height:100%;background:var(--blue-lt);transition:width .4s"></div></div>
+          <span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">${x.total} connexions</span>
+          ${topSrv?`<span style="font-family:var(--M);font-size:.52rem;color:var(--t3)">· Fav : <span style="color:var(--blue-pale)">${topSrv[0].toUpperCase()}</span></span>`:''}
+        </div>
+        ${isOnline?`<div style="margin-top:.2rem">${currentSrvs.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(' ')}</div>`:''}
+        ${x.last_seen?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.15rem">Dernière co : ${x.last_seen}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function renderTop5BySrv(){
+  const el=document.getElementById('top5-srv');if(!el)return;
+  const srv=document.getElementById('top5-srv-sel')?.value||'lime';
+  el.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
+  try{
+    const [srvData, onlineNow] = await Promise.all([
+      api(`/api/top_players/${srv}?limit=10`),
+      api(`/api/online/${srv}`)
+    ]);
+    const players=srvData.players||[];
+    const onlineList=(onlineNow.players||[]).map(p=>p.toLowerCase());
+    if(!players.length){el.innerHTML=`<div class="empty">Pas encore de données pour ${srv.toUpperCase()}</div>`;return;}
+    const maxS=players[0]?.servers?.[srv]||1;
+    const medals=['🥇','🥈','🥉','④','⑤'];
+    el.innerHTML=players.slice(0,5).map((x,i)=>{
+      const score=x.servers?.[srv]||0;
+      const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
+      const isOnline=onlineList.includes(x.player.toLowerCase());
+      return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
+        <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]||'#'+(i+1)}</div>
+        <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
+            <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
+            ${inWL?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);background:rgba(0,232,122,.1);padding:.1rem .35rem;border-radius:3px">🎯 WATCHLIST</span>':''}
+            ${isOnline?`<span style="font-family:var(--M);font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:'<span style="font-family:var(--M);font-size:.46rem;color:var(--t4)">○ hors ligne</span>'}
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div style="width:100px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${Math.round(score/maxS*100)}%;height:100%;background:var(--blue-lt)"></div></div>
+            <span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">${score} connexions</span>
+          </div>
+          ${x.last_seen?`<div style="font-family:var(--M);font-size:.44rem;color:var(--t4);margin-top:.15rem">Dernière co : ${x.last_seen}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;
+  }
+}
+
+// Auto-refresh Top5 et Carte toutes les 30s si section active
+setInterval(()=>{
+  const active=document.querySelector('.sec.active');
+  if(!active)return;
+  if(active.id==='s-top5')loadTop5();
+  if(active.id==='s-carte')loadCarte();
+},30000);
+
+// Tracker la présence à chaque loadDash
+const _origLoadDash=loadDash;
+window.loadDash=async function(){
+  await _origLoadDash();
+  try{
+    const all=await api('/api/online_all');
+    trackPresence(all);
+    if(Object.keys(top5AllData).length===0)top5AllData=all;
+  }catch(e){}
+};
+
+// ═══════════════════════════════════════════════
+// MODULE PAYS RÉFÉRENTS
+// ═══════════════════════════════════════════════
+let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refCmpPeriod=90;
+const refCountryCache={};
+
+// ── Chargement pays (même logique que cwLoadCountries) ──
+async function refLoadCountries(){
+  const s=$('ref-add-srv').value;
+  if(!s){$('ref-suggest').innerHTML='';return;}
+  $('ref-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
+  try{
+    refCountryCache[s]=await getCountries(s);
+    refFilterCountries();
+  }catch(e){$('ref-suggest').innerHTML='';}
+}
+
+function refFilterCountries(){
+  const s=$('ref-add-srv').value,v=$('ref-add-country').value.trim().toLowerCase();
+  const p=refCountryCache[s]||[];
+  const f=v?p.filter(x=>x.toLowerCase().includes(v)):p;
+  $('ref-suggest').innerHTML=f.slice(0,60).map(x=>`<span class="tag" onclick="refSelectTag('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');
+  const acl=$('ref-add-acl');
+  if(v&&f.length){acl.innerHTML=f.slice(0,8).map(x=>`<div class="aci" onmousedown="refSelectTag('${x.replace(/'/g,"\\'")}')">${x}</div>`).join('');acl.style.display='block';}
+  else acl.style.display='none';
+}
+
+function refSelectTag(name){$('ref-add-country').value=name;$('ref-add-acl').style.display='none';refFilterCountries();}
+
+// ── Chargement principal ──
+async function loadReferents(){
+  const grid=$('ref-grid');
+  grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    const[rRefs,rStats7,rStats30,rStats90]=await Promise.all([
+      fetch(API+'/api/referents',{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=7',{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=30',{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(API+'/api/referents/stats?days=90',{headers:{..._authHeader()}}).then(r=>r.json()),
+    ]);
+    refAllReferents=rRefs.watches||[];
+    refAllStats=rStats90.stats||[];
+    $('ref-gs-total').textContent=refAllReferents.length;
+    $('ref-gs-week').textContent=(rStats7.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
+    $('ref-gs-month').textContent=(rStats30.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
+    const leader=(rStats90.stats||[])[0];
+    if(leader){$('ref-gs-leader').textContent=leader.country_name;$('ref-gs-leader-sub').textContent=leader.total_recruits+' recrues — '+leader.server.toUpperCase();}
+    renderRefGrid();
+    loadRefCmp();
+  }catch(e){grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur chargement</div>`;}
+}
+
+// ── Grille des pays (clic → panel membres) ──
+function renderRefGrid(){
+  const el=$('ref-grid');
+  if(!refAllReferents.length){el.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en un ci-dessus</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem">${refAllReferents.map(w=>{
+    const stat=refAllStats.find(s=>s.server===w.server&&s.country.toLowerCase()===w.country.toLowerCase());
+    const recruits=stat?.total_recruits||0;
+    const isSel=refCurSrv===w.server&&refCurCtry===w.country;
+    return`<div onclick="openRefMembers('${w.server}','${w.country.replace(/'/g,"\\'")}')"
+      style="background:var(--bg2);border:1px solid ${isSel?'var(--blue-lt)':'var(--b1)'};border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s;${isSel?'box-shadow:0 0 0 1px var(--blue-mid)':''}"
+      onmouseenter="this.style.borderColor='var(--b3)'" onmouseleave="this.style.borderColor='${isSel?'var(--blue-lt)':'var(--b1)'}'">
+      <div style="padding:.7rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)">${w.name||w.country}</span>
+        <span style="font-family:var(--M);font-size:.55rem;color:var(--t3);background:var(--bg3);padding:.12rem .4rem;border-radius:3px">${w.server.toUpperCase()}</span>
+      </div>
+      <div style="padding:.65rem 1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">
+          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">MEMBRES</span>
+          <span style="font-family:var(--D);font-size:1rem;color:var(--t1)">${w.member_count||'—'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:.45rem">
+          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">RECRUES 30J</span>
+          <span style="font-family:var(--D);font-size:1rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits}</span>
+        </div>
+        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden">
+          <div style="width:${Math.min(recruits*5,100)}%;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px"></div>
+        </div>
+      </div>
+      <div style="padding:.38rem 1rem;border-top:1px solid var(--b1);background:rgba(0,0,0,.18);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Click pour voir les membres</span>
+        <span style="font-family:var(--M);font-size:.52rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits>0?'▲ '+recruits+' recrues':'—'}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Panel membres ──
+async function openRefMembers(server,country){
+  refCurSrv=server;refCurCtry=country;
+  const ref=refAllReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
+  $('ref-mp-title').textContent=(ref?.name||country).toUpperCase();
+  $('ref-mp-sub').textContent=server.toUpperCase()+' · '+(ref?.member_count||'?')+' membres';
+  $('ref-members-panel').style.display='block';
+  $('ref-members-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  renderRefGrid();
+  await refRefreshMembers();
+}
+
+async function refRefreshMembers(){
+  if(!refCurSrv||!refCurCtry)return;
+  const body=$('ref-members-body');
+  body.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    // Récupérer membres + joueurs en ligne sur le serveur en parallèle
+    const[checkData,onlineData]=await Promise.all([
+      fetch(`${API}/api/check/${refCurSrv}/${encodeURIComponent(refCurCtry)}`,{headers:{..._authHeader()}}).then(r=>r.json()),
+      fetch(`${API}/api/online/${refCurSrv}`,{headers:{..._authHeader()}}).then(r=>r.json()),
+    ]);
+    if(checkData.error){body.innerHTML=`<div class="empty" style="color:var(--red)">❌ ${checkData.error}</div>`;return;}
+    const allMembers=checkData.members_total||0;
+    const onlineList=(onlineData.players||[]).map(p=>p.toLowerCase());
+    // Membres en ligne sur leur serveur natif
+    const onlineOnSrv=(checkData.servers?.[refCurSrv]||[]);
+    // Membres en ligne ailleurs
+    const onlineElsewhere=Object.entries(checkData.servers||{})
+      .filter(([s])=>s!==refCurSrv)
+      .flatMap(([s,pl])=>pl.map(p=>({player:p,server:s})));
+
+    // On récupère la liste complète des membres depuis l'API country
+    // checkData.members_total est le count total, on va afficher ceux qu'on connaît
+    const knownOnline=new Set([...onlineOnSrv,...onlineElsewhere.map(x=>x.player)].map(p=>p.toLowerCase()));
+    const snapshot=refAllReferents.find(w=>w.server===refCurSrv&&w.country.toLowerCase()===refCurCtry.toLowerCase())?.members_snapshot||[];
+
+    // Construire l'affichage
+    const onlineCount=checkData.online_total||0;
+    body.innerHTML=`
+      <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">
+          <span style="font-family:var(--D);font-size:1.8rem;color:var(--grn);margin-right:.3rem">${onlineCount}</span>en ligne
+        </div>
+        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">
+          <span style="font-family:var(--D);font-size:1.8rem;color:var(--t2);margin-right:.3rem">${allMembers}</span>membres total
+        </div>
+        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">
+          <span style="font-family:var(--D);font-size:1.8rem;color:var(--blue-pale);margin-right:.3rem">${snapshot.length||allMembers}</span>dans snapshot
+        </div>
+      </div>
+      ${onlineOnSrv.length?`
+        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--grn);margin-bottom:.5rem">🟢 EN LIGNE — ${refCurSrv.toUpperCase()} (${onlineOnSrv.length})</div>
+        <div class="tags" style="margin-bottom:1rem">
+          ${onlineOnSrv.map(p=>`<span class="tag on" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}') " style="cursor:pointer">🟢 ${p}</span>`).join('')}
+        </div>`:''}
+      ${onlineElsewhere.length?`
+        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--org);margin-bottom:.5rem">🟡 EN LIGNE AILLEURS (${onlineElsewhere.length})</div>
+        <div class="tags" style="margin-bottom:1rem">
+          ${onlineElsewhere.map(({player:p,server:s})=>`<span class="tag" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}') " style="cursor:pointer;border-color:rgba(255,153,0,.35);color:var(--org)">🟡 ${p} <span style="font-size:.42rem;opacity:.7">${s.toUpperCase()}</span></span>`).join('')}
+        </div>`:''}
+      ${snapshot.length?`
+        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--t3);margin-bottom:.5rem">⚫ HORS LIGNE (${snapshot.filter(p=>!knownOnline.has(p.toLowerCase())).length})</div>
+        <div class="tags">
+          ${snapshot.filter(p=>!knownOnline.has(p.toLowerCase())).map(p=>`<span class="tag" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}') " style="cursor:pointer">⚫ ${p}</span>`).join('')}
+        </div>`
+      :(!onlineOnSrv.length&&!onlineElsewhere.length?'<div class="empty">Aucun membre connu hors ligne — le snapshot se remplira au prochain scan (5 min)</div>':'')}
+    `;
+  }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
+}
+
+async function loadRefHistory(){
+  if(!refCurSrv||!refCurCtry)return;
+  const body=$('ref-hist-body');
+  if(!body)return;
+  body.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    const d=await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${encodeURIComponent(refCurCtry)}&limit=200&departures=1`,{headers:{..._authHeader()}}).then(r=>r.json());
+    const events=d.events||[];
+    if(!events.length){body.innerHTML='<div class="empty">Aucun événement enregistré — le tracking démarre au prochain scan (30 min)</div>';return;}
+    const recruits=events.filter(e=>!e.departure);
+    const departs=events.filter(e=>e.departure);
+    body.innerHTML=`
+      <div style="display:flex;gap:2rem;margin-bottom:1rem;flex-wrap:wrap">
+        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--grn)">${recruits.length}</span> recrutements</div>
+        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--red)">${departs.length}</span> départs</div>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.8rem">
+        <button class="btn" id="ref-hist-tab-all" onclick="refHistFilter('all')" style="font-size:.5rem;padding:.2rem .6rem">Tous (${events.length})</button>
+        <button class="btn" id="ref-hist-tab-recruit" onclick="refHistFilter('recruit')" style="font-size:.5rem;padding:.2rem .6rem">Recrutements</button>
+        <button class="btn" id="ref-hist-tab-depart" onclick="refHistFilter('depart')" style="font-size:.5rem;padding:.2rem .6rem">Départs</button>
+      </div>
+      <div id="ref-hist-list">
+        ${renderHistEvents(events)}
+      </div>
+    `;
+    body._allEvents=events;
+  }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
+}
+
+function renderHistEvents(events){
+  if(!events.length)return'<div class="empty">Aucun événement</div>';
+  return events.map(e=>{
+    const isDepart=!!e.departure;
+    const color=isDepart?'var(--red)':'var(--grn)';
+    const icon=isDepart?'🚪':'🆕';
+    const label=isDepart?'DÉPART':'RECRUTEMENT';
+    return`<div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .2rem;border-bottom:1px solid var(--b1)">
+      <img src="https://mc-heads.net/avatar/${encodeURIComponent(e.player)}/24" style="width:24px;height:24px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${e.player.replace(/'/g,"\'")}')">${e.player}</span>
+          <span style="font-family:var(--M);font-size:.46rem;padding:.08rem .35rem;border-radius:3px;background:${isDepart?'rgba(255,51,85,.12)':'rgba(0,232,122,.1)'};color:${color}">${icon} ${label}</span>
+        </div>
+        <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);margin-top:.15rem">${e.ts} · ${e.members_before}→${e.members_after} membres</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function refHistFilter(type){
+  const body=$('ref-hist-body');
+  if(!body||!body._allEvents)return;
+  let evts=body._allEvents;
+  if(type==='recruit')evts=evts.filter(e=>!e.departure);
+  else if(type==='depart')evts=evts.filter(e=>e.departure);
+  const list=$('ref-hist-list');
+  if(list)list.innerHTML=renderHistEvents(evts);
+  document.querySelectorAll('[id^="ref-hist-tab-"]').forEach(b=>b.style.borderColor='');
+  const active=$('ref-hist-tab-'+type);
+  if(active)active.style.borderColor='var(--blue)';
+}
+
+function refShowTab(tab){
+  ['members','history'].forEach(t=>{
+    const panel=$('ref-tab-'+t);
+    const btn=$('ref-tabn-'+t);
+    if(panel)panel.style.display=t===tab?'block':'none';
+    if(btn){btn.style.color=t===tab?'var(--blue)':'var(--t3)';btn.style.borderBottom=t===tab?'1px solid var(--blue)':'1px solid transparent';}
+  });
+  if(tab==='history')loadRefHistory();
+}
+
+function closeRefMembers(){
+  $('ref-members-panel').style.display='none';
+  refCurSrv=null;refCurCtry=null;
+  renderRefGrid();
+}
+
+// ── Comparatif ──
+async function loadRefCmp(){
+  const el=$('ref-cmp');
+  el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
+  try{
+    const d=await fetch(API+'/api/referents/stats?days='+refCmpPeriod,{headers:{..._authHeader()}}).then(r=>r.json());
+    const stats=d.stats||[];
+    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (30 min)</div>';return;}
+    const max=stats[0]?.total_recruits||1;
+    const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
+    el.innerHTML=stats.map((x,i)=>`<div onclick="openRefMembers('${x.server}','${x.country.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
+      <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)">${x.country_name}</span>
+      <span style="font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:55px">${x.server.toUpperCase()}</span>
+      <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">
+        <div style="width:${Math.round(x.total_recruits/max*100)}%;height:100%;background:${colors[i%colors.length]};border-radius:4px;transition:width .6s"></div>
+      </div>
+      <span style="font-family:var(--D);font-size:1.1rem;min-width:35px;text-align:right;color:var(--t1)">${x.total_recruits}</span>
+      <span style="font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:65px;text-align:right">${x.unique_players} joueurs</span>
+    </div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>';}
+}
+
+function setCmpRefPeriod(days,btn){
+  refCmpPeriod=days;
+  btn.closest('.ph').querySelectorAll('.btn').forEach(b=>{b.style.background='';b.style.borderColor='';b.style.color='';});
+  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
+  loadRefCmp();
+}
+
+// ── Ajouter / Retirer ──
+async function addReferentEntry(){
+  const server=$('ref-add-srv').value,country=$('ref-add-country').value.trim();
+  if(!server||!country)return showToast('⚠ Sélectionne un serveur et un pays');
+  try{
+    const d=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify({server,country})}).then(r=>r.json());
+    if(d.error)return showToast('❌ '+d.error);
+    $('ref-add-country').value='';
+    showToast('✅ '+country+' ('+server.toUpperCase()+') ajouté');
+    await loadReferents();
+  }catch(e){showToast('❌ Erreur réseau');}
+}
+
+async function removeReferentEntry(server,country){
+  if(!confirm('Retirer '+country+' ('+server.toUpperCase()+') de la surveillance ?'))return;
+  try{
+    const d=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify({server,country})}).then(r=>r.json());
+    if(d.error)return showToast('❌ '+d.error);
+    showToast('🗑 '+country+' retiré');
+    closeRefMembers();
+    await loadReferents();
+  }catch(e){showToast('❌ Erreur réseau');}
+}
+
+setInterval(()=>{
+  const active=document.querySelector('.sec.active');
+  if(active&&active.id==='s-referents'){
+    loadReferents();
+    if(refCurSrv)refRefreshMembers();
+  }
+},300000);
+// ═══════════════════════════════════════════════════════════
+// DYNMAP MARKERS PATCH — Power / Claims / MMR / Membres
+// Source : https://lime.nationsglory.fr/tiles/_markers_/marker_world.json
+// À coller à la FIN du script.js existant
+// ═══════════════════════════════════════════════════════════
+
+// ── Cache global du JSON markers ──
+// URLs directes par serveur
+const DYNMAP_URLS = {
+  blue:   'https://blue.nationsglory.fr/tiles/_markers_/marker_world.json',
+  coral:  'https://coral.nationsglory.fr/tiles/_markers_/marker_world.json',
+  orange: 'https://orange.nationsglory.fr/tiles/_markers_/marker_world.json',
+  red:    'https://red.nationsglory.fr/tiles/_markers_/marker_world.json',
+  yellow: 'https://yellow.nationsglory.fr/tiles/_markers_/marker_world.json',
+  mocha:  'https://mocha.nationsglory.fr/tiles/_markers_/marker_world.json',
+  white:  'https://white.nationsglory.fr/tiles/_markers_/marker_world.json',
+  jade:   'https://jade.nationsglory.fr/tiles/_markers_/marker_world.json',
+  black:  'https://black.nationsglory.fr/tiles/_markers_/marker_world.json',
+  cyan:   'https://cyan.nationsglory.fr/tiles/_markers_/marker_world.json',
+  lime:   'https://lime.nationsglory.fr/tiles/_markers_/marker_world.json',
+};
+
+const _dynCache = {};      // { srv: { ts, data } }
+const DYNMAP_TTL = 120000; // 2 min
+
+// Fetch avec CORS proxy uniquement si nécessaire
+async function fetchDynmap(srv = 'lime') {
+  const now = Date.now();
+  if (_dynCache[srv] && now - _dynCache[srv].ts < DYNMAP_TTL) {
+    return _dynCache[srv].data;
+  }
+  try {
+    const url = DYNMAP_URLS[srv] || `https://${srv}.nationsglory.fr/tiles/_markers_/marker_world.json`;
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    _dynCache[srv] = { ts: now, data: d };
+    return d;
+  } catch (e) {
+    console.warn('[dynmap] fetch failed for', srv, e.message);
+    return null;
+  }
+}
+
+// ── Extraire les infos d'un pays depuis le JSON markers ──
+function parseDynmapCountry(data, countryName) {
+  if (!data) return null;
+  const factions = data?.sets?.['factions.markerset']?.markers || {};
+  const key = Object.keys(factions).find(k => {
+    const lbl = factions[k].label || '';
+    return lbl.toLowerCase().replace(/\s/g, '').startsWith(
+      countryName.toLowerCase().replace(/\s/g, '')
+    );
+  });
+  if (!key) return null;
+  const marker = factions[key];
+  const desc = marker.desc || '';
+
+  // Parser le HTML de la desc
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(desc, 'text/html');
+  const text = doc.body.innerText || doc.body.textContent || '';
+
+  // Extraire Claims, Power, MMR
+  const claimsMatch = text.match(/Claims\s+([\d]+)/i);
+  const powerMatch  = text.match(/Power\s+([\d]+)\s*\/\s*([\d]+)/i);
+  const mmrMatch    = text.match(/MMR\s+([\d]+)/i);
+  const leaderMatch = text.match(/Leader du pays\s*\n?\s*([^\n]+)/i);
+
+  // Membres : tout ce qui est après "Membres" jusqu'à la fin
+  const membresMatch = text.match(/Membres\s*\n([\s\S]*)/i);
+  let membres = [];
+  if (membresMatch) {
+    membres = membresMatch[1]
+      .split(/[\n,]/)
+      .map(s => s.trim())
+      .filter(s => s && s.length > 1 && !s.includes('%'));
+  }
+
+  // Dates de création
+  const createdMatch = text.match(/Créé il y a (\d+) jour/i);
+
+  return {
+    name:    countryName,
+    claims:  claimsMatch  ? parseInt(claimsMatch[1])  : null,
+    power:   powerMatch   ? parseInt(powerMatch[1])   : null,
+    powerMax:powerMatch   ? parseInt(powerMatch[2])   : null,
+    mmr:     mmrMatch     ? parseInt(mmrMatch[1])     : null,
+    leader:  leaderMatch  ? leaderMatch[1].trim()     : null,
+    membres,
+    membresCount: membres.length,
+    daysOld: createdMatch ? parseInt(createdMatch[1]) : null,
+    label:   marker.label || countryName,
+  };
+}
+
+// ── UI : badge compact stats pays ──
+function renderDynmapBadge(stats) {
+  if (!stats) return '';
+  const powerRatio = stats.power && stats.powerMax
+    ? stats.power / stats.powerMax
+    : null;
+  const powerColor = powerRatio === null ? 'var(--t3)'
+    : powerRatio >= 1   ? 'var(--grn)'
+    : powerRatio >= 0.7 ? 'var(--org)'
+    : 'var(--red)';
+
+  const powerBar = powerRatio !== null ? `
+    <div style="width:80px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:.4rem">
+      <div style="width:${Math.round(powerRatio*100)}%;height:100%;background:${powerColor};border-radius:2px;transition:width .4s"></div>
+    </div>` : '';
+
+  const items = [
+    stats.claims  !== null ? `<span style="color:var(--t2)">📍 <b>${stats.claims}</b> claims</span>` : '',
+    stats.power   !== null ? `<span style="color:${powerColor}">⚡ <b>${stats.power}</b>${stats.powerMax !== null ? '/'+stats.powerMax : ''}${powerBar}</span>` : '',
+    stats.mmr     !== null ? `<span style="color:#ffd700">🏆 <b>${stats.mmr}</b> MMR</span>` : '',
+    stats.membresCount     ? `<span style="color:var(--blue-pale)">👥 <b>${stats.membresCount}</b> membres</span>` : '',
+    stats.daysOld !== null ? `<span style="color:var(--t4)">📅 ${stats.daysOld}j</span>` : '',
+  ].filter(Boolean);
+
+  if (!items.length) return '';
+
+  return `
+    <div class="dynmap-badge" style="
+      background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
+      padding:.5rem .75rem;margin:.5rem 0;display:flex;flex-wrap:wrap;gap:.6rem .9rem;
+      align-items:center;font-family:var(--M);font-size:.58rem;
+    ">
+      <span style="font-family:var(--D);font-size:.7rem;color:var(--blue-pale);letter-spacing:.12em;flex-basis:100%">
+        ◈ DYNMAP — ${stats.label}
+        ${stats.leader ? `<span style="font-family:var(--M);font-size:.5rem;color:var(--t3);margin-left:.6rem">Leader: ${stats.leader}</span>` : ''}
+      </span>
+      ${items.join('')}
+    </div>`;
+}
+
+// ── Enrichir doCheck() — on monkey-patch l'original ──
+const _origDoCheck = window.doCheck || doCheck;
+window.doCheck = async function() {
+  await _origDoCheck();
+
+  // Lire les valeurs du formulaire (même logique que l'original)
+  const srv    = document.getElementById('ck-srv')?.value;
+  const raw    = document.getElementById('ck-country')?.value.trim();
+  const res    = document.getElementById('ck-result');
+  if (!srv || !raw || !res) return;
+
+  // Injecter le badge sous le résultat existant
+  try {
+    const data = await fetchDynmap(srv);
+    const stats = parseDynmapCountry(data, raw);
+    if (stats) {
+      const badge = document.createElement('div');
+      badge.innerHTML = renderDynmapBadge(stats);
+      res.appendChild(badge.firstElementChild || badge);
+    }
+  } catch (e) {
+    console.warn('[dynmap] doCheck patch error', e);
+  }
+};
+
+// ── Enrichir cwRender() — injecter power/claims dans chaque carte pays ──
+const _origCwRefreshOne = window.cwRefreshOne || cwRefreshOne;
+window.cwRefreshOne = async function(idx) {
+  await _origCwRefreshOne(idx);
+  // Après le refresh, on injecte les stats dynmap dans la carte correspondante
+  const w = cwWatches[idx];
+  if (!w) return;
+  try {
+    const data  = await fetchDynmap(w.server);
+    const stats = parseDynmapCountry(data, w.country);
+    if (!stats) return;
+    // Trouver la carte rendue dans cw-list
+    const cards = document.querySelectorAll('#cw-list .cw-item');
+    const card  = cards[idx];
+    if (!card) return;
+    // Supprimer un badge précédent s'il existe
+    card.querySelector('.dynmap-badge')?.remove();
+    // Créer et insérer le badge
+    const div = document.createElement('div');
+    div.innerHTML = renderDynmapBadge(stats);
+    const badge = div.firstElementChild;
+    if (badge) {
+      badge.style.margin = '.4rem 0 0 0';
+      card.appendChild(badge);
+    }
+  } catch (e) {
+    console.warn('[dynmap] cwRefreshOne patch error', e);
+  }
+};
+
+// ── Enrichir openPlayerPanel — ajouter section pays du joueur ──
+const _origOPP2 = window.openPlayerPanel;
+window.openPlayerPanel = async function(player) {
+  await _origOPP2(player);
+  const body = document.getElementById('pp-body');
+  if (!body) return;
+
+  // Chercher le joueur dans tous les pays de lime (serveur par défaut)
+  try {
+    const data = await fetchDynmap('lime');
+    if (!data) return;
+    const factions = data?.sets?.['factions.markerset']?.markers || {};
+    let foundCountry = null;
+
+    for (const key of Object.keys(factions)) {
+      const marker = factions[key];
+      const desc = marker.desc || '';
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(desc, 'text/html');
+      const text = doc.body.innerText || doc.body.textContent || '';
+      const membresMatch = text.match(/Membres\s*\n([\s\S]*)/i);
+      if (!membresMatch) continue;
+      const membres = membresMatch[1]
+        .split(/[\n,]/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (membres.some(m => m.toLowerCase() === player.toLowerCase())) {
+        const countryLabel = marker.label?.replace(/\s*\[.*?\]/g, '').trim() || key;
+        const claimsMatch = text.match(/Claims\s+([\d]+)/i);
+        const powerMatch  = text.match(/Power\s+([\d]+)\s*\/\s*([\d]+)/i);
+        const mmrMatch    = text.match(/MMR\s+([\d]+)/i);
+        const leaderMatch = text.match(/Leader du pays\s*\n?\s*([^\n]+)/i);
+        const createdMatch= text.match(/Créé il y a (\d+) jour/i);
+        foundCountry = {
+          name:      countryLabel,
+          claims:    claimsMatch  ? parseInt(claimsMatch[1])  : null,
+          power:     powerMatch   ? parseInt(powerMatch[1])   : null,
+          powerMax:  powerMatch   ? parseInt(powerMatch[2])   : null,
+          mmr:       mmrMatch     ? parseInt(mmrMatch[1])     : null,
+          leader:    leaderMatch  ? leaderMatch[1].trim()     : null,
+          membresCount: membres.length,
+          daysOld:   createdMatch ? parseInt(createdMatch[1]) : null,
+          label:     countryLabel,
+        };
+        break;
+      }
+    }
+
+    if (!foundCountry) return;
+
+    // Insérer section pays dans le panel
+    const existing = document.getElementById('pp-dynmap-section');
+    if (existing) existing.remove();
+
+    const section = document.createElement('div');
+    section.className = 'pp-section';
+    section.id = 'pp-dynmap-section';
+    const powerRatio = foundCountry.power && foundCountry.powerMax
+      ? foundCountry.power / foundCountry.powerMax : null;
+    const powerColor = powerRatio === null ? 'var(--t3)'
+      : powerRatio >= 1   ? 'var(--grn)'
+      : powerRatio >= 0.7 ? 'var(--org)'
+      : 'var(--red)';
+    const isLeader = foundCountry.leader
+      && foundCountry.leader.toLowerCase() === player.toLowerCase();
+
+    section.innerHTML = `
+      <div class="pp-sec-title">🏳 Pays (LIME) — ${foundCountry.name}
+        ${isLeader ? '<span style="font-family:var(--M);font-size:.48rem;color:#ffd700;margin-left:.4rem">👑 LEADER</span>' : ''}
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.65rem .9rem;margin-top:.4rem;display:flex;flex-wrap:wrap;gap:.5rem .9rem;font-family:var(--M);font-size:.6rem">
+        ${foundCountry.claims !== null ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">CLAIMS</span><span style="color:var(--t1);font-family:var(--D);font-size:1.3rem">${foundCountry.claims}</span></div>` : ''}
+        ${foundCountry.power !== null ? `<div>
+          <span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">POWER</span>
+          <span style="color:${powerColor};font-family:var(--D);font-size:1.3rem">${foundCountry.power}</span>
+          <span style="color:var(--t3);font-size:.5rem">/${foundCountry.powerMax}</span>
+          <div style="width:70px;height:4px;background:var(--bg3);border-radius:2px;margin-top:.3rem"><div style="width:${powerRatio !== null ? Math.round(powerRatio*100) : 0}%;height:100%;background:${powerColor};border-radius:2px"></div></div>
+        </div>` : ''}
+        ${foundCountry.mmr !== null ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">MMR</span><span style="color:#ffd700;font-family:var(--D);font-size:1.3rem">${foundCountry.mmr}</span></div>` : ''}
+        ${foundCountry.membresCount ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">MEMBRES</span><span style="color:var(--blue-pale);font-family:var(--D);font-size:1.3rem">${foundCountry.membresCount}</span></div>` : ''}
+        ${foundCountry.daysOld !== null ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">ÂGE</span><span style="color:var(--t2);font-family:var(--D);font-size:1.3rem">${foundCountry.daysOld}</span><span style="color:var(--t3);font-size:.5rem">j</span></div>` : ''}
+        ${foundCountry.leader ? `<div style="flex-basis:100%;margin-top:.2rem"><span style="color:var(--t3);font-size:.5rem;letter-spacing:.1em">LEADER : </span><span style="color:var(--t1);cursor:pointer" onclick="closePlayerPanel();setTimeout(()=>openPlayerPanel('${foundCountry.leader}'),300)">${foundCountry.leader}</span></div>` : ''}
+      </div>`;
+
+    // Insérer avant la section note si elle existe
+    const noteSection = document.getElementById('pp-note-section');
+    if (noteSection) {
+      body.insertBefore(section, noteSection);
+    } else {
+      body.appendChild(section);
+    }
+  } catch (e) {
+    console.warn('[dynmap] openPlayerPanel patch error', e);
+  }
+};
+
+// ── Fonction utilitaire globale : stats d'un pays ──
+window.getCountryStats = async function(country, srv = 'lime') {
+  const data = await fetchDynmap(srv);
+  return parseDynmapCountry(data, country);
+};
+
+// ── Red Matter Simulator : auto-fill depuis Dynmap ──
+window.rmAutoFill = async function() {
+  const country = prompt('Nom du pays à auto-remplir :');
+  if (!country) return;
+  const srv = document.getElementById('rm-srv')?.value || 'lime';
+  showToast('⏳ Récupération Dynmap...');
+  try {
+    const stats = await window.getCountryStats(country, srv);
+    if (!stats) { showToast('❌ Pays introuvable dans Dynmap'); return; }
+    const p = document.getElementById('rm-power');
+    const c = document.getElementById('rm-claims');
+    if (p && stats.power !== null)  { p.value = stats.power;  p.dispatchEvent(new Event('input')); }
+    if (c && stats.claims !== null) { c.value = stats.claims; c.dispatchEvent(new Event('input')); }
+    showToast(`✅ ${stats.label} — Power: ${stats.power} / Claims: ${stats.claims}`);
+  } catch (e) {
+    showToast('❌ Erreur Dynmap : ' + e.message);
+  }
+};
+
+// ── Injecter bouton auto-fill dans la section Red Matter si elle existe ──
+(function injectRmButton() {
+  const tryInject = () => {
+    const rmPowerEl = document.getElementById('rm-power');
+    if (!rmPowerEl) return;
+    if (document.getElementById('rm-autofill-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'rm-autofill-btn';
+    btn.className = 'btn';
+    btn.style.cssText = 'font-size:.52rem;padding:.28rem .7rem;margin-top:.5rem;display:block';
+    btn.textContent = '⚡ Auto-fill depuis Dynmap';
+    btn.onclick = () => window.rmAutoFill();
+    rmPowerEl.closest('div')?.parentElement?.appendChild(btn);
+  };
+  // Essayer maintenant et après chargement
+  tryInject();
+  window.addEventListener('load', tryInject);
+  setTimeout(tryInject, 2000);
+})();
+
+console.log('[dynmap patch] ✅ Chargé — Power/Claims/MMR/Membres depuis marker_world.json');
