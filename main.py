@@ -205,12 +205,12 @@ _STATIC_COUNTRIES_FALLBACK=sorted(["ArchipelCrozet","Algerie","Angola","IlesAnda
 
 # Délai minimum entre deux appels API /country/list par serveur (anti rate-limit)
 _ctry_last_fetch={}   # {server: timestamp du dernier appel réussi ou tenté}
-CTRY_FETCH_COOLDOWN=3600  # 1h min entre deux refresh via API
+CTRY_FETCH_COOLDOWN=21600  # 6h min entre deux refresh via API (liste des pays change rarement)
 
 async def get_country_list(server):
 	now=time.time()
 	# 1. Cache encore valide → on retourne directement
-	if server in ctry_cache and now-ctry_cache[server][1]<CACHE_TTL:
+	if server in ctry_cache and now-ctry_cache[server][1]<CTRY_FETCH_COOLDOWN:
 		return ctry_cache[server][0]
 	# 2. Cooldown anti rate-limit : si on a déjà appelé l'API récemment, retourner le cache (même périmé) ou le fallback
 	last_fetch=_ctry_last_fetch.get(server,0)
