@@ -18,10 +18,7 @@ cw_msg_id=None
 WL=list(DEFAULT_WL)
 WL_MOCHA=list(DEFAULT_WL)
 wl_msg_id=wl_mocha_msg_id=None
-
-# ── PAYS RÉFÉRENTS ──
-REFERENT_WATCHES=[]  # [{'server':str,'country':str,'name':str,'members_snapshot':[],'added_at':str}]
-
+REFERENT_WATCHES=[]
 intents=discord.Intents.default()
 client=discord.Client(intents=intents)
 tree=app_commands.CommandTree(client)
@@ -29,25 +26,18 @@ SERVERS={'blue':{'url':'https://blue.nationsglory.fr/standalone/dynmap_world.jso
 CACHE_TTL=900
 ctry_cache={}
 CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization'}
-
-# ── JWT AUTH ──
-
-# ── RATE LIMITER / ANTI BRUTEFORCE ──
-_fail_attempts={}  # {ip: [timestamps]}
-_blocked_ips={}    # {ip: block_until_timestamp}
+_fail_attempts={}
+_blocked_ips={}
 MAX_ATTEMPTS=5
-BLOCK_DURATION=900  # 15 min
-ATTEMPT_WINDOW=300  # 5 min
-
+BLOCK_DURATION=900
+ATTEMPT_WINDOW=300
 def _get_ip(request):
 	return request.headers.get('X-Forwarded-For','').split(',')[0].strip() or request.remote or 'unknown'
-
 def _is_blocked(ip):
 	if ip in _blocked_ips:
 		if time.time()<_blocked_ips[ip]:return True
 		del _blocked_ips[ip]
 	return False
-
 def _record_fail(ip):
 	now=time.time()
 	if ip not in _fail_attempts:_fail_attempts[ip]=[]
@@ -58,11 +48,9 @@ def _record_fail(ip):
 		print(f"🚫 IP bloquée {ip} pour {BLOCK_DURATION}s",flush=True)
 		return True
 	return False
-
 def _clear_attempts(ip):
 	_fail_attempts.pop(ip,None)
 	_blocked_ips.pop(ip,None)
-
 JWT_SECRET=os.environ.get('JWT_SECRET',secrets.token_hex(32))
 def _jwt_sign(payload):
 	header=base64.urlsafe_b64encode(json.dumps({'alg':'HS256','typ':'JWT'}).encode()).rstrip(b'=').decode()
@@ -104,13 +92,11 @@ def init_mongo():
 		config_col=db['config']
 		sessions_col.create_index([('player',ASCENDING),('ts',ASCENDING)])
 		db['presence'].create_index([('total',-1)])
-		# Index pour les recrutements
 		db['recruitments'].create_index([('server',ASCENDING),('country',ASCENDING),('ts',ASCENDING)])
 		db['notes'].create_index([('player',ASCENDING)],unique=True)
 		mongo_ok=True
 		print('✅ MongoDB OK',flush=True)
 	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
-
 def record_connection(player,server):
 	if not mongo_ok:return
 	try:
@@ -125,7 +111,6 @@ def record_connection(player,server):
 			upsert=True
 		)
 	except:pass
-
 def get_sessions(player,limit=500):
 	if not mongo_ok:return[]
 	try:from pymongo import ASCENDING;return list(sessions_col.find({'player':player},{'_id':0}).sort('ts',ASCENDING).limit(limit))
@@ -180,14 +165,11 @@ async def load_cw():
 	global COUNTRY_WATCHES;v=cfg_get('country_watches')
 	if v:COUNTRY_WATCHES=v
 async def save_cw():cfg_set('country_watches',COUNTRY_WATCHES)
-
-# ── LOAD/SAVE RÉFÉRENTS ──
 async def load_referents():
 	global REFERENT_WATCHES
 	v=cfg_get('referent_watches')
 	if v:REFERENT_WATCHES=v;print(f"✅ Référents chargés: {len(REFERENT_WATCHES)}",flush=True)
 async def save_referents():cfg_set('referent_watches',REFERENT_WATCHES)
-
 async def load_watchlist():await _load_wl('WL','WATCHLIST',CH_STORAGE)
 async def save_watchlist():await _save_wl('WL','WATCHLIST',CH_STORAGE)
 async def load_watchlist_mocha():await _load_wl('MOCHA','WATCHLIST_MOCHA',CH_M_RAPPORT)
@@ -200,19 +182,13 @@ async def get_online(server):
 	except:pass
 	return[]
 async def get_all_online():results=await asyncio.gather(*[get_online(s)for s in SERVERS],return_exceptions=True);return{s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
-# ── FALLBACK STATIQUE (utilisé uniquement si l'API est down ou rate-limitée) ──
 _STATIC_COUNTRIES_FALLBACK=sorted(["ArchipelCrozet","Algerie","Angola","IlesAndaman","Autriche","Azerbaidjan","Bahrein","Bangladesh","Belgique","Benin","Bielorussie","Bolivie","Bosnie","BurkinaFaso","Cambodge","CentreAfrique","Chili","Colombie","Congo","RDCongo","CoreeDuSud","CoteDivoire","Egypte","EmiratsArabesUnis","Equateur","Erythree","Ethiopie","Iakoutie","Iamalie","IleBolchevique","IlesBaleares","IleCoats","IleDeLaReunion","IlesFeroe","IlesFidji","IlesGalapagos","IleMaurice","IleVictoria","Gabon","Georgie","Ghana","Groenland","Guatemala","Guyane","Guyana","Hainan","Inde","Indonesie","Irak","Iran","Italie","IlesVancouver","Japon","Java","Kazakhstan","Khabarovsk","Kenya","Kosovo","Krasnoy","Laos","Lettonie","Libye","Lituanie","Macedoine","Malaisie","Malte","Kamtchatka","Mali","Maroc","Mauritanie","Magadan","Mozambique","Namibie","Niger","Nigeria","Norvege","NouvelleGuinee","NouvelleZemble","Ouganda","Ouzbekistan","Palaos","Pakistan","Portugal","Qatar","SaharaOccidental","Serbie","Somalie","Srilanka","StHelena","IlesSandwich","IleBouvet","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Tanzanie","Tchoukota","TerreSiple","TerreSpaatz","TerreMill","TerreGrant","TerreVega","TerreThor","TerreLow","TerrePowell","TerreBurke","TerreSigny","TerreBooth","TerreSmith","TerreRoss","TerreLiard","TerreMasson","Thailande","Tibet","Timor","Touva","Tunisie","Turkmenistan","Turquie","TriniteEtTobago","Uruguay","WallisEtFutuna","Yemen","Zambie","Zimbabwe","Montana","Michigan","Nunavut","Sonora","Queensland","Minnesota","Washington","Oregon","Idaho","Utah","NouveauMexique","Colorado","Wyoming","Quinghai","Xinjiang","Yunnam","Sichuan","Guizhou","Guangxi","Guangdong","Chypre","Roumanie","EmpireJordanien","Madagan","Tasmanie","EmpireBissaoguineen","Liberia","EmpireIrkoutsk","IleWrangel","Canada","TerreAdelie","Suede","Djibouti","Paraguay","Nepal","Bhoutan","Sakhaline","RoyaumeUni","IlesSalomon","EtatsUnis","Liban","Bahamas","EmpireOmanais","RepubliqueTcheque","Espagne","Danemark","Jamaique","NouvelleZelande","Bouriatie","Taiwan","Tomsk","Cameroun","Amour","Kirghizistan","Venezuela","IlesKerguelen","Soudan","Sardaigne","Luxembourg","Bresil","Nevada","Moldavie","Malawi","NouvelleCaledonie","AfriqueDuSud","CoreeDuNord","Estonie","Wisconsin","Birmanie","TerreDeFeu","Salvador","Koweit","Baja","Socotra","Botswana","TerreSnow","Allemagne","Pologne","Slovenie","PaysBas","Philippines","Texas","Suisse","Altai","Floride","Quebec","Slovaquie","Madagascar","Montenegro","Mongolie","Nicaragua","Sumatra","France","Bulgarie","Alaska","Argentine","Grece","Australie","Belize","Armenie","Afghanistan","Californie","Russie","Islande","Perou","Arizona","Tchad","Albanie","IlesCanaries","Togo","Chine","Mexique","Ontario","IleGraham","Dakota","Vietnam","Papouasie","Croatie"])
-
-# Délai minimum entre deux appels API /country/list par serveur (anti rate-limit)
-_ctry_last_fetch={}   # {server: timestamp du dernier appel réussi ou tenté}
-CTRY_FETCH_COOLDOWN=21600  # 6h min entre deux refresh via API (liste des pays change rarement)
-
+_ctry_last_fetch={}
+CTRY_FETCH_COOLDOWN=21600
 async def get_country_list(server):
 	now=time.time()
-	# 1. Cache encore valide → on retourne directement
 	if server in ctry_cache and now-ctry_cache[server][1]<CTRY_FETCH_COOLDOWN:
 		return ctry_cache[server][0]
-	# 2. Cooldown anti rate-limit : si on a déjà appelé l'API récemment, retourner le cache (même périmé) ou le fallback
 	last_fetch=_ctry_last_fetch.get(server,0)
 	if now-last_fetch<CTRY_FETCH_COOLDOWN:
 		if server in ctry_cache:
@@ -220,7 +196,6 @@ async def get_country_list(server):
 			return ctry_cache[server][0]
 		print(f"[countries] {server} cooldown actif, fallback statique",flush=True)
 		return _STATIC_COUNTRIES_FALLBACK
-	# 3. Appel API avec retry/backoff exponentiel
 	_ctry_last_fetch[server]=now
 	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
 	delay=30
@@ -249,7 +224,6 @@ async def get_country_list(server):
 			print(f"[countries] {server} erreur tentative {attempt+1}: {e}",flush=True)
 			await asyncio.sleep(delay)
 			delay=min(delay*2,300)
-	# 4. Échec total → cache périmé ou fallback statique
 	if server in ctry_cache:
 		print(f"[countries] {server} fallback sur cache périmé ({len(ctry_cache[server][0])} pays)",flush=True)
 		return ctry_cache[server][0]
@@ -264,11 +238,6 @@ async def get_country_members(server,country):
 				if data.get('members'):return[m.lstrip('*+-')for m in data['members']],data.get('name',country)
 	except:pass
 	return None,None
-
-# ══════════════════════════════════════════════
-# TRACKING RECRUTEMENTS PAYS RÉFÉRENTS
-# ══════════════════════════════════════════════
-
 def record_recruitment(server,country,country_name,player,old_count,new_count):
 	"""Enregistre un recrutement détecté dans MongoDB."""
 	if not mongo_ok:return
@@ -284,7 +253,6 @@ def record_recruitment(server,country,country_name,player,old_count,new_count):
 			'members_after':new_count,
 		})
 	except Exception as e:print(f"❌ record_recruitment: {e}",flush=True)
-
 def record_departure(server,country,country_name,player,old_count,new_count):
 	"""Enregistre un départ (perte de membre)."""
 	if not mongo_ok:return
@@ -301,7 +269,6 @@ def record_departure(server,country,country_name,player,old_count,new_count):
 			'departure':True,
 		})
 	except Exception as e:print(f"❌ record_departure: {e}",flush=True)
-
 async def verify_members_by_api(server, members):
 	"""Vérifie via l'API /user que chaque joueur appartient vraiment au pays sur ce serveur.
 	Retourne uniquement les joueurs ayant un country_rank valide (filtre les faux positifs de l'API membres)."""
@@ -319,7 +286,6 @@ async def verify_members_by_api(server, members):
 					else:verified.append(p)  # En cas d'erreur API on garde le joueur par défaut
 			except:verified.append(p)
 	return verified
-
 async def verify_members_with_ranks(server, members):
 	"""Comme verify_members_by_api mais retourne aussi les ranks.
 	Retourne (verified_list, rank_dict) — rank_dict = {player: rank}"""
@@ -337,38 +303,31 @@ async def verify_members_with_ranks(server, members):
 					else:verified.append(p)  # En cas d'erreur API on garde le joueur
 			except:verified.append(p)
 	return verified,ranks
-
 async def check_referent(watch):
 	"""Vérifie les recrutements d'un pays référent et met à jour le snapshot."""
 	try:
 		server=watch['server'];country=watch['country']
 		members,name=await get_country_members(server,country)
 		if not members:return
-		# Vérification double via /user pour filtrer les faux positifs de l'API membres
 		members=await verify_members_by_api(server,members)
 		if not members:return
-		# Mettre à jour le nom réel du pays
 		watch['name']=name
 		prev_set=set(watch.get('members_snapshot',[]))
 		curr_set=set(members)
 		old_count=len(prev_set);new_count=len(curr_set)
-		# Détection recrutements (nouveaux membres)
 		new_recruits=curr_set-prev_set
 		for p in new_recruits:
 			print(f"🆕 Recrutement détecté : {p} → {name} ({server.upper()})",flush=True)
 			record_recruitment(server,country,name,p,old_count,new_count)
-		# Détection départs
 		departures=prev_set-curr_set
 		for p in departures:
-			if prev_set:  # Pas au premier scan (snapshot vide)
+			if prev_set:
 				print(f"🚪 Départ détecté : {p} ← {name} ({server.upper()})",flush=True)
 				record_departure(server,country,name,p,old_count,new_count)
-		# Mise à jour snapshot
 		watch['members_snapshot']=members
 		watch['last_check']=(datetime.utcnow()+timedelta(hours=1)).strftime('%d/%m/%Y %H:%M:%S')
 		watch['member_count']=new_count
 	except Exception as e:print(f"❌ check_referent {watch}: {e}",flush=True)
-
 async def referent_tracker_loop():
 	"""Boucle de tracking des pays référents — toutes les 5 minutes."""
 	await client.wait_until_ready()
@@ -380,10 +339,7 @@ async def referent_tracker_loop():
 				await asyncio.gather(*[check_referent(w) for w in REFERENT_WATCHES],return_exceptions=True)
 				await save_referents()
 		except Exception as e:print(f"❌ referent_tracker_loop: {e}",flush=True)
-		await asyncio.sleep(1800)  # 30 minutes
-
-# ── API ENDPOINTS RÉFÉRENTS ──
-
+		await asyncio.sleep(1800)
 @require_auth
 async def api_referent_get(r):
 	"""Liste tous les pays référents surveillés."""
@@ -399,7 +355,6 @@ async def api_referent_get(r):
 			'members_snapshot':w.get('members_snapshot',[]),
 		})
 	return cors({'watches':result})
-
 @require_auth
 async def api_referent_add(r):
 	"""Ajouter un pays référent à surveiller."""
@@ -411,7 +366,6 @@ async def api_referent_add(r):
 		if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
 		exists=any(w['server']==server and w['country'].lower()==country.lower() for w in REFERENT_WATCHES)
 		if exists:return cors({'error':'Déjà surveillé'},409)
-		# Récupérer le vrai nom + snapshot initial
 		members,name=await get_country_members(server,country)
 		now=(datetime.utcnow()+timedelta(hours=1)).strftime('%d/%m/%Y %H:%M')
 		REFERENT_WATCHES.append({
@@ -426,7 +380,6 @@ async def api_referent_add(r):
 		await save_referents()
 		return cors({'watches':[{'server':w['server'],'country':w['country'],'name':w.get('name',w['country']),'member_count':w.get('member_count',0)} for w in REFERENT_WATCHES]})
 	except Exception as e:return cors({'error':str(e)},400)
-
 @require_auth
 async def api_referent_remove(r):
 	"""Retirer un pays référent."""
@@ -439,7 +392,6 @@ async def api_referent_remove(r):
 		await save_referents()
 		return cors({'watches':[{'server':w['server'],'country':w['country'],'name':w.get('name',w['country'])} for w in REFERENT_WATCHES]})
 	except Exception as e:return cors({'error':str(e)},400)
-
 @require_auth
 async def api_referent_stats(r):
 	"""Stats globales des recrutements par pays référent (30 derniers jours)."""
@@ -453,7 +405,6 @@ async def api_referent_stats(r):
 		query={'ts':{'$gte':since},'departure':{'$exists':False}}
 		if server:query['server']=server.lower()
 		if country:query['country']=country.lower()
-		# Agrégation par pays
 		pipeline=[
 			{'$match':query},
 			{'$group':{
@@ -481,7 +432,6 @@ async def api_referent_stats(r):
 			})
 		return cors({'stats':result,'days':days})
 	except Exception as e:return cors({'error':str(e)},500)
-
 @require_auth
 async def api_referent_history(r):
 	"""Historique détaillé des recrutements d'un pays référent."""
@@ -499,7 +449,6 @@ async def api_referent_history(r):
 		for d in docs:
 			if 'ts' in d and hasattr(d['ts'],'strftime'):
 				d['ts']=d['ts'].strftime('%d/%m/%Y %H:%M:%S')
-		# Courbe par jour (30 derniers jours)
 		since=datetime.utcnow()+timedelta(hours=1)-timedelta(days=30)
 		pipeline=[
 			{'$match':{'server':server.lower(),'country':country.lower(),'ts':{'$gte':since},'departure':{'$exists':False}}},
@@ -514,7 +463,6 @@ async def api_referent_history(r):
 		for c in curve:c['players']=list(set(c['players']))
 		return cors({'events':docs,'curve':curve,'total':len(docs)})
 	except Exception as e:return cors({'error':str(e)},500)
-
 @require_auth
 async def api_referent_timeline(r):
 	"""Timeline globale de tous les pays référents — courbe par jour."""
@@ -538,11 +486,6 @@ async def api_referent_timeline(r):
 		docs=list(db['recruitments'].aggregate(pipeline))
 		return cors({'timeline':docs,'days':days})
 	except Exception as e:return cors({'error':str(e)},500)
-
-# ══════════════════════════════════════════════
-# NOTES PARTAGÉES
-# ══════════════════════════════════════════════
-
 @require_auth
 async def api_notes_get(r):
 	"""Récupère toutes les notes joueurs."""
@@ -552,7 +495,6 @@ async def api_notes_get(r):
 		notes={d['player']:{'text':d.get('text',''),'tag':d.get('tag',''),'updated':d.get('updated','')} for d in docs}
 		return cors({'notes':notes})
 	except Exception as e:return cors({'error':str(e)},500)
-
 @require_auth
 async def api_notes_save(r):
 	"""Sauvegarde ou met à jour une note joueur."""
@@ -571,7 +513,6 @@ async def api_notes_save(r):
 			)
 		return cors({'ok':True,'updated':now})
 	except Exception as e:return cors({'error':str(e)},500)
-
 @require_auth
 async def api_notes_delete(r):
 	"""Supprime la note d'un joueur."""
@@ -582,11 +523,6 @@ async def api_notes_delete(r):
 		if mongo_ok:db['notes'].delete_one({'player':player})
 		return cors({'ok':True})
 	except Exception as e:return cors({'error':str(e)},500)
-
-# ══════════════════════════════════════════════
-# API EXISTANTS (inchangés)
-# ══════════════════════════════════════════════
-
 async def api_health(r):
     return cors({'status':'ok','mongo':mongo_ok,'ng_key_len':len(NG_KEY or ''),'ng_key_start':(NG_KEY or '')[:10]})
 @require_auth
@@ -603,14 +539,12 @@ async def api_countries(r):
 	s=r.match_info['server'].lower()
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
 	raw=await get_country_list(s)
-	# Renvoie toujours une liste de strings (noms extraits)
 	names=[x['name']if isinstance(x,dict)else x for x in raw if(isinstance(x,dict)and x.get('name','').strip())or(isinstance(x,str)and x.strip())]
 	return cors({'server':s,'countries':names,'claimed':names})
 @require_auth
 async def api_check(r):
 	s,c=r.match_info['server'].lower(),r.match_info['country']
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
-	# Normalise le nom du pays (case-insensitive) via la liste cached
 	country_list=await get_country_list(s)
 	match=next((x for x in country_list if x.lower()==c.lower()),c)
 	members,name=await get_country_members(s,match)
@@ -722,7 +656,6 @@ async def api_top_players_server(r):
 				d['last_seen']=d['last_seen'].strftime('%d/%m/%Y %H:%M')
 		return cors({'players':docs})
 	except Exception as e:return cors({'error':str(e)},500)
-
 async def srv_ac(i,cur):return[app_commands.Choice(name=s.upper(),value=s)for s in SERVERS if cur.lower()in s][:25]
 async def ctry_ac(i,cur):
 	s=i.namespace.server
@@ -802,7 +735,6 @@ _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
 rapport_msg_id=None
 _rate_limited=False
-
 async def safe_send(channel,**kwargs):
 	global _rate_limited
 	while True:
@@ -812,7 +744,6 @@ async def safe_send(channel,**kwargs):
 				retry=e.retry_after if hasattr(e,'retry_after')else 30
 				_rate_limited=True;print(f"⚠️ Rate limit, attente {retry}s",flush=True);await asyncio.sleep(retry);_rate_limited=False
 			else:raise
-
 async def safe_edit(msg,**kwargs):
 	global _rate_limited
 	while True:
@@ -850,8 +781,6 @@ async def check_country_watch(watch):
 	try:
 		server=watch['server'];country=watch['country'];members,name=await get_country_members(server,country)
 		if not members:return
-		# Vérification double via /user pour filtrer les faux positifs de l'API membres
-		# On récupère aussi les ranks pour éviter un 2e appel API plus bas
 		members,rank_map=await verify_members_with_ranks(server,members)
 		if not members:return
 		online_players=await get_online(server);online_members=[m for m in members if m in online_players]
@@ -910,7 +839,6 @@ async def start_web():
 		('POST','/api/country_watches/remove',api_cw_remove),
 		('GET','/api/top_players',api_top_players),
 		('GET','/api/top_players/{server}',api_top_players_server),
-		# ── NOUVEAUX : Pays Référents ──
 		('GET','/api/referents',api_referent_get),
 		('POST','/api/referents/add',api_referent_add),
 		('POST','/api/referents/remove',api_referent_remove),
@@ -937,7 +865,7 @@ async def main():
 		asyncio.create_task(start_web())
 		if RENDER_URL:asyncio.create_task(self_ping())
 		asyncio.create_task(scanner_loop())
-		asyncio.create_task(referent_tracker_loop())  # ← NOUVEAU
+		asyncio.create_task(referent_tracker_loop())
 		try:await client.start(TOKEN)
 		except discord.errors.HTTPException as e:print(f"❌ Rate limit Discord: {e}",flush=True);await asyncio.sleep(60);sys.exit(1)
 		except Exception as e:print(f"❌ Erreur: {e}",flush=True);await asyncio.sleep(30);sys.exit(1)
