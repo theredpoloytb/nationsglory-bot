@@ -28,6 +28,9 @@ tree=app_commands.CommandTree(client)
 SERVERS={'blue':{'url':'https://blue.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔵'},'coral':{'url':'https://coral.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔴'},'orange':{'url':'https://orange.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟠'},'red':{'url':'https://red.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔴'},'yellow':{'url':'https://yellow.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟡'},'mocha':{'url':'https://mocha.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟤'},'white':{'url':'https://white.nationsglory.fr/standalone/dynmap_world.json','emoji':'⚪'},'jade':{'url':'https://jade.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟢'},'black':{'url':'https://black.nationsglory.fr/standalone/dynmap_world.json','emoji':'⚫'},'cyan':{'url':'https://cyan.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔵'},'lime':{'url':'https://lime.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟢'}}
 CACHE_TTL=900
 ctry_cache={}
+# Cache dynmap markers (power/claims/mmr/membres en temps réel)
+_dynmap_markers_cache={}   # {server: (data_dict, timestamp)}
+DYNMAP_MARKERS_TTL=120     # 2min de cache (dynmap se met à jour toutes les ~30s)
 CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization'}
 
                 
@@ -255,15 +258,70 @@ async def get_country_list(server):
 		return ctry_cache[server][0]
 	print(f"[countries] {server} fallback statique ({len(_STATIC_COUNTRIES_FALLBACK)} pays)",flush=True)
 	return _STATIC_COUNTRIES_FALLBACK
-async def get_country_members(server,country):
+async def _fetch_dynmap_markers(server):
+	"""Récupère et met en cache le marker_world.json du dynmap (source temps réel)."""
+	now=time.time()
+	if server in _dynmap_markers_cache and now-_dynmap_markers_cache[server][1]<DYNMAP_MARKERS_TTL:
+		return _dynmap_markers_cache[server][0]
 	try:
-		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
-		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
-			async with s.get(f"https://publicapi.nationsglory.fr/country/{server}/{country}",headers=headers)as r:
-				data=await r.json()
-				if data.get('members'):return[m.lstrip('*+-')for m in data['members']],data.get('name',country)
-	except:pass
-	return None,None
+		url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_world.json"
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
+			async with s.get(url)as r:
+				if r.status==200:
+					data=await r.json(content_type=None)
+					markers=data.get('sets',{}).get('factions.markerset',{}).get('markers',{})
+					_dynmap_markers_cache[server]=(markers,now)
+					print(f"[dynmap] {server} markers OK ({len(markers)} pays)",flush=True)
+					return markers
+	except Exception as e:
+		print(f"[dynmap] {server} erreur: {e}",flush=True)
+	return{}
+
+def _parse_marker_desc(desc):
+	"""Parse le HTML du desc dynmap → dict avec members, claims, power, maxpower, mmr, leader."""
+	import html,re as _re
+	desc=html.unescape(desc)
+	# Membres
+	m=_re.search(r'Membres<\/span><br\/>\s*(.*?)<br',desc,_re.S)
+	members=[x.strip()for x in m.group(1).split(',')if x.strip()]if m else[]
+	# Claims / Power / MMR
+	c=_re.search(r'Claims<\/b>\s*(\d+)',desc)
+	p=_re.search(r'Power<\/b>\s*(\d+)\s*\/\s*(\d+)',desc)
+	mmr=_re.search(r'MMR<\/b>\s*(\d+)',desc)
+	# Leader
+	l=_re.search(r'src=\'https:\/\/skins\.nationsglory\.fr\/face\/([^/]+)\/',desc)
+	return{
+		'members':members,
+		'claims':int(c.group(1))if c else 0,
+		'power':int(p.group(1))if p else 0,
+		'maxpower':int(p.group(2))if p else 0,
+		'mmr':int(mmr.group(1))if mmr else 0,
+		'leader':l.group(1)if l else '',
+	}
+
+async def get_country_from_dynmap(server,country):
+	"""Retourne (members, name, extra_dict) depuis le dynmap marker_world.json."""
+	markers=await _fetch_dynmap_markers(server)
+	key=f"default_{country}__home"
+	if key in markers:
+		desc=markers[key].get('desc','')
+		parsed=_parse_marker_desc(desc)
+		name=markers[key].get('label',country).replace(' [home]','').strip()
+		return parsed['members'],name,parsed
+	# Fallback fuzzy (casse insensible)
+	cl=country.lower()
+	for k,v in markers.items():
+		if cl in k.lower():
+			desc=v.get('desc','')
+			parsed=_parse_marker_desc(desc)
+			name=v.get('label',country).replace(' [home]','').strip()
+			return parsed['members'],name,parsed
+	return None,None,{}
+
+async def get_country_members(server,country):
+	"""Compatibilité rétro — retourne (members, name) depuis dynmap."""
+	members,name,_=await get_country_from_dynmap(server,country)
+	return members,name
 
                                                 
                                       
@@ -608,16 +666,17 @@ async def api_countries(r):
 async def api_check(r):
 	s,c=r.match_info['server'].lower(),r.match_info['country']
 	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
-                                                                  
 	country_list=await get_country_list(s)
 	match=next((x for x in country_list if x.lower()==c.lower()),c)
-	members,name=await get_country_members(s,match)
+	members,name,extra=await get_country_from_dynmap(s,match)
 	if not members:return cors({'error':'Pays introuvable'},404)
 	all_=await get_all_online();found,total={},0
 	for(sv,pl)in all_.items():
 		f=[m for m in members if m in pl]
 		if f:found[sv]=f;total+=len(f)
-	return cors({'country':name,'members_total':len(members),'online_total':total,'servers':found})
+	return cors({'country':name,'members_total':len(members),'online_total':total,'servers':found,
+		'claims':extra.get('claims',0),'power':extra.get('power',0),'maxpower':extra.get('maxpower',0),
+		'mmr':extra.get('mmr',0),'leader':extra.get('leader','')})
 @require_auth
 async def api_wl_get(r):return cors({'players':WL})
 @require_auth
