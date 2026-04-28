@@ -200,25 +200,61 @@ async def get_online(server):
 	except:pass
 	return[]
 async def get_all_online():results=await asyncio.gather(*[get_online(s)for s in SERVERS],return_exceptions=True);return{s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
+# ── FALLBACK STATIQUE (utilisé uniquement si l'API est down ou rate-limitée) ──
+_STATIC_COUNTRIES_FALLBACK=sorted(["ArchipelCrozet","Algerie","Angola","IlesAndaman","Autriche","Azerbaidjan","Bahrein","Bangladesh","Belgique","Benin","Bielorussie","Bolivie","Bosnie","BurkinaFaso","Cambodge","CentreAfrique","Chili","Colombie","Congo","RDCongo","CoreeDuSud","CoteDivoire","Egypte","EmiratsArabesUnis","Equateur","Erythree","Ethiopie","Iakoutie","Iamalie","IleBolchevique","IlesBaleares","IleCoats","IleDeLaReunion","IlesFeroe","IlesFidji","IlesGalapagos","IleMaurice","IleVictoria","Gabon","Georgie","Ghana","Groenland","Guatemala","Guyane","Guyana","Hainan","Inde","Indonesie","Irak","Iran","Italie","IlesVancouver","Japon","Java","Kazakhstan","Khabarovsk","Kenya","Kosovo","Krasnoy","Laos","Lettonie","Libye","Lituanie","Macedoine","Malaisie","Malte","Kamtchatka","Mali","Maroc","Mauritanie","Magadan","Mozambique","Namibie","Niger","Nigeria","Norvege","NouvelleGuinee","NouvelleZemble","Ouganda","Ouzbekistan","Palaos","Pakistan","Portugal","Qatar","SaharaOccidental","Serbie","Somalie","Srilanka","StHelena","IlesSandwich","IleBouvet","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Tanzanie","Tchoukota","TerreSiple","TerreSpaatz","TerreMill","TerreGrant","TerreVega","TerreThor","TerreLow","TerrePowell","TerreBurke","TerreSigny","TerreBooth","TerreSmith","TerreRoss","TerreLiard","TerreMasson","Thailande","Tibet","Timor","Touva","Tunisie","Turkmenistan","Turquie","TriniteEtTobago","Uruguay","WallisEtFutuna","Yemen","Zambie","Zimbabwe","Montana","Michigan","Nunavut","Sonora","Queensland","Minnesota","Washington","Oregon","Idaho","Utah","NouveauMexique","Colorado","Wyoming","Quinghai","Xinjiang","Yunnam","Sichuan","Guizhou","Guangxi","Guangdong","Chypre","Roumanie","EmpireJordanien","Madagan","Tasmanie","EmpireBissaoguineen","Liberia","EmpireIrkoutsk","IleWrangel","Canada","TerreAdelie","Suede","Djibouti","Paraguay","Nepal","Bhoutan","Sakhaline","RoyaumeUni","IlesSalomon","EtatsUnis","Liban","Bahamas","EmpireOmanais","RepubliqueTcheque","Espagne","Danemark","Jamaique","NouvelleZelande","Bouriatie","Taiwan","Tomsk","Cameroun","Amour","Kirghizistan","Venezuela","IlesKerguelen","Soudan","Sardaigne","Luxembourg","Bresil","Nevada","Moldavie","Malawi","NouvelleCaledonie","AfriqueDuSud","CoreeDuNord","Estonie","Wisconsin","Birmanie","TerreDeFeu","Salvador","Koweit","Baja","Socotra","Botswana","TerreSnow","Allemagne","Pologne","Slovenie","PaysBas","Philippines","Texas","Suisse","Altai","Floride","Quebec","Slovaquie","Madagascar","Montenegro","Mongolie","Nicaragua","Sumatra","France","Bulgarie","Alaska","Argentine","Grece","Australie","Belize","Armenie","Afghanistan","Californie","Russie","Islande","Perou","Arizona","Tchad","Albanie","IlesCanaries","Togo","Chine","Mexique","Ontario","IleGraham","Dakota","Vietnam","Papouasie","Croatie"])
+
+# Délai minimum entre deux appels API /country/list par serveur (anti rate-limit)
+_ctry_last_fetch={}   # {server: timestamp du dernier appel réussi ou tenté}
+CTRY_FETCH_COOLDOWN=3600  # 1h min entre deux refresh via API
+
 async def get_country_list(server):
 	now=time.time()
-	if server in ctry_cache and now-ctry_cache[server][1]<CACHE_TTL:return ctry_cache[server][0]
-	try:
-		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
-		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
-			async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}",headers=headers)as r:
-				print(f"[countries] {server} status={r.status} ng_key={'OK' if NG_KEY else 'MISSING'}",flush=True)
-				if r.status in(200,500):
-					data=await r.json()
-					raw=data.get('claimed',[])+data.get('availables',[])if isinstance(data,dict) else data
-					claimed=sorted([c['name']for c in raw if isinstance(c,dict)and c.get('name','').strip()])
-					print(f"[countries] {server} => {len(claimed)} pays",flush=True)
-					ctry_cache[server]=claimed,now;return claimed
-				else:
-					print(f"[countries] {server} HTTP {r.status}: {await r.text()}",flush=True)
-	except Exception as e:
-		print(f"[countries] {server} ERREUR: {e}",flush=True)
-	return[]
+	# 1. Cache encore valide → on retourne directement
+	if server in ctry_cache and now-ctry_cache[server][1]<CACHE_TTL:
+		return ctry_cache[server][0]
+	# 2. Cooldown anti rate-limit : si on a déjà appelé l'API récemment, retourner le cache (même périmé) ou le fallback
+	last_fetch=_ctry_last_fetch.get(server,0)
+	if now-last_fetch<CTRY_FETCH_COOLDOWN:
+		if server in ctry_cache:
+			print(f"[countries] {server} cooldown actif, cache périmé réutilisé ({len(ctry_cache[server][0])} pays)",flush=True)
+			return ctry_cache[server][0]
+		print(f"[countries] {server} cooldown actif, fallback statique",flush=True)
+		return _STATIC_COUNTRIES_FALLBACK
+	# 3. Appel API avec retry/backoff exponentiel
+	_ctry_last_fetch[server]=now
+	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+	delay=30
+	for attempt in range(4):
+		try:
+			async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
+				async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}",headers=headers)as r:
+					if r.status==429:
+						retry_after=int(r.headers.get('Retry-After',delay))
+						print(f"[countries] {server} 429 rate-limit, attente {retry_after}s (tentative {attempt+1}/4)",flush=True)
+						await asyncio.sleep(retry_after)
+						delay=min(delay*2,300)
+						continue
+					if r.status in(200,500):
+						data=await r.json()
+						raw=data.get('claimed',[])+data.get('availables',[])if isinstance(data,dict)else data
+						claimed=sorted([c['name']for c in raw if isinstance(c,dict)and c.get('name','').strip()])
+						if claimed:
+							print(f"[countries] {server} OK => {len(claimed)} pays",flush=True)
+							ctry_cache[server]=claimed,now
+							return claimed
+					else:
+						print(f"[countries] {server} HTTP {r.status}",flush=True)
+						break
+		except Exception as e:
+			print(f"[countries] {server} erreur tentative {attempt+1}: {e}",flush=True)
+			await asyncio.sleep(delay)
+			delay=min(delay*2,300)
+	# 4. Échec total → cache périmé ou fallback statique
+	if server in ctry_cache:
+		print(f"[countries] {server} fallback sur cache périmé ({len(ctry_cache[server][0])} pays)",flush=True)
+		return ctry_cache[server][0]
+	print(f"[countries] {server} fallback statique ({len(_STATIC_COUNTRIES_FALLBACK)} pays)",flush=True)
+	return _STATIC_COUNTRIES_FALLBACK
 async def get_country_members(server,country):
 	try:
 		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
