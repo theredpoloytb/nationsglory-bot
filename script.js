@@ -1,20 +1,15 @@
-// ═══════════════════════════════════════════════════════════
-// PASSWORD GATE — protection renforcée
-// ═══════════════════════════════════════════════════════════
 (function(){
   const SESSION_KEY = 'mg_token_v3';
   const MAIN = document.querySelector('.main');
   const HDR  = document.querySelector('.hdr');
   const NAV  = document.querySelector('.nav');
 
-  // Cache le contenu réel dès le départ
   function lockContent() {
     if(MAIN) MAIN.style.display = 'none';
     if(HDR)  HDR.style.display  = 'none';
     if(NAV)  NAV.style.display  = 'none';
   }
 
-  // Révèle le contenu seulement après auth validée
   function unlockContent() {
     const lock = document.getElementById('init-lock');
     if(lock) lock.remove();
@@ -23,10 +18,9 @@
     if(NAV)  NAV.style.display  = '';
   }
 
-  // Vérifie en permanence que le gate est toujours là (anti-inspecteur)
   function watchGate() {
     const gate = document.getElementById('pw-gate');
-    // Si quelqu'un supprime le gate sans être authentifié → troll
+    
     if(!gate && !sessionStorage.getItem(SESSION_KEY)) {
       trollUser();
     }
@@ -57,7 +51,7 @@
         </div>
       </div>
     `;
-    // Fausse IP pour faire peur
+    
     setTimeout(() => {
       const fake = `${rand(1,254)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`;
       document.getElementById('fake-ip').textContent =
@@ -67,7 +61,6 @@
 
   function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
-  // Auth déjà validée en session → débloquer directement
   if(sessionStorage.getItem(SESSION_KEY)){
     const gate = document.getElementById('pw-gate');
     if(gate) gate.style.display = 'none';
@@ -78,9 +71,9 @@
       const el = document.getElementById('pw-input-el');
       if(el) el.focus();
     }, 100);
-    // Surveille toutes les 500ms si le gate est supprimé
+    
     const observer = setInterval(watchGate, 500);
-    // On arrête de surveiller une fois authentifié
+    
     window._stopGateWatch = () => clearInterval(observer);
   }
 
@@ -111,7 +104,7 @@
         err.style.opacity = '1';
         inp.value = '';
         inp.style.borderColor = 'rgba(255,24,64,.5)';
-        // Si bloqué, désactiver le champ
+        
         if(r.status === 429){
           inp.disabled = true;
           inp.placeholder = 'Bloqué 15 minutes...';
@@ -134,21 +127,17 @@
   };
 })();
 
-
-// ═══════════════════════════════════════════════════════════
-// MAIN APPLICATION
-// ═══════════════════════════════════════════════════════════
 const API='https://nationsglory-spy.onrender.com';
 const SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
 const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
-// Fallback statique — utilisé UNIQUEMENT si l'API rate-limite ET que le cache localStorage est vide
+
 const STATIC_COUNTRIES_FALLBACK=["AfriqueDuSud","Afghanistan","Alaska","Albanie","Algerie","Allemagne","Altai","Amour","Angola","ArchipelCrozet","Argentine","Armenie","Arizona","Australie","Autriche","Azerbaidjan","Bahamas","Bahrein","Baja","Bangladesh","Belgique","Belize","Benin","Bhoutan","Bielorussie","Birmanie","Bolivie","Bosnie","Botswana","Bouriatie","Bresil","Bulgarie","BurkinaFaso","Californie","Cambodge","Cameroun","Canada","CentreAfrique","Chili","Chine","Chypre","Colombie","Congo","CoreeDuNord","CoreeDuSud","CoteDivoire","Croatie","Dakota","Danemark","Djibouti","Egypte","EmiratsArabesUnis","EmpireBissaoguineen","EmpireIrkoutsk","EmpireJordanien","EmpireOmanais","Equateur","Erythree","Espagne","Estonie","EtatsUnis","Ethiopie","Floride","France","Gabon","Georgie","Ghana","Grece","Groenland","Guatemala","Guangdong","Guangxi","Guizhou","Guyana","Guyane","Hainan","Iakoutie","Iamalie","Idaho","IleCoats","IleBolchevique","IleDeLaReunion","IleGraham","IleMaurice","IleVictoria","IleWrangel","IlesBaleares","IlesCanaries","IlesFeroe","IlesFidji","IlesGalapagos","IlesKerguelen","IlesSalomon","IlesSandwich","IlesVancouver","IleBouvet","Inde","Indonesie","Irak","Iran","Islande","Italie","Jamaique","Japon","Java","Kazakhstan","Kenya","Khabarovsk","Kirghizistan","Kosovo","Koweit","Krasnoy","Laos","Liban","Liberia","Libye","Lituanie","Lettonie","Luxembourg","Macedoine","Madagan","Madagascar","Magadan","Malaisie","Malawi","Mali","Malte","Maroc","Mauritanie","Mexique","Michigan","Minnesota","Moldavie","Mongolie","Montenegro","Montana","Mozambique","Namibie","Nepal","Nevada","Nicaragua","Niger","Nigeria","Norvege","NouvelleCaledonie","NouvelleGuinee","NouvelleZelande","NouvelleZemble","NouveauMexique","Nunavut","Ontario","Oregon","Ouganda","Ouzbekistan","Pakistan","Palaos","Papouasie","Paraguay","PaysBas","Perou","Philippines","Pologne","Portugal","Qatar","Quebec","Quinghai","RDCongo","RepubliqueTcheque","Roumanie","RoyaumeUni","Russie","SaharaOccidental","Sakhaline","Salvador","Sardaigne","Serbie","Sichuan","Slovaquie","Slovenie","Socotra","Somalie","Sonora","Soudan","Srilanka","StHelena","Suede","Suisse","Sumatra","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Taiwan","Tanzanie","Tasmanie","Tchad","Tchoukota","TerreAdelie","TerreBooth","TerreBurke","TerreDeFeu","TerreGrant","TerreLiard","TerreLow","TerreMasson","TerreMill","TerrePowell","TerreRoss","TerreSigny","TerreSiple","TerreSmith","TerreSnow","TerreSpaatz","TerreThor","TerreVega","Texas","Thailande","Tibet","Timor","Togo","Tomsk","Touva","TriniteEtTobago","Tunisie","Turkmenistan","Turquie","Uruguay","Utah","Venezuela","Vietnam","WallisEtFutuna","Washington","Wisconsin","Xinjiang","Yemen","Yunnam","Zambie","Zimbabwe"].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-// Cache countries dans localStorage (TTL 6h) pour éviter les appels répétés
+
 const CC_LS_KEY='mg_cc_v1';const CC_LS_TTL=6*3600*1000;
 function _ccLoadLS(){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');const now=Date.now();Object.entries(r).forEach(([s,v])=>{if(now-v.ts<CC_LS_TTL)cc[s]=v.list;});console.log('[countries] cache localStorage chargé:',Object.keys(cc));}catch{}}
 function _ccSaveLS(server,list){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');r[server]={list,ts:Date.now()};localStorage.setItem(CC_LS_KEY,JSON.stringify(r));}catch{}}
 _ccLoadLS();
-// Récupère la liste des pays pour un serveur — avec fallback sur cache/statique si rate-limit
+
 async function getCountries(server){
   if(cc[server])return cc[server];
   try{
@@ -216,7 +205,7 @@ function drawSpark(canvasId,data,color='rgba(0,80,216,.55)'){
 })();
 
 (()=>{
-  // Trail canvas uniquement — le curseur SVG est géré nativement en CSS
+  
   const tc=document.createElement('canvas');
   tc.id='trl';tc.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none';
   document.body.appendChild(tc);
@@ -272,14 +261,14 @@ function _loaderReady(){
     const b=$('lbtn');if(b)b.style.display='block';
   },300);
 }
-// DOMContentLoaded = dès que le HTML est parsé, sans attendre iframes/images
+
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',_loaderReady);
 }else{
-  // Déjà prêt (script chargé en defer ou page déjà interactive)
+  
   setTimeout(_loaderReady,200);
 }
-// Fallback absolu : si au bout de 4s c'est toujours pas ready, on force
+
 setTimeout(()=>{
   const b=$('lbtn');
   if(b&&b.style.display==='none'||b&&!b.style.display){_loaderReady();}
@@ -310,7 +299,6 @@ function scToggle(){if(!scW)return;scOn?scW.pause():scW.play();}
 function scVol(v){if(scW)scW.setVolume(parseInt(v));}
 function scStartBar(){scStopBar();scBarT=setInterval(()=>{if(!scW)return;scW.getPosition(p=>{scW.getDuration(d=>{if(d>0)$('scp-bf').style.width=(p/d*100)+'%';});});},500);}
 function scStopBar(){if(scBarT){clearInterval(scBarT);scBarT=null;}}
-
 
 function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'Authorization':'Bearer '+t}:{};}
 async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
@@ -371,7 +359,6 @@ async function loadDash(){
 const _authed=()=>!!sessionStorage.getItem('mg_token_v3');
 let _firstCycle=true;
 
-// ═══ HISTORIQUE CONNEXIONS ═══
 const CONN_HIST_KEY='mg_conn_hist_v2';
 const CONN_HIST_MAX=500;
 let connHist=JSON.parse(localStorage.getItem(CONN_HIST_KEY)||'[]');
@@ -404,7 +391,6 @@ function renderConnHist(){
   if(fp)filtered=filtered.filter(e=>e.player===fp);
   if(ft)filtered=filtered.filter(e=>e.type===ft);
 
-  // Stats rapides
   if(statsEl){
     const total=connHist.length;
     const connects=connHist.filter(e=>e.type==='connect').length;
@@ -420,7 +406,6 @@ function renderConnHist(){
     </div>`).join('');
   }
 
-  // Tableau historique
   if(!filtered.length){body.innerHTML='<div class="empty">Aucun événement correspondant aux filtres.</div>';return;}
   body.innerHTML=`<table class="tbl">
     <thead><tr><th>Type</th><th>Joueur</th><th>Serveur</th><th>Date</th><th>Heure</th></tr></thead>
@@ -438,7 +423,6 @@ function renderConnHist(){
   </table>
   ${filtered.length>150?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);text-align:center;margin-top:.6rem;letter-spacing:.1em">Affichage limité à 150 / ${filtered.length} événements — utilisez les filtres</div>`:''}`;
 
-  // Graphe activité par joueur
   if(chartEl){
     const byPlayer={};
     connHist.forEach(e=>{
@@ -916,9 +900,6 @@ async function init(){
 }
 init();
 
-// ═══════════════════════════════════════════════════════════
-// RED MATTER SIMULATOR — FONCTION MANQUANTE AJOUTÉE EN V2
-// ═══════════════════════════════════════════════════════════
 function rmCalc() {
   const power   = parseFloat(document.getElementById('rm-power')?.value)   || 0;
   let   warzone = parseFloat(document.getElementById('rm-warzone')?.value)  || 0;
@@ -929,23 +910,14 @@ function rmCalc() {
     return;
   }
 
-  // Sécurité : warzone ne peut pas dépasser le total
   if (warzone > power) warzone = power;
 
-  // Formule exacte (identique au script Python officiel)
-  // 1. Power soumis au poison = total - warzone
-  // 2. Multiplicateur = 0.96^18 ≈ 0.4796
-  // 3. Power restant = arrondi(soumis × multiplicateur)
-  // 4. Perte = total - power_restant  (pas juste soumis - restant)
-  // 5. Claims restants = claims - 8 (min 0)
-  // 6. Sous-power si power_restant < claims_restants
   const factor      = Math.pow(0.96, 18);
   const soumis      = power - warzone;
   const powerAfter  = Math.round(soumis * factor);
-  const powerLost   = power - powerAfter;          // perte depuis le TOTAL
+  const powerLost   = power - powerAfter;          
   const claimsAfter = Math.max(0, claims - 8);
 
-  // Affichage résultats
   const results = document.getElementById('rm-results');
   if (results) results.style.display = 'block';
 
@@ -958,7 +930,6 @@ function rmCalc() {
   if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.style.animation='none'; setTimeout(()=>{elRemain.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
   if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.style.animation='none'; setTimeout(()=>{elClaims.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
 
-  // Verdict : sous-power si power_restant < claims_restants (règle exacte NationsGlory)
   if (elAlert) {
     elAlert.style.display = 'block';
     const diff = powerAfter - claimsAfter;
@@ -984,7 +955,6 @@ function rmCalc() {
     }
   }
 
-  // Son impact
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const o = ctx.createOscillator();
@@ -998,16 +968,13 @@ function rmCalc() {
   } catch(e) {}
 }
 
-// ═══════════════════════════════════════════════════════════
-// NOTES SUR LES CIBLES
-// ═══════════════════════════════════════════════════════════
 let playerNotes={};
 let noteSelectedTag='';
 
 async function notesLoadFromAPI(){
   try{const d=await api('/api/notes');playerNotes=d.notes||{};}catch{}
 }
-function noteSaveStore(){/* legacy noop */}
+function noteSaveStore(){}
 
 function noteSelectTag(btn){
   document.querySelectorAll('.note-tag-btn').forEach(b=>b.style.outline='none');
@@ -1111,11 +1078,10 @@ async function noteDeleteDirect(player){
   }catch{showToast('❌ Erreur suppression');}
 }
 
-// Badge note dans panel joueur — injecté dans openPlayerPanel
 const _origOpenPP=openPlayerPanel;
 window.openPlayerPanel=async function(player){
   await _origOpenPP(player);
-  // Injecter section note dans le panel
+  
   const body=document.getElementById('pp-body');
   if(!body)return;
   const n=playerNotes[player];
@@ -1132,10 +1098,6 @@ window.openPlayerPanel=async function(player){
   body.appendChild(noteSection);
 };
 
-
-// ═══════════════════════════════════════════════════════════
-// CARTE DES SERVEURS
-// ═══════════════════════════════════════════════════════════
 let carteData={};
 
 async function loadCarte(){
@@ -1186,7 +1148,6 @@ function renderCarte(all){
     </div>`;
   }).join('');
 
-  // Classement
   const sorted=[...counts].sort((a,b)=>b.cnt-a.cnt);
   if(ranking){
     ranking.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Serveur</th><th>Joueurs</th><th>Part</th><th>Cibles</th></tr></thead><tbody>${
@@ -1207,12 +1168,7 @@ function renderCarte(all){
   }
 }
 
-
-// ═══════════════════════════════════════════════════════════
-// TOP 5 JOUEURS ACTIFS
-// ═══════════════════════════════════════════════════════════
-// Compteur de présences par joueur/serveur pendant la session
-const presenceCount={};  // {player: {total:N, servers:{srv:N}}}
+const presenceCount={};  
 
 function trackPresence(all){
   SRV.forEach(s=>{
@@ -1231,7 +1187,7 @@ async function loadTop5(){
   const interEl=document.getElementById('top5-inter');
   if(interEl)interEl.innerHTML='<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>';
   try{
-    // Charger en parallèle : joueurs en ligne + classement serveur
+    
     const [all, topData] = await Promise.all([
       api('/api/online_all'),
       api('/api/top_players?limit=20')
@@ -1249,7 +1205,6 @@ function renderTop5Inter(players, allOnline){
   const el=document.getElementById('top5-inter');if(!el)return;
   if(!players.length){el.innerHTML='<div class="empty">Pas encore de données — le classement se construit automatiquement au fil du temps.</div>';return;}
 
-  // Qui est en ligne maintenant ?
   const nowOnline={};
   SRV.forEach(s=>(allOnline[s]||[]).forEach(p=>{if(!nowOnline[p])nowOnline[p]=[];nowOnline[p].push(s);}));
 
@@ -1260,7 +1215,7 @@ function renderTop5Inter(players, allOnline){
     const inWL=WL.concat(WLM).map(w=>w.toLowerCase()).includes(x.player.toLowerCase());
     const currentSrvs=nowOnline[x.player]||[];
     const isOnline=currentSrvs.length>0;
-    // Serveur favori = celui avec le plus de connexions
+    
     const topSrv=x.servers?Object.entries(x.servers).sort((a,b)=>b[1]-a[1])[0]:null;
     return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
       <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]}</div>
@@ -1323,7 +1278,6 @@ async function renderTop5BySrv(){
   }
 }
 
-// Auto-refresh Top5 et Carte toutes les 30s si section active
 setInterval(()=>{
   const active=document.querySelector('.sec.active');
   if(!active)return;
@@ -1331,7 +1285,6 @@ setInterval(()=>{
   if(active.id==='s-carte')loadCarte();
 },30000);
 
-// Tracker la présence à chaque loadDash
 const _origLoadDash=loadDash;
 window.loadDash=async function(){
   await _origLoadDash();
@@ -1342,13 +1295,9 @@ window.loadDash=async function(){
   }catch(e){}
 };
 
-// ═══════════════════════════════════════════════
-// MODULE PAYS RÉFÉRENTS
-// ═══════════════════════════════════════════════
 let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refCmpPeriod=90;
 const refCountryCache={};
 
-// ── Chargement pays (même logique que cwLoadCountries) ──
 async function refLoadCountries(){
   const s=$('ref-add-srv').value;
   if(!s){$('ref-suggest').innerHTML='';return;}
@@ -1371,7 +1320,6 @@ function refFilterCountries(){
 
 function refSelectTag(name){$('ref-add-country').value=name;$('ref-add-acl').style.display='none';refFilterCountries();}
 
-// ── Chargement principal ──
 async function loadReferents(){
   const grid=$('ref-grid');
   grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
@@ -1394,7 +1342,6 @@ async function loadReferents(){
   }catch(e){grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur chargement</div>`;}
 }
 
-// ── Grille des pays (clic → panel membres) ──
 function renderRefGrid(){
   const el=$('ref-grid');
   if(!refAllReferents.length){el.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en un ci-dessus</div>';return;}
@@ -1430,7 +1377,6 @@ function renderRefGrid(){
   }).join('')}</div>`;
 }
 
-// ── Panel membres ──
 async function openRefMembers(server,country){
   refCurSrv=server;refCurCtry=country;
   const ref=refAllReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
@@ -1447,7 +1393,7 @@ async function refRefreshMembers(){
   const body=$('ref-members-body');
   body.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
   try{
-    // Récupérer membres + joueurs en ligne sur le serveur en parallèle
+    
     const[checkData,onlineData]=await Promise.all([
       fetch(`${API}/api/check/${refCurSrv}/${encodeURIComponent(refCurCtry)}`,{headers:{..._authHeader()}}).then(r=>r.json()),
       fetch(`${API}/api/online/${refCurSrv}`,{headers:{..._authHeader()}}).then(r=>r.json()),
@@ -1455,19 +1401,16 @@ async function refRefreshMembers(){
     if(checkData.error){body.innerHTML=`<div class="empty" style="color:var(--red)">❌ ${checkData.error}</div>`;return;}
     const allMembers=checkData.members_total||0;
     const onlineList=(onlineData.players||[]).map(p=>p.toLowerCase());
-    // Membres en ligne sur leur serveur natif
+    
     const onlineOnSrv=(checkData.servers?.[refCurSrv]||[]);
-    // Membres en ligne ailleurs
+    
     const onlineElsewhere=Object.entries(checkData.servers||{})
       .filter(([s])=>s!==refCurSrv)
       .flatMap(([s,pl])=>pl.map(p=>({player:p,server:s})));
 
-    // On récupère la liste complète des membres depuis l'API country
-    // checkData.members_total est le count total, on va afficher ceux qu'on connaît
     const knownOnline=new Set([...onlineOnSrv,...onlineElsewhere.map(x=>x.player)].map(p=>p.toLowerCase()));
     const snapshot=refAllReferents.find(w=>w.server===refCurSrv&&w.country.toLowerCase()===refCurCtry.toLowerCase())?.members_snapshot||[];
 
-    // Construire l'affichage
     const onlineCount=checkData.online_total||0;
     body.innerHTML=`
       <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap">
@@ -1579,7 +1522,6 @@ function closeRefMembers(){
   renderRefGrid();
 }
 
-// ── Comparatif ──
 async function loadRefCmp(){
   const el=$('ref-cmp');
   el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
@@ -1608,7 +1550,6 @@ function setCmpRefPeriod(days,btn){
   loadRefCmp();
 }
 
-// ── Ajouter / Retirer ──
 async function addReferentEntry(){
   const server=$('ref-add-srv').value,country=$('ref-add-country').value.trim();
   if(!server||!country)return showToast('⚠ Sélectionne un serveur et un pays');
@@ -1639,336 +1580,3 @@ setInterval(()=>{
     if(refCurSrv)refRefreshMembers();
   }
 },300000);
-// ═══════════════════════════════════════════════════════════
-// DYNMAP MARKERS PATCH — Power / Claims / MMR / Membres
-// Source : https://lime.nationsglory.fr/tiles/_markers_/marker_world.json
-// À coller à la FIN du script.js existant
-// ═══════════════════════════════════════════════════════════
-
-// ── Cache global du JSON markers ──
-// URLs directes par serveur
-const DYNMAP_URLS = {
-  blue:   'https://blue.nationsglory.fr/tiles/_markers_/marker_world.json',
-  coral:  'https://coral.nationsglory.fr/tiles/_markers_/marker_world.json',
-  orange: 'https://orange.nationsglory.fr/tiles/_markers_/marker_world.json',
-  red:    'https://red.nationsglory.fr/tiles/_markers_/marker_world.json',
-  yellow: 'https://yellow.nationsglory.fr/tiles/_markers_/marker_world.json',
-  mocha:  'https://mocha.nationsglory.fr/tiles/_markers_/marker_world.json',
-  white:  'https://white.nationsglory.fr/tiles/_markers_/marker_world.json',
-  jade:   'https://jade.nationsglory.fr/tiles/_markers_/marker_world.json',
-  black:  'https://black.nationsglory.fr/tiles/_markers_/marker_world.json',
-  cyan:   'https://cyan.nationsglory.fr/tiles/_markers_/marker_world.json',
-  lime:   'https://lime.nationsglory.fr/tiles/_markers_/marker_world.json',
-};
-
-const _dynCache = {};      // { srv: { ts, data } }
-const DYNMAP_TTL = 120000; // 2 min
-
-// Fetch avec CORS proxy uniquement si nécessaire
-async function fetchDynmap(srv = 'lime') {
-  const now = Date.now();
-  if (_dynCache[srv] && now - _dynCache[srv].ts < DYNMAP_TTL) {
-    return _dynCache[srv].data;
-  }
-  try {
-    const url = DYNMAP_URLS[srv] || `https://${srv}.nationsglory.fr/tiles/_markers_/marker_world.json`;
-    const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    _dynCache[srv] = { ts: now, data: d };
-    return d;
-  } catch (e) {
-    console.warn('[dynmap] fetch failed for', srv, e.message);
-    return null;
-  }
-}
-
-// ── Extraire les infos d'un pays depuis le JSON markers ──
-function parseDynmapCountry(data, countryName) {
-  if (!data) return null;
-  const factions = data?.sets?.['factions.markerset']?.markers || {};
-  const key = Object.keys(factions).find(k => {
-    const lbl = factions[k].label || '';
-    return lbl.toLowerCase().replace(/\s/g, '').startsWith(
-      countryName.toLowerCase().replace(/\s/g, '')
-    );
-  });
-  if (!key) return null;
-  const marker = factions[key];
-  const desc = marker.desc || '';
-
-  // Parser le HTML de la desc
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(desc, 'text/html');
-  const text = doc.body.innerText || doc.body.textContent || '';
-
-  // Extraire Claims, Power, MMR
-  const claimsMatch = text.match(/Claims\s+([\d]+)/i);
-  const powerMatch  = text.match(/Power\s+([\d]+)\s*\/\s*([\d]+)/i);
-  const mmrMatch    = text.match(/MMR\s+([\d]+)/i);
-  const leaderMatch = text.match(/Leader du pays\s*\n?\s*([^\n]+)/i);
-
-  // Membres : tout ce qui est après "Membres" jusqu'à la fin
-  const membresMatch = text.match(/Membres\s*\n([\s\S]*)/i);
-  let membres = [];
-  if (membresMatch) {
-    membres = membresMatch[1]
-      .split(/[\n,]/)
-      .map(s => s.trim())
-      .filter(s => s && s.length > 1 && !s.includes('%'));
-  }
-
-  // Dates de création
-  const createdMatch = text.match(/Créé il y a (\d+) jour/i);
-
-  return {
-    name:    countryName,
-    claims:  claimsMatch  ? parseInt(claimsMatch[1])  : null,
-    power:   powerMatch   ? parseInt(powerMatch[1])   : null,
-    powerMax:powerMatch   ? parseInt(powerMatch[2])   : null,
-    mmr:     mmrMatch     ? parseInt(mmrMatch[1])     : null,
-    leader:  leaderMatch  ? leaderMatch[1].trim()     : null,
-    membres,
-    membresCount: membres.length,
-    daysOld: createdMatch ? parseInt(createdMatch[1]) : null,
-    label:   marker.label || countryName,
-  };
-}
-
-// ── UI : badge compact stats pays ──
-function renderDynmapBadge(stats) {
-  if (!stats) return '';
-  const powerRatio = stats.power && stats.powerMax
-    ? stats.power / stats.powerMax
-    : null;
-  const powerColor = powerRatio === null ? 'var(--t3)'
-    : powerRatio >= 1   ? 'var(--grn)'
-    : powerRatio >= 0.7 ? 'var(--org)'
-    : 'var(--red)';
-
-  const powerBar = powerRatio !== null ? `
-    <div style="width:80px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:.4rem">
-      <div style="width:${Math.round(powerRatio*100)}%;height:100%;background:${powerColor};border-radius:2px;transition:width .4s"></div>
-    </div>` : '';
-
-  const items = [
-    stats.claims  !== null ? `<span style="color:var(--t2)">📍 <b>${stats.claims}</b> claims</span>` : '',
-    stats.power   !== null ? `<span style="color:${powerColor}">⚡ <b>${stats.power}</b>${stats.powerMax !== null ? '/'+stats.powerMax : ''}${powerBar}</span>` : '',
-    stats.mmr     !== null ? `<span style="color:#ffd700">🏆 <b>${stats.mmr}</b> MMR</span>` : '',
-    stats.membresCount     ? `<span style="color:var(--blue-pale)">👥 <b>${stats.membresCount}</b> membres</span>` : '',
-    stats.daysOld !== null ? `<span style="color:var(--t4)">📅 ${stats.daysOld}j</span>` : '',
-  ].filter(Boolean);
-
-  if (!items.length) return '';
-
-  return `
-    <div class="dynmap-badge" style="
-      background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);
-      padding:.5rem .75rem;margin:.5rem 0;display:flex;flex-wrap:wrap;gap:.6rem .9rem;
-      align-items:center;font-family:var(--M);font-size:.58rem;
-    ">
-      <span style="font-family:var(--D);font-size:.7rem;color:var(--blue-pale);letter-spacing:.12em;flex-basis:100%">
-        ◈ DYNMAP — ${stats.label}
-        ${stats.leader ? `<span style="font-family:var(--M);font-size:.5rem;color:var(--t3);margin-left:.6rem">Leader: ${stats.leader}</span>` : ''}
-      </span>
-      ${items.join('')}
-    </div>`;
-}
-
-// ── Enrichir doCheck() — on monkey-patch l'original ──
-const _origDoCheck = window.doCheck || doCheck;
-window.doCheck = async function() {
-  await _origDoCheck();
-
-  // Lire les valeurs du formulaire (même logique que l'original)
-  const srv    = document.getElementById('ck-srv')?.value;
-  const raw    = document.getElementById('ck-country')?.value.trim();
-  const res    = document.getElementById('ck-result');
-  if (!srv || !raw || !res) return;
-
-  // Injecter le badge sous le résultat existant
-  try {
-    const data = await fetchDynmap(srv);
-    const stats = parseDynmapCountry(data, raw);
-    if (stats) {
-      const badge = document.createElement('div');
-      badge.innerHTML = renderDynmapBadge(stats);
-      res.appendChild(badge.firstElementChild || badge);
-    }
-  } catch (e) {
-    console.warn('[dynmap] doCheck patch error', e);
-  }
-};
-
-// ── Enrichir cwRender() — injecter power/claims dans chaque carte pays ──
-const _origCwRefreshOne = window.cwRefreshOne || cwRefreshOne;
-window.cwRefreshOne = async function(idx) {
-  await _origCwRefreshOne(idx);
-  // Après le refresh, on injecte les stats dynmap dans la carte correspondante
-  const w = cwWatches[idx];
-  if (!w) return;
-  try {
-    const data  = await fetchDynmap(w.server);
-    const stats = parseDynmapCountry(data, w.country);
-    if (!stats) return;
-    // Trouver la carte rendue dans cw-list
-    const cards = document.querySelectorAll('#cw-list .cw-item');
-    const card  = cards[idx];
-    if (!card) return;
-    // Supprimer un badge précédent s'il existe
-    card.querySelector('.dynmap-badge')?.remove();
-    // Créer et insérer le badge
-    const div = document.createElement('div');
-    div.innerHTML = renderDynmapBadge(stats);
-    const badge = div.firstElementChild;
-    if (badge) {
-      badge.style.margin = '.4rem 0 0 0';
-      card.appendChild(badge);
-    }
-  } catch (e) {
-    console.warn('[dynmap] cwRefreshOne patch error', e);
-  }
-};
-
-// ── Enrichir openPlayerPanel — ajouter section pays du joueur ──
-const _origOPP2 = window.openPlayerPanel;
-window.openPlayerPanel = async function(player) {
-  await _origOPP2(player);
-  const body = document.getElementById('pp-body');
-  if (!body) return;
-
-  // Chercher le joueur dans tous les pays de lime (serveur par défaut)
-  try {
-    const data = await fetchDynmap('lime');
-    if (!data) return;
-    const factions = data?.sets?.['factions.markerset']?.markers || {};
-    let foundCountry = null;
-
-    for (const key of Object.keys(factions)) {
-      const marker = factions[key];
-      const desc = marker.desc || '';
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(desc, 'text/html');
-      const text = doc.body.innerText || doc.body.textContent || '';
-      const membresMatch = text.match(/Membres\s*\n([\s\S]*)/i);
-      if (!membresMatch) continue;
-      const membres = membresMatch[1]
-        .split(/[\n,]/)
-        .map(s => s.trim())
-        .filter(Boolean);
-      if (membres.some(m => m.toLowerCase() === player.toLowerCase())) {
-        const countryLabel = marker.label?.replace(/\s*\[.*?\]/g, '').trim() || key;
-        const claimsMatch = text.match(/Claims\s+([\d]+)/i);
-        const powerMatch  = text.match(/Power\s+([\d]+)\s*\/\s*([\d]+)/i);
-        const mmrMatch    = text.match(/MMR\s+([\d]+)/i);
-        const leaderMatch = text.match(/Leader du pays\s*\n?\s*([^\n]+)/i);
-        const createdMatch= text.match(/Créé il y a (\d+) jour/i);
-        foundCountry = {
-          name:      countryLabel,
-          claims:    claimsMatch  ? parseInt(claimsMatch[1])  : null,
-          power:     powerMatch   ? parseInt(powerMatch[1])   : null,
-          powerMax:  powerMatch   ? parseInt(powerMatch[2])   : null,
-          mmr:       mmrMatch     ? parseInt(mmrMatch[1])     : null,
-          leader:    leaderMatch  ? leaderMatch[1].trim()     : null,
-          membresCount: membres.length,
-          daysOld:   createdMatch ? parseInt(createdMatch[1]) : null,
-          label:     countryLabel,
-        };
-        break;
-      }
-    }
-
-    if (!foundCountry) return;
-
-    // Insérer section pays dans le panel
-    const existing = document.getElementById('pp-dynmap-section');
-    if (existing) existing.remove();
-
-    const section = document.createElement('div');
-    section.className = 'pp-section';
-    section.id = 'pp-dynmap-section';
-    const powerRatio = foundCountry.power && foundCountry.powerMax
-      ? foundCountry.power / foundCountry.powerMax : null;
-    const powerColor = powerRatio === null ? 'var(--t3)'
-      : powerRatio >= 1   ? 'var(--grn)'
-      : powerRatio >= 0.7 ? 'var(--org)'
-      : 'var(--red)';
-    const isLeader = foundCountry.leader
-      && foundCountry.leader.toLowerCase() === player.toLowerCase();
-
-    section.innerHTML = `
-      <div class="pp-sec-title">🏳 Pays (LIME) — ${foundCountry.name}
-        ${isLeader ? '<span style="font-family:var(--M);font-size:.48rem;color:#ffd700;margin-left:.4rem">👑 LEADER</span>' : ''}
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.65rem .9rem;margin-top:.4rem;display:flex;flex-wrap:wrap;gap:.5rem .9rem;font-family:var(--M);font-size:.6rem">
-        ${foundCountry.claims !== null ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">CLAIMS</span><span style="color:var(--t1);font-family:var(--D);font-size:1.3rem">${foundCountry.claims}</span></div>` : ''}
-        ${foundCountry.power !== null ? `<div>
-          <span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">POWER</span>
-          <span style="color:${powerColor};font-family:var(--D);font-size:1.3rem">${foundCountry.power}</span>
-          <span style="color:var(--t3);font-size:.5rem">/${foundCountry.powerMax}</span>
-          <div style="width:70px;height:4px;background:var(--bg3);border-radius:2px;margin-top:.3rem"><div style="width:${powerRatio !== null ? Math.round(powerRatio*100) : 0}%;height:100%;background:${powerColor};border-radius:2px"></div></div>
-        </div>` : ''}
-        ${foundCountry.mmr !== null ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">MMR</span><span style="color:#ffd700;font-family:var(--D);font-size:1.3rem">${foundCountry.mmr}</span></div>` : ''}
-        ${foundCountry.membresCount ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">MEMBRES</span><span style="color:var(--blue-pale);font-family:var(--D);font-size:1.3rem">${foundCountry.membresCount}</span></div>` : ''}
-        ${foundCountry.daysOld !== null ? `<div><span style="color:var(--t3);font-size:.5rem;display:block;letter-spacing:.1em">ÂGE</span><span style="color:var(--t2);font-family:var(--D);font-size:1.3rem">${foundCountry.daysOld}</span><span style="color:var(--t3);font-size:.5rem">j</span></div>` : ''}
-        ${foundCountry.leader ? `<div style="flex-basis:100%;margin-top:.2rem"><span style="color:var(--t3);font-size:.5rem;letter-spacing:.1em">LEADER : </span><span style="color:var(--t1);cursor:pointer" onclick="closePlayerPanel();setTimeout(()=>openPlayerPanel('${foundCountry.leader}'),300)">${foundCountry.leader}</span></div>` : ''}
-      </div>`;
-
-    // Insérer avant la section note si elle existe
-    const noteSection = document.getElementById('pp-note-section');
-    if (noteSection) {
-      body.insertBefore(section, noteSection);
-    } else {
-      body.appendChild(section);
-    }
-  } catch (e) {
-    console.warn('[dynmap] openPlayerPanel patch error', e);
-  }
-};
-
-// ── Fonction utilitaire globale : stats d'un pays ──
-window.getCountryStats = async function(country, srv = 'lime') {
-  const data = await fetchDynmap(srv);
-  return parseDynmapCountry(data, country);
-};
-
-// ── Red Matter Simulator : auto-fill depuis Dynmap ──
-window.rmAutoFill = async function() {
-  const country = prompt('Nom du pays à auto-remplir :');
-  if (!country) return;
-  const srv = document.getElementById('rm-srv')?.value || 'lime';
-  showToast('⏳ Récupération Dynmap...');
-  try {
-    const stats = await window.getCountryStats(country, srv);
-    if (!stats) { showToast('❌ Pays introuvable dans Dynmap'); return; }
-    const p = document.getElementById('rm-power');
-    const c = document.getElementById('rm-claims');
-    if (p && stats.power !== null)  { p.value = stats.power;  p.dispatchEvent(new Event('input')); }
-    if (c && stats.claims !== null) { c.value = stats.claims; c.dispatchEvent(new Event('input')); }
-    showToast(`✅ ${stats.label} — Power: ${stats.power} / Claims: ${stats.claims}`);
-  } catch (e) {
-    showToast('❌ Erreur Dynmap : ' + e.message);
-  }
-};
-
-// ── Injecter bouton auto-fill dans la section Red Matter si elle existe ──
-(function injectRmButton() {
-  const tryInject = () => {
-    const rmPowerEl = document.getElementById('rm-power');
-    if (!rmPowerEl) return;
-    if (document.getElementById('rm-autofill-btn')) return;
-    const btn = document.createElement('button');
-    btn.id = 'rm-autofill-btn';
-    btn.className = 'btn';
-    btn.style.cssText = 'font-size:.52rem;padding:.28rem .7rem;margin-top:.5rem;display:block';
-    btn.textContent = '⚡ Auto-fill depuis Dynmap';
-    btn.onclick = () => window.rmAutoFill();
-    rmPowerEl.closest('div')?.parentElement?.appendChild(btn);
-  };
-  // Essayer maintenant et après chargement
-  tryInject();
-  window.addEventListener('load', tryInject);
-  setTimeout(tryInject, 2000);
-})();
-
-console.log('[dynmap patch] ✅ Chargé — Power/Claims/MMR/Membres depuis marker_world.json');
