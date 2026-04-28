@@ -141,6 +141,27 @@
 const API='https://nationsglory-spy.onrender.com';
 const SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
 const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
+// Fallback statique — utilisé UNIQUEMENT si l'API rate-limite ET que le cache localStorage est vide
+const STATIC_COUNTRIES_FALLBACK=["AfriqueDuSud","Afghanistan","Alaska","Albanie","Algerie","Allemagne","Altai","Amour","Angola","ArchipelCrozet","Argentine","Armenie","Arizona","Australie","Autriche","Azerbaidjan","Bahamas","Bahrein","Baja","Bangladesh","Belgique","Belize","Benin","Bhoutan","Bielorussie","Birmanie","Bolivie","Bosnie","Botswana","Bouriatie","Bresil","Bulgarie","BurkinaFaso","Californie","Cambodge","Cameroun","Canada","CentreAfrique","Chili","Chine","Chypre","Colombie","Congo","CoreeDuNord","CoreeDuSud","CoteDivoire","Croatie","Dakota","Danemark","Djibouti","Egypte","EmiratsArabesUnis","EmpireBissaoguineen","EmpireIrkoutsk","EmpireJordanien","EmpireOmanais","Equateur","Erythree","Espagne","Estonie","EtatsUnis","Ethiopie","Floride","France","Gabon","Georgie","Ghana","Grece","Groenland","Guatemala","Guangdong","Guangxi","Guizhou","Guyana","Guyane","Hainan","Iakoutie","Iamalie","Idaho","IleCoats","IleBolchevique","IleDeLaReunion","IleGraham","IleMaurice","IleVictoria","IleWrangel","IlesBaleares","IlesCanaries","IlesFeroe","IlesFidji","IlesGalapagos","IlesKerguelen","IlesSalomon","IlesSandwich","IlesVancouver","IleBouvet","Inde","Indonesie","Irak","Iran","Islande","Italie","Jamaique","Japon","Java","Kazakhstan","Kenya","Khabarovsk","Kirghizistan","Kosovo","Koweit","Krasnoy","Laos","Liban","Liberia","Libye","Lituanie","Lettonie","Luxembourg","Macedoine","Madagan","Madagascar","Magadan","Malaisie","Malawi","Mali","Malte","Maroc","Mauritanie","Mexique","Michigan","Minnesota","Moldavie","Mongolie","Montenegro","Montana","Mozambique","Namibie","Nepal","Nevada","Nicaragua","Niger","Nigeria","Norvege","NouvelleCaledonie","NouvelleGuinee","NouvelleZelande","NouvelleZemble","NouveauMexique","Nunavut","Ontario","Oregon","Ouganda","Ouzbekistan","Pakistan","Palaos","Papouasie","Paraguay","PaysBas","Perou","Philippines","Pologne","Portugal","Qatar","Quebec","Quinghai","RDCongo","RepubliqueTcheque","Roumanie","RoyaumeUni","Russie","SaharaOccidental","Sakhaline","Salvador","Sardaigne","Serbie","Sichuan","Slovaquie","Slovenie","Socotra","Somalie","Sonora","Soudan","Srilanka","StHelena","Suede","Suisse","Sumatra","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Taiwan","Tanzanie","Tasmanie","Tchad","Tchoukota","TerreAdelie","TerreBooth","TerreBurke","TerreDeFeu","TerreGrant","TerreLiard","TerreLow","TerreMasson","TerreMill","TerrePowell","TerreRoss","TerreSigny","TerreSiple","TerreSmith","TerreSnow","TerreSpaatz","TerreThor","TerreVega","Texas","Thailande","Tibet","Timor","Togo","Tomsk","Touva","TriniteEtTobago","Tunisie","Turkmenistan","Turquie","Uruguay","Utah","Venezuela","Vietnam","WallisEtFutuna","Washington","Wisconsin","Xinjiang","Yemen","Yunnam","Zambie","Zimbabwe"].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+// Cache countries dans localStorage (TTL 6h) pour éviter les appels répétés
+const CC_LS_KEY='mg_cc_v1';const CC_LS_TTL=6*3600*1000;
+function _ccLoadLS(){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');const now=Date.now();Object.entries(r).forEach(([s,v])=>{if(now-v.ts<CC_LS_TTL)cc[s]=v.list;});console.log('[countries] cache localStorage chargé:',Object.keys(cc));}catch{}}
+function _ccSaveLS(server,list){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');r[server]={list,ts:Date.now()};localStorage.setItem(CC_LS_KEY,JSON.stringify(r));}catch{}}
+_ccLoadLS();
+// Récupère la liste des pays pour un serveur — avec fallback sur cache/statique si rate-limit
+async function getCountries(server){
+  if(cc[server])return cc[server];
+  try{
+    const d=await fetch(API+'/api/countries/'+server,{headers:{..._authHeader()}});
+    if(d.status===429){console.warn('[countries] 429 rate-limit →',server,'fallback statique');cc[server]=[...STATIC_COUNTRIES_FALLBACK];return cc[server];}
+    const j=await d.json();
+    const raw=j.countries||j.claimed||[];
+    const list=raw.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+    if(list.length){cc[server]=list;_ccSaveLS(server,list);}
+    else{cc[server]=[...STATIC_COUNTRIES_FALLBACK];}
+  }catch{cc[server]=[...STATIC_COUNTRIES_FALLBACK];}
+  return cc[server];
+}
 const BUG=s=>s==='red'||s==='mocha';
 const WARN=`<div class="warn">⚠ Dynmap limité — données possiblement incomplètes</div>`;
 let WL=[],WLM=[],cwl='lime',snd=localStorage.getItem('mg_sound')!=='off';
@@ -477,10 +498,10 @@ async function doCA(){const raw=$('ca-input').value.trim();if(!raw)return;const 
 function qCA(player){openPlayerPanel(player);}
 function rHist(){const el=$('ca-history');if(!hist.length){el.innerHTML='<div class="empty">Aucune recherche</div>';return;}el.innerHTML=`<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>`+hist.slice(0,12).map(h=>`<tr><td style="color:var(--g)" onclick="qCA('${h.p}')">${h.p}</td><td>${h.servers.length?h.servers.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--t3)">Hors ligne</span>'}</td><td style="color:var(--t3)">${h.t}</td></tr>`).join('')+'</tbody></table>';}
 
-async function loadCS(){const s=$('ck-srv').value;if(!s)return;$('ck-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;try{if(!cc[s]){const _d=await api('/api/countries/'+s);const raw=_d.countries||_d.claimed||[];cc[s]=raw.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));}rCS(s);}catch(e){cc[s]=[];$('ck-suggest').innerHTML=`<span style="color:var(--red)">Erreur</span>`;}}
+async function loadCS(){const s=$('ck-srv').value;if(!s)return;await getCountries(s);rCS(s);}
 function rCS(s){const el=$('ck-suggest'),p=cc[s]||[];if(!p.length){el.innerHTML='';return;}el.innerHTML=p.map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');}
 function selC(c){$('ck-country').value=c;$('ck-list').style.display='none';doCheck();}
-async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;if(!cc[s]){try{const _d2=await api('/api/countries/'+s);const raw2=_d2.countries||_d2.claimed||[];cc[s]=raw2.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));}catch{cc[s]=[]; }}const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : ${d.country} — ${d.online_total}/${d.members_total} connectés</div>`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
+async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : ${d.country} — ${d.members_total} membres</div><span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : ${d.country} — ${d.online_total}/${d.members_total} connectés</div>`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
 
 function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}el.innerHTML=wl.map(p=>`<div class="wi"><span style="font-family:var(--M);font-size:.62rem">${p}</span><button class="btn btn-r" style="padding:.07rem .34rem;font-size:.48rem" onclick="wlRm('${p}')">✕</button></div>`).join('');}
 async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
@@ -784,7 +805,7 @@ async function cwLoadCountries(){
   const s=$('cw-srv').value;if(!s)return;
   $('cw-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
   try{
-    if(!cwCountries[s]){const _d=await api('/api/countries/'+s);const raw3=_d.countries||_d.claimed||[];cwCountries[s]=raw3.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.localeCompare(b));}
+    cwCountries[s]=await getCountries(s);
     cwFilterCountries();
   }catch{$('cw-suggest').innerHTML='';}
 }
@@ -1333,7 +1354,7 @@ async function refLoadCountries(){
   if(!s){$('ref-suggest').innerHTML='';return;}
   $('ref-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
   try{
-    if(!refCountryCache[s]){const _d=await api('/api/countries/'+s);const raw4=_d.countries||_d.claimed||[];refCountryCache[s]=raw4.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.localeCompare(b));}
+    refCountryCache[s]=await getCountries(s);
     refFilterCountries();
   }catch(e){$('ref-suggest').innerHTML='';}
 }
