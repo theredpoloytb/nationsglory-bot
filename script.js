@@ -485,17 +485,7 @@ function rHist(){const el=$('ca-history');if(!hist.length){el.innerHTML='<div cl
 async function loadCS(){const s=$('ck-srv').value;if(!s)return;await getCountries(s);rCS(s);}
 function rCS(s){const el=$('ck-suggest'),p=cc[s]||[];if(!p.length){el.innerHTML='';return;}el.innerHTML=p.map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');}
 function selC(c){$('ck-country').value=c;$('ck-list').style.display='none';doCheck();}
-async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;
-// Bloc infos pays (power/claims/mmr) depuis dynmap
-const hasDynmap=d.power||d.claims||d.mmr;
-const powerBar=d.power&&d.maxpower?`<div style="margin-top:.28rem;background:var(--bg2);border-radius:4px;height:5px;overflow:hidden"><div style="height:100%;width:${Math.min(100,Math.round(d.power/d.maxpower*100))}%;background:${d.power>=d.claims?'var(--grn)':'var(--red)'};transition:width .4s"></div></div>`:'';
-const infoBloc=hasDynmap?`<div style="font-family:var(--M);font-size:.5rem;color:var(--t3);margin:.3rem 0 .1rem;display:flex;gap:.7rem;flex-wrap:wrap">
-  ${d.claims?`<span>🏴 <b style="color:var(--t1)">${d.claims}</b> claims</span>`:''}
-  ${d.power?`<span>⚡ <b style="color:${d.power>=d.claims?'var(--grn)':'var(--red)'}">${d.power}</b>/<b style="color:var(--t2)">${d.maxpower}</b> power</span>`:''}
-  ${d.mmr?`<span>🏆 <b style="color:var(--t1)">${d.mmr}</b> MMR</span>`:''}
-  ${d.leader?`<span>👑 <b style="color:var(--t1)">${d.leader}</b></span>`:''}
-</div>${powerBar}`:'';
-if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : ${d.country} — ${d.members_total} membres</div>${infoBloc}<span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : ${d.country} — ${d.online_total}/${d.members_total} connectés</div>${infoBloc}`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
+async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;const hasDynmap=d.power||d.claims||d.mmr;const powerPct=d.power&&d.maxpower?Math.min(100,Math.round(d.power/d.maxpower*100)):0;const isSP=d.power<d.claims;const powerBar=d.maxpower?`<div style="margin:.3rem 0 .1rem;background:var(--bg2);border-radius:3px;height:4px;overflow:hidden"><div style="height:100%;width:${powerPct}%;background:${isSP?'var(--red)':'var(--grn)'};transition:width .4s"></div></div>`:'';const infoBloc=hasDynmap?`<div style="font-family:var(--M);font-size:.49rem;color:var(--t3);margin:.35rem 0 .05rem;display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">${d.claims?`<span>🏴 <b style="color:var(--t1)">${d.claims}</b> claims</span>`:''}${d.power?`<span>⚡ <b style="color:${isSP?'var(--red)':'var(--grn)'}">${d.power}</b>/<b style="color:var(--t2)">${d.maxpower}</b> power${isSP?` <span style="color:var(--red);font-size:.44rem">▼ SOUS-POWER (${d.claims-d.power})</span>`:''}</span>`:''}${d.mmr?`<span>🏆 <b style="color:var(--t1)">${d.mmr}</b> MMR</span>`:''}${d.leader?`<span>👑 <b style="color:var(--t1)">${d.leader}</b></span>`:''}</div>${powerBar}`:'';if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : ${d.country} — ${d.members_total} membres</div>${infoBloc}<span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : ${d.country} — ${d.online_total}/${d.members_total} connectés</div>${infoBloc}`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
 
 function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}el.innerHTML=wl.map(p=>`<div class="wi"><span style="font-family:var(--M);font-size:.62rem">${p}</span><button class="btn btn-r" style="padding:.07rem .34rem;font-size:.48rem" onclick="wlRm('${p}')">✕</button></div>`).join('');}
 async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
@@ -1590,3 +1580,50 @@ setInterval(()=>{
     if(refCurSrv)refRefreshMembers();
   }
 },300000);
+
+// ── SOUS-POWER ──────────────────────────────────────────────────────
+async function loadSouspower(){
+  const s=$('sp-srv').value;
+  if(!s){alert('Choisis un serveur');return;}
+  const res=$('sp-result'),ts=$('sp-ts');
+  res.innerHTML=ld();ts.textContent='';
+  try{
+    const d=await api(`/api/souspower/${s}`);
+    const pays=d.countries||[];
+    if(!pays.length){res.innerHTML='<div class="empty">Aucun pays trouvé</div>';return;}
+    const sp=pays.filter(p=>p.marge<0);
+    const proche=pays.filter(p=>p.marge>=0&&p.marge<200);
+    const safe=pays.filter(p=>p.marge>=200);
+    const row=(p,cat)=>{
+      const pct=p.maxpower?Math.min(100,Math.round(p.power/p.maxpower*100)):0;
+      const col=cat==='sp'?'var(--red)':cat==='proche'?'var(--org)':'var(--grn)';
+      const badge=cat==='sp'?`<span style="background:rgba(255,60,60,.15);color:var(--red);border:1px solid rgba(255,60,60,.3);border-radius:3px;padding:.1rem .35rem;font-size:.42rem;margin-left:.4rem">SOUS-POWER −${Math.abs(p.marge)}</span>`:
+        cat==='proche'?`<span style="background:rgba(255,160,0,.12);color:var(--org);border:1px solid rgba(255,160,0,.25);border-radius:3px;padding:.1rem .35rem;font-size:.42rem;margin-left:.4rem">marge +${p.marge}</span>`:
+        `<span style="color:var(--t3);font-size:.44rem;margin-left:.4rem">+${p.marge}</span>`;
+      return`<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-bottom:1px solid var(--b1);flex-wrap:wrap">
+        <div style="min-width:130px;font-family:var(--D);font-size:.9rem;color:var(--t1)">${p.name}${badge}</div>
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:.45rem;color:var(--t3);margin-bottom:.2rem">
+            <span>⚡ <b style="color:${col}">${p.power}</b>/${p.maxpower}</span>
+            <span>🏴 ${p.claims} claims</span>
+            ${p.mmr?`<span>🏆 ${p.mmr} MMR</span>`:''}
+            <span style="color:var(--t3)">👥 ${p.members}</span>
+          </div>
+          <div style="background:var(--bg2);border-radius:3px;height:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${col};transition:width .4s"></div>
+          </div>
+        </div>
+      </div>`;
+    };
+    const section=(title,list,cat,color)=>list.length?`
+      <div style="font-family:var(--M);font-size:.48rem;color:${color};letter-spacing:.08em;padding:.5rem .7rem;border-bottom:1px solid var(--b1);background:rgba(0,0,0,.15)">${title} (${list.length})</div>
+      ${list.map(p=>row(p,cat)).join('')}
+    `:'';
+    res.innerHTML=`<div style="border:1px solid var(--b1);border-radius:var(--r);overflow:hidden">
+      ${section('⛔ EN SOUS-POWER',sp,'sp','var(--red)')}
+      ${section('⚠ PROCHES DU SOUS-POWER (marge < 200)',proche,'proche','var(--org)')}
+      ${section('✅ SAFE',safe,'safe','var(--grn)')}
+    </div>`;
+    ts.textContent=`${pays.length} pays analysés — ${new Date().toLocaleTimeString('fr-FR')}`;
+  }catch(e){res.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
+}
