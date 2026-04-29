@@ -348,7 +348,7 @@ async function loadDash(){
     if(cards.length===SRV.length){SRV.forEach((s,i)=>{const cnt=(all[s]||[]).length,c=cards[i],n=c.querySelector('.sc-n'),b=c.querySelector('.sbar-f');if(n&&parseInt(n.textContent)!==cnt){n.style.opacity='.1';setTimeout(()=>{n.textContent=cnt;n.style.opacity='1';},120);}if(b)b.style.width=Math.round(cnt/mx*100)+'%';});}
     else $('srv-overview').innerHTML=SRV.map(s=>{const cnt=(all[s]||[]).length,bug=BUG(s);return`<div class="sc" onmouseenter="sndH()" onclick="gOL('${s}')" ${bug?'style="border-color:rgba(255,119,0,.22)"':''}><div class="sc-top"><span class="sc-name">${s.toUpperCase()}</span><span class="sc-emo">${EMO[s]}</span></div><div class="sc-n">${cnt}</div>${bug?'<div class="sc-lbl warn">⚠ INSTABLE</div>':'<div class="sc-lbl">EN LIGNE</div>'}<div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/mx*100)}%"></div></div></div>`;}).join('');
     const mp=await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
-    const mk=(pl,l,c,lb)=>l.length?`<div style="font-family:var(--M);font-size:.46rem;color:${c};letter-spacing:.22em;margin-bottom:.18rem">${lb}</div><div class="tags" style="margin-bottom:.35rem">${l.map(p=>{const on=pl.map(x=>x.toLowerCase()).includes(p.toLowerCase());const seen=getLastSeenText(p);return`<span class="tag ${on?'on':''}" onclick="openPlayerPanel('${p}')" title="Voir profil">${on?'🟢':'⚫'} ${p}${seen?` <span class="wi-seen ${seen.cls}">${seen.text}</span>`:''}</span>`;}).join('')}</div>`:'';
+    const mk=(pl,l,c,lb)=>l.length?`<div style="font-family:var(--M);font-size:.46rem;color:${c};letter-spacing:.22em;margin-bottom:.28rem">${lb}</div><div style="display:flex;flex-direction:column;gap:.22rem;margin-bottom:.5rem">${l.map(p=>{const on=pl.map(x=>x.toLowerCase()).includes(p.toLowerCase());const seen=getLastSeenText(p);return`<div class="wi" style="padding:.28rem .5rem;cursor:pointer;opacity:${on?'1':'.55'}" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:24px;height:24px;border-radius:3px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.6rem;color:${on?'var(--t1)':'var(--t3)'}">${on?'🟢':'⚫'} ${p}</span>${seen?`<span class="wi-seen ${seen.cls}" style="margin-left:auto">${seen.text}</span>`:on?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);margin-left:auto">EN LIGNE</span>':''}</div>`;}).join('')}</div>`:'' ;
     $('wl-quick').innerHTML=(mk(lp,WL,'var(--grn)','🟢 LIME')||'')+(mk(mp,WLM,'var(--org)','🟤 MOCHA')||'')||'<div class="empty">Watchlists vides</div>';
     if($('last-update'))$('last-update').textContent=new Date().toLocaleTimeString('fr-FR');
     pushActivity(tot);startCountdown(5);
@@ -500,8 +500,15 @@ async function loadStats(){
   const[lR,pR,plR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/pronostic/'+encodeURIComponent(p)),api('/api/plages/'+encodeURIComponent(p))]);
   const loc=lR.status==='fulfilled'?lR.value:null,prn=pR.status==='fulfilled'?pR.value:null,plg=plR.status==='fulfilled'?plR.value:null;
   const srvs=loc?loc.servers:[];let h='';
-  h+=`<div class="sb"><div class="sbt">◉ Localisation</div>`;
-  h+=srvs.length?srvs.map(s=>`<div class="ir"><span class="ik">${EMO[s]} Serveur</span><span class="iv ok">${s.toUpperCase()}</span></div>`).join(''):`<div class="ir"><span class="ik">Statut</span><span class="iv" style="color:var(--t3)">Hors ligne</span></div>`;
+  const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
+  h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
+  if(srvs.length){h+=srvs.map(s=>`<div class="ir"><span class="ik">${EMO[s]} Serveur</span><span class="iv ok">${s.toUpperCase()}</span></div>`).join('');}
+  if(loc?.country){
+    const rows=loc.countries_by_server
+      ?Object.entries(loc.countries_by_server).map(([s,c])=>`<div class="ir"><span class="ik">${EMO[s]||''} Pays (${s.toUpperCase()})</span><span class="iv" style="color:var(--blue-pale)">🌍 ${c}</span></div>`).join('')
+      :`<div class="ir"><span class="ik">${EMO[loc.country_server||'lime']||''} Pays</span><span class="iv" style="color:var(--blue-pale)">🌍 ${loc.country}</span></div>`;
+    h+=rows;
+  }
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
   if(prn?.pronostic?.length){h+=`<div style="font-family:var(--M);font-size:.48rem;color:var(--t3);margin-bottom:.35rem">Basé sur ${prn.total} connexions</div>`;h+=prn.pronostic.map(r=>`<div class="pr"><span class="pd">${r.day}</span><div class="pb3"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp">${r.pct}%</span><span class="pt3">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');}
@@ -637,7 +644,7 @@ async function openPlayerPanel(player){
   const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
   let h='';
   h+=`<div class="pp-info-row">
-    <div class="pp-avatar"><img src="https://mc-heads.net/avatar/${encodeURIComponent(player)}/64" onerror="this.style.display='none'" alt=""></div>
+    <div class="pp-avatar"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(player)}/64" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(player)}/64'" alt="" style="image-rendering:pixelated"></div>
     <div class="pp-info-meta">
       <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
       <div class="pp-status ${online?'on':'off'}">
@@ -673,12 +680,11 @@ async function openPlayerPanel(player){
       if(ca.country){
         const srv=ca.country_server||'lime';
         const dynLink=`https://${srv}.nationsglory.fr/?worldname=world&mapname=flat&zoom=4`;
-        cEl.innerHTML=`<div style="display:inline-flex;align-items:center;gap:.5rem;font-family:var(--M);font-size:.6rem;
-          color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);
-          border-radius:4px;padding:.3rem .7rem;margin-bottom:.2rem">
-          🌍 <b style="color:var(--blue-pale)">${ca.country}</b>
-          <span style="color:var(--t4);font-size:.52rem">${srv.toUpperCase()}</span>
-        </div>`;
+        // Build per-server country rows if ca.countries_by_server exists, else fallback
+        const rows=ca.countries_by_server
+          ? Object.entries(ca.countries_by_server).map(([s,c])=>`<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);border-radius:4px;padding:.22rem .6rem;margin:.15rem .2rem .15rem 0">${EMO[s]||''} 🌍 <b style="color:var(--blue-pale)">${c}</b><span style="color:var(--t4);font-size:.48rem">${s.toUpperCase()}</span></div>`).join('')
+          : `<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);border-radius:4px;padding:.22rem .6rem">${EMO[srv]||''} 🌍 <b style="color:var(--blue-pale)">${ca.country}</b><span style="color:var(--t4);font-size:.48rem">${srv.toUpperCase()}</span></div>`;
+        cEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.1rem;margin-bottom:.2rem">${rows}</div>`;
       }else{
         cEl.innerHTML='';
       }
@@ -1239,7 +1245,7 @@ function renderTop5Inter(players, allOnline){
     const topSrv=x.servers?Object.entries(x.servers).sort((a,b)=>b[1]-a[1])[0]:null;
     return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
       <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]}</div>
-      <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+      <img src="https://skins.nationsglory.fr/face/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0;image-rendering:pixelated;border:1px solid var(--b2)" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36'" alt="">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap">
           <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
@@ -1278,7 +1284,7 @@ async function renderTop5BySrv(){
       const isOnline=onlineList.includes(x.player.toLowerCase());
       return`<div style="display:flex;align-items:center;gap:1rem;padding:.8rem .9rem;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''" onclick="openPlayerPanel('${x.player}')">
         <div style="font-family:var(--D);font-size:1.6rem;width:28px;text-align:center;flex-shrink:0">${medals[i]||'#'+(i+1)}</div>
-        <img src="https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'" alt="">
+        <img src="https://skins.nationsglory.fr/face/${encodeURIComponent(x.player)}/36" style="width:36px;height:36px;border-radius:4px;flex-shrink:0;image-rendering:pixelated;border:1px solid var(--b2)" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(x.player)}/36'" alt="">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
             <span style="font-family:var(--M);font-size:.7rem;color:var(--t1)">${x.player}</span>
