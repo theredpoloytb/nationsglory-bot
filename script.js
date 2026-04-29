@@ -304,7 +304,7 @@ function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'
 async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){notesLoadFromAPI().then(()=>renderNotes());}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}}
+async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='referents'){loadReferents();}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -1296,8 +1296,6 @@ async function renderTop5BySrv(){
 setInterval(()=>{
   const active=document.querySelector('.sec.active');
   if(!active)return;
-  if(active.id==='s-top5')loadTop5();
-  if(active.id==='s-carte')loadCarte();
 },30000);
 
 const _origLoadDash=loadDash;
