@@ -687,7 +687,8 @@ async def api_souspower(r):
 		name=v.get('label',k).replace(' [home]','').strip()
 		marge=pow-claims
 		result.append({'name':name,'power':pow,'maxpower':maxpow,'claims':claims,'marge':marge,
-			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members'])})
+			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members']),
+			'x':v.get('x',0),'z':v.get('z',0)})
 	result.sort(key=lambda x:x['marge'])
 	return cors({'server':s,'countries':result,'total':len(result)})
 
