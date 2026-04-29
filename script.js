@@ -1646,11 +1646,11 @@ async function loadSouspower(){
             ${p.mmr?`<span>🏆 <b style="color:var(--t1)">${p.mmr}</b> MMR</span>`:''}
             <span>👥 <b style="color:var(--t1)">${p.members}</b> membres</span>
             ${p.leader?`<span style="display:inline-flex;align-items:center;gap:.3rem">${leaderSkin}👑 <b style="color:var(--t2)">${p.leader}</b></span>`:''}
-            ${coordBlock}
           </div>
           <div style="background:var(--bg2);border-radius:4px;height:6px;overflow:hidden">
             <div style="height:100%;width:${pct}%;background:${col};transition:width .4s"></div>
           </div>
+          ${hasCoord?`<div style="margin-top:.4rem">${coordBlock}</div>`:''}
         </div>
       </div>`;
     };
