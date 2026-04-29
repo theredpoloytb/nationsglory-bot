@@ -1600,15 +1600,33 @@ async function loadSouspower(){
       const badge=cat==='sp'?`<span style="background:rgba(255,60,60,.15);color:var(--red);border:1px solid rgba(255,60,60,.3);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem;font-weight:700">⛔ −${Math.abs(p.marge)}</span>`:
         cat==='proche'?`<span style="background:rgba(255,160,0,.12);color:var(--org);border:1px solid rgba(255,160,0,.25);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem">⚠ +${p.marge}</span>`:
         `<span style="color:var(--t3);font-size:.55rem;margin-left:.6rem">+${p.marge}</span>`;
+      const hasCoord=(p.x||p.z);
+      const dynmapBase=`https://dynmap.nationsglory.fr/index.html?worldname=world&mapname=flat&zoom=5&x=${p.x}&y=64&z=${p.z}`;
+      const coordBlock=hasCoord?`<a href="${dynmapBase}&server=${s}" target="_blank" rel="noopener"
+          title="Ouvrir sur la Dynmap"
+          style="display:inline-flex;align-items:center;gap:.35rem;font-family:var(--M);font-size:.58rem;
+            color:var(--blue-pale);text-decoration:none;border:1px solid rgba(91,163,255,.25);
+            border-radius:4px;padding:.15rem .55rem;background:rgba(91,163,255,.07);
+            transition:all .15s;white-space:nowrap"
+          onmouseover="this.style.background='rgba(91,163,255,.18)';this.style.borderColor='rgba(91,163,255,.5)'"
+          onmouseout="this.style.background='rgba(91,163,255,.07)';this.style.borderColor='rgba(91,163,255,.25)'">
+          📍 ${p.x}, ${p.z} <span style="font-size:.5rem;opacity:.7">↗</span>
+        </a>`:'';
+      const leaderSkin=p.leader?`<img src="https://skins.nationsglory.fr/face/${p.leader}/32"
+          alt="${p.leader}" title="${p.leader}"
+          style="width:22px;height:22px;border-radius:3px;border:1px solid var(--b2);
+            image-rendering:pixelated;flex-shrink:0;vertical-align:middle"
+          onerror="this.style.display='none'">`:'';
       return`<div style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--b1);flex-wrap:wrap">
         <div style="min-width:160px;font-family:var(--D);font-size:1.05rem;color:var(--t1);display:flex;align-items:center">${p.name}${badge}</div>
         <div style="flex:1;min-width:200px">
-          <div style="display:flex;gap:1.2rem;font-family:var(--M);font-size:.6rem;color:var(--t3);margin-bottom:.3rem;flex-wrap:wrap">
+          <div style="display:flex;gap:1.2rem;font-family:var(--M);font-size:.6rem;color:var(--t3);margin-bottom:.3rem;flex-wrap:wrap;align-items:center">
             <span>⚡ <b style="color:${col};font-size:.65rem">${p.power}</b><span style="color:var(--t3)">/${p.maxpower}</span></span>
             <span>🏴 <b style="color:var(--t1)">${p.claims}</b> claims</span>
             ${p.mmr?`<span>🏆 <b style="color:var(--t1)">${p.mmr}</b> MMR</span>`:''}
             <span>👥 <b style="color:var(--t1)">${p.members}</b> membres</span>
-            ${p.leader?`<span>👑 <b style="color:var(--t2)">${p.leader}</b></span>`:''}
+            ${p.leader?`<span style="display:inline-flex;align-items:center;gap:.3rem">${leaderSkin}👑 <b style="color:var(--t2)">${p.leader}</b></span>`:''}
+            ${coordBlock}
           </div>
           <div style="background:var(--bg2);border-radius:4px;height:6px;overflow:hidden">
             <div style="height:100%;width:${pct}%;background:${col};transition:width .4s"></div>
