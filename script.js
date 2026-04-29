@@ -485,7 +485,7 @@ function rHist(){const el=$('ca-history');if(!hist.length){el.innerHTML='<div cl
 async function loadCS(){const s=$('ck-srv').value;if(!s)return;await getCountries(s);rCS(s);}
 function rCS(s){const el=$('ck-suggest'),p=cc[s]||[];if(!p.length){el.innerHTML='';return;}el.innerHTML=p.map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');}
 function selC(c){$('ck-country').value=c;$('ck-list').style.display='none';doCheck();}
-async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;const hasDynmap=d.power||d.claims||d.mmr;const powerPct=d.power&&d.maxpower?Math.min(100,Math.round(d.power/d.maxpower*100)):0;const isSP=d.power<d.claims;const powerBar=d.maxpower?`<div style="margin:.3rem 0 .1rem;background:var(--bg2);border-radius:3px;height:4px;overflow:hidden"><div style="height:100%;width:${powerPct}%;background:${isSP?'var(--red)':'var(--grn)'};transition:width .4s"></div></div>`:'';const infoBloc=hasDynmap?`<div style="font-family:var(--M);font-size:.49rem;color:var(--t3);margin:.35rem 0 .05rem;display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">${d.claims?`<span>🏴 <b style="color:var(--t1)">${d.claims}</b> claims</span>`:''}${d.power?`<span>⚡ <b style="color:${isSP?'var(--red)':'var(--grn)'}">${d.power}</b>/<b style="color:var(--t2)">${d.maxpower}</b> power${isSP?` <span style="color:var(--red);font-size:.44rem">▼ SOUS-POWER (${d.claims-d.power})</span>`:''}</span>`:''}${d.mmr?`<span>🏆 <b style="color:var(--t1)">${d.mmr}</b> MMR</span>`:''}${d.leader?`<span>👑 <b style="color:var(--t1)">${d.leader}</b></span>`:''}</div>${powerBar}`:'';if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : ${d.country} — ${d.members_total} membres</div>${infoBloc}<span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : ${d.country} — ${d.online_total}/${d.members_total} connectés</div>${infoBloc}`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
+async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;const hasDynmap=d.power||d.claims||d.mmr;const powerPct=d.power&&d.maxpower?Math.min(100,Math.round(d.power/d.maxpower*100)):0;const isSP=d.power<d.claims;const powerBar=d.maxpower?`<div style="margin:.3rem 0 .1rem;background:var(--bg2);border-radius:3px;height:4px;overflow:hidden"><div style="height:100%;width:${powerPct}%;background:${isSP?'var(--red)':'var(--grn)'};transition:width .4s"></div></div>`:'';const infoBloc=hasDynmap?`<div style="font-family:var(--M);font-size:.49rem;color:var(--t3);margin:.35rem 0 .05rem;display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">${d.claims?`<span>🏴 <b style="color:var(--t1)">${d.claims}</b> claims</span>`:''}${d.power?`<span>⚡ <b style="color:${isSP?'var(--red)':'var(--grn)'}">${d.power}</b>/<b style="color:var(--t2)">${d.maxpower}</b> power${isSP?` <span style="color:var(--red);font-size:.44rem">▼ SOUS-POWER (${d.claims-d.power})</span>`:''}</span>`:''}${d.mmr?`<span>🏆 <b style="color:var(--t1)">${d.mmr}</b> MMR</span>`:''}${d.leader?`<span style="display:inline-flex;align-items:center;gap:.3rem"><img src="https://skins.nationsglory.fr/face/${d.leader}/32" style="width:20px;height:20px;border-radius:3px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'">👑 <b style="color:var(--t1)">${d.leader}</b></span>`:''}</div>${powerBar}`:'';if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : <a href="https://${s}.nationsglory.fr/" target="_blank" rel="noopener" style="color:var(--blue-pale);text-decoration:none" title="Dynmap ${s}">${d.country} ↗</a> — ${d.members_total} membres</div>${infoBloc}<span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : <a href="https://${s}.nationsglory.fr/" target="_blank" rel="noopener" style="color:var(--blue-pale);text-decoration:none" title="Dynmap ${s}">${d.country} ↗</a> — ${d.online_total}/${d.members_total} connectés</div>${infoBloc}`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
 
 function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}el.innerHTML=wl.map(p=>`<div class="wi"><span style="font-family:var(--M);font-size:.62rem">${p}</span><button class="btn btn-r" style="padding:.07rem .34rem;font-size:.48rem" onclick="wlRm('${p}')">✕</button></div>`).join('');}
 async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
@@ -648,6 +648,8 @@ async function openPlayerPanel(player){
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
     </div>
   </div>`;
+  // Country block (populated after fetch)
+  h+=`<div id="pp-country-block" style="margin:.5rem 0 .2rem"></div>`;
   h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
   h+=`<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>`;
   if(pr?.pronostic?.length){
@@ -664,6 +666,24 @@ async function openPlayerPanel(player){
     h+='</table></div></div>';
   }
   body.innerHTML=h;
+  // Fill country info from checkall data
+  if(ca){
+    const cEl=document.getElementById('pp-country-block');
+    if(cEl){
+      if(ca.country){
+        const srv=ca.country_server||'lime';
+        const dynLink=`https://${srv}.nationsglory.fr/?worldname=world&mapname=flat&zoom=4`;
+        cEl.innerHTML=`<div style="display:inline-flex;align-items:center;gap:.5rem;font-family:var(--M);font-size:.6rem;
+          color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);
+          border-radius:4px;padding:.3rem .7rem;margin-bottom:.2rem">
+          🌍 <b style="color:var(--blue-pale)">${ca.country}</b>
+          <span style="color:var(--t4);font-size:.52rem">${srv.toUpperCase()}</span>
+        </div>`;
+      }else{
+        cEl.innerHTML='';
+      }
+    }
+  }
 }
 function closePlayerPanel(){
   document.getElementById('player-panel').classList.remove('open');
@@ -831,7 +851,7 @@ async function cwRefreshOne(idx){
     const members=d.servers?.[w.server]||[];
     const online=members.length;
     const wasAlert=w.alertFired;
-    w.online=online;w.members=members;w.hasNonRecruit=false;w.alertFired=false;
+    w.online=online;w.members=members;w.hasNonRecruit=false;w.alertFired=false;w.leader=d.leader||'';
     if(online>=2){const _nr=await hasNonRecruit(members,w.server);w.hasNonRecruit=_nr;w.alertFired=_nr;}
     if(w.alertFired&&!wasAlert){
       showPop('connect',`⚔ ${w.country}`,`${online} membres · assaut possible · ${w.server.toUpperCase()}`);
@@ -855,7 +875,7 @@ function cwRender(){
     return`<div class="cw-item ${alert?'alert':recruitOnly?'recruit-only':''}" style="margin-bottom:.5rem">
       <div class="cw-count ${alert?'danger':''}">${cnt}</div>
       <div class="cw-info">
-        <div class="cw-name">${w.country}</div>
+        <div class="cw-name">${w.country}</div>${w.leader?`<div style="display:flex;align-items:center;gap:.4rem;margin-top:.2rem;font-family:var(--M);font-size:.52rem;color:var(--t3)"><img src="https://skins.nationsglory.fr/face/${w.leader}/16" style="width:16px;height:16px;border-radius:2px;image-rendering:pixelated" onerror="this.style.display='none'"> 👑 ${w.leader}</div>`:''}
         <div class="cw-meta">${EMO[w.server]||''} ${w.server.toUpperCase()} · assaut possible si ≥ 2 connectés</div>
         ${w.members.length?`<div class="cw-members">${w.members.slice(0,8).map(p=>{const k=p+'@'+w.server;const g=gradeCache[k]?.rank||'?';const col=g&&g!=='recruit'&&g!=='?'?'var(--grn)':g==='recruit'?'var(--red)':'var(--t3)';return`<span style="color:${col}">${p} <span style="font-size:.4rem;opacity:.7">[${g}]</span></span>`;}).join(', ')}${w.members.length>8?` <span style="color:var(--t3)">+${w.members.length-8}</span>`:''}</div>`:''}
       </div>
@@ -1601,8 +1621,8 @@ async function loadSouspower(){
         cat==='proche'?`<span style="background:rgba(255,160,0,.12);color:var(--org);border:1px solid rgba(255,160,0,.25);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem">⚠ +${p.marge}</span>`:
         `<span style="color:var(--t3);font-size:.55rem;margin-left:.6rem">+${p.marge}</span>`;
       const hasCoord=(p.x||p.z);
-      const dynmapBase=`https://dynmap.nationsglory.fr/index.html?worldname=world&mapname=flat&zoom=5&x=${p.x}&y=64&z=${p.z}`;
-      const coordBlock=hasCoord?`<a href="${dynmapBase}&server=${s}" target="_blank" rel="noopener"
+      const dynmapUrl=`https://${s}.nationsglory.fr/?worldname=world&mapname=flat&zoom=4&x=${Math.round(p.x)}&y=64&z=${Math.round(p.z)}`;
+      const coordBlock=hasCoord?`<a href="${dynmapUrl}" target="_blank" rel="noopener"
           title="Ouvrir sur la Dynmap"
           style="display:inline-flex;align-items:center;gap:.35rem;font-family:var(--M);font-size:.58rem;
             color:var(--blue-pale);text-decoration:none;border:1px solid rgba(91,163,255,.25);
@@ -1610,7 +1630,7 @@ async function loadSouspower(){
             transition:all .15s;white-space:nowrap"
           onmouseover="this.style.background='rgba(91,163,255,.18)';this.style.borderColor='rgba(91,163,255,.5)'"
           onmouseout="this.style.background='rgba(91,163,255,.07)';this.style.borderColor='rgba(91,163,255,.25)'">
-          📍 ${p.x}, ${p.z} <span style="font-size:.5rem;opacity:.7">↗</span>
+          📍 ${Math.round(p.x)}, ${Math.round(p.z)} <span style="font-size:.5rem;opacity:.7">↗</span>
         </a>`:'';
       const leaderSkin=p.leader?`<img src="https://skins.nationsglory.fr/face/${p.leader}/32"
           alt="${p.leader}" title="${p.leader}"
