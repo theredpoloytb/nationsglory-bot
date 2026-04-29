@@ -644,7 +644,22 @@ async def api_online(r):
 @require_auth
 async def api_online_all(r):return cors(await get_all_online())
 @require_auth
-async def api_checkall(r):p=r.match_info['player'];all_=await get_all_online();return cors({'player':p,'servers':[s for(s,pl)in all_.items()if p in pl]})
+async def api_checkall(r):
+	p=r.match_info['player'];all_=await get_all_online()
+	found=[s for(s,pl)in all_.items()if p in pl]
+	country_name='';country_server=''
+	for srv in (found if found else list(SERVERS.keys())[:3]):
+		markers=await _fetch_dynmap_markers(srv)
+		for k,v in markers.items():
+			if not k.startswith('default_')or not k.endswith('__home'):continue
+			desc=v.get('desc','')
+			if not desc:continue
+			parsed=_parse_marker_desc(desc)
+			if any(m.lower()==p.lower()for m in parsed['members']):
+				country_name=v.get('label',k).replace(' [home]','').strip()
+				country_server=srv;break
+		if country_name:break
+	return cors({'player':p,'servers':found,'country':country_name,'country_server':country_server})
 @require_auth
 async def api_countries(r):
 	s=r.match_info['server'].lower()
@@ -671,10 +686,8 @@ async def api_souspower(r):
 		if claims>900000:continue  # ignorer WarZone/SafeZone
 		name=v.get('label',k).replace(' [home]','').strip()
 		marge=pow-claims
-		x=int(v.get('x',0));z=int(v.get('z',0))
 		result.append({'name':name,'power':pow,'maxpower':maxpow,'claims':claims,'marge':marge,
-			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members']),
-			'x':x,'z':z})
+			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members'])})
 	result.sort(key=lambda x:x['marge'])
 	return cors({'server':s,'countries':result,'total':len(result)})
 
