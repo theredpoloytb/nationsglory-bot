@@ -502,12 +502,10 @@ async function loadStats(){
   const srvs=loc?loc.servers:[];let h='';
   const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
   h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
-  if(srvs.length){h+=srvs.map(s=>`<div class="ir"><span class="ik">${EMO[s]} Serveur</span><span class="iv ok">${s.toUpperCase()}</span></div>`).join('');}
-  if(loc?.country){
-    const rows=loc.countries_by_server
-      ?Object.entries(loc.countries_by_server).map(([s,c])=>`<div class="ir"><span class="ik">${EMO[s]||''} Pays (${s.toUpperCase()})</span><span class="iv" style="color:var(--blue-pale)">🌍 ${c}</span></div>`).join('')
-      :`<div class="ir"><span class="ik">${EMO[loc.country_server||'lime']||''} Pays</span><span class="iv" style="color:var(--blue-pale)">🌍 ${loc.country}</span></div>`;
-    h+=rows;
+  if(srvs.length){h+=srvs.map(s=>`<div class="ir"><span class="ik">${EMO[s]||''} Serveur</span><span class="iv ok">${s.toUpperCase()}</span></div>`).join('');}
+  const cbs=loc?.countries_by_server&&Object.keys(loc.countries_by_server).length?loc.countries_by_server:loc?.country?{[loc.country_server||'lime']:loc.country}:null;
+  if(cbs){
+    h+=Object.entries(cbs).map(([s,c])=>`<div class="ir"><span class="ik">${EMO[s]||'🌐'} Pays — ${s.toUpperCase()}</span><span class="iv" style="color:var(--blue-pale)">🌍 ${c}</span></div>`).join('');
   }
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
@@ -677,14 +675,18 @@ async function openPlayerPanel(player){
   if(ca){
     const cEl=document.getElementById('pp-country-block');
     if(cEl){
-      if(ca.country){
-        const srv=ca.country_server||'lime';
-        const dynLink=`https://${srv}.nationsglory.fr/?worldname=world&mapname=flat&zoom=4`;
-        // Build per-server country rows if ca.countries_by_server exists, else fallback
-        const rows=ca.countries_by_server
-          ? Object.entries(ca.countries_by_server).map(([s,c])=>`<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);border-radius:4px;padding:.22rem .6rem;margin:.15rem .2rem .15rem 0">${EMO[s]||''} 🌍 <b style="color:var(--blue-pale)">${c}</b><span style="color:var(--t4);font-size:.48rem">${s.toUpperCase()}</span></div>`).join('')
-          : `<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);border-radius:4px;padding:.22rem .6rem">${EMO[srv]||''} 🌍 <b style="color:var(--blue-pale)">${ca.country}</b><span style="color:var(--t4);font-size:.48rem">${srv.toUpperCase()}</span></div>`;
-        cEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.1rem;margin-bottom:.2rem">${rows}</div>`;
+      const cbs=ca.countries_by_server&&Object.keys(ca.countries_by_server).length?ca.countries_by_server:ca.country?{[ca.country_server||'lime']:ca.country}:null;
+      if(cbs){
+        const rows=Object.entries(cbs).map(([s,c])=>`
+          <div style="display:inline-flex;align-items:center;gap:.45rem;font-family:var(--M);font-size:.6rem;
+            color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);
+            border-radius:5px;padding:.28rem .7rem;margin:.1rem .2rem .1rem 0">
+            <span style="font-size:.75rem">${EMO[s]||'🌐'}</span>
+            <span style="color:var(--t4);font-size:.5rem;letter-spacing:.1em">${s.toUpperCase()}</span>
+            <span style="color:var(--b2)">·</span>
+            🌍 <b style="color:var(--blue-pale)">${c}</b>
+          </div>`).join('');
+        cEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.05rem;margin-bottom:.3rem">${rows}</div>`;
       }else{
         cEl.innerHTML='';
       }
