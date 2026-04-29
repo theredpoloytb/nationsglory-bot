@@ -647,7 +647,7 @@ async def api_online_all(r):return cors(await get_all_online())
 async def api_checkall(r):
 	p=r.match_info['player'];all_=await get_all_online()
 	found=[s for(s,pl)in all_.items()if p in pl]
-	country_name='';country_server=''
+	countries_by_server={}
 	for srv in (found if found else list(SERVERS.keys())[:3]):
 		markers=await _fetch_dynmap_markers(srv)
 		for k,v in markers.items():
@@ -656,10 +656,13 @@ async def api_checkall(r):
 			if not desc:continue
 			parsed=_parse_marker_desc(desc)
 			if any(m.lower()==p.lower()for m in parsed['members']):
-				country_name=v.get('label',k).replace(' [home]','').strip()
-				country_server=srv;break
-		if country_name:break
-	return cors({'player':p,'servers':found,'country':country_name,'country_server':country_server})
+				countries_by_server[srv]=v.get('label',k).replace(' [home]','').strip()
+				break
+	country_name='';country_server=''
+	if countries_by_server:
+		country_server=next(iter(countries_by_server))
+		country_name=countries_by_server[country_server]
+	return cors({'player':p,'servers':found,'country':country_name,'country_server':country_server,'countries_by_server':countries_by_server})
 @require_auth
 async def api_countries(r):
 	s=r.match_info['server'].lower()
