@@ -671,8 +671,10 @@ async def api_souspower(r):
 		if claims>900000:continue  # ignorer WarZone/SafeZone
 		name=v.get('label',k).replace(' [home]','').strip()
 		marge=pow-claims
+		x=int(v.get('x',0));z=int(v.get('z',0))
 		result.append({'name':name,'power':pow,'maxpower':maxpow,'claims':claims,'marge':marge,
-			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members'])})
+			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members']),
+			'x':x,'z':z})
 	result.sort(key=lambda x:x['marge'])
 	return cors({'server':s,'countries':result,'total':len(result)})
 
