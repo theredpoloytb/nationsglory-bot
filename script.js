@@ -304,7 +304,7 @@ function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'
 async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){notesLoadFromAPI().then(()=>renderNotes());}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}}
+async function nav(id,btn){sndNav();pageFlash();document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='historique'){updateHistPlayerFilter();renderConnHist();}if(id==='notes'){notesLoadFromAPI().then(()=>renderNotes());}if(id==='carte'){loadCarte();}if(id==='top5'){loadTop5();}if(id==='referents'){loadReferents();}if(id==='souspower'){window.scrollTo({top:0,behavior:'instant'});}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -1597,26 +1597,27 @@ async function loadSouspower(){
     const row=(p,cat)=>{
       const pct=p.maxpower?Math.min(100,Math.round(p.power/p.maxpower*100)):0;
       const col=cat==='sp'?'var(--red)':cat==='proche'?'var(--org)':'var(--grn)';
-      const badge=cat==='sp'?`<span style="background:rgba(255,60,60,.15);color:var(--red);border:1px solid rgba(255,60,60,.3);border-radius:3px;padding:.1rem .35rem;font-size:.42rem;margin-left:.4rem">SOUS-POWER −${Math.abs(p.marge)}</span>`:
-        cat==='proche'?`<span style="background:rgba(255,160,0,.12);color:var(--org);border:1px solid rgba(255,160,0,.25);border-radius:3px;padding:.1rem .35rem;font-size:.42rem;margin-left:.4rem">marge +${p.marge}</span>`:
-        `<span style="color:var(--t3);font-size:.44rem;margin-left:.4rem">+${p.marge}</span>`;
-      return`<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-bottom:1px solid var(--b1);flex-wrap:wrap">
-        <div style="min-width:130px;font-family:var(--D);font-size:.9rem;color:var(--t1)">${p.name}${badge}</div>
-        <div style="flex:1;min-width:160px">
-          <div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:.45rem;color:var(--t3);margin-bottom:.2rem">
-            <span>⚡ <b style="color:${col}">${p.power}</b>/${p.maxpower}</span>
-            <span>🏴 ${p.claims} claims</span>
-            ${p.mmr?`<span>🏆 ${p.mmr} MMR</span>`:''}
-            <span style="color:var(--t3)">👥 ${p.members}</span>
+      const badge=cat==='sp'?`<span style="background:rgba(255,60,60,.15);color:var(--red);border:1px solid rgba(255,60,60,.3);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem;font-weight:700">⛔ −${Math.abs(p.marge)}</span>`:
+        cat==='proche'?`<span style="background:rgba(255,160,0,.12);color:var(--org);border:1px solid rgba(255,160,0,.25);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem">⚠ +${p.marge}</span>`:
+        `<span style="color:var(--t3);font-size:.55rem;margin-left:.6rem">+${p.marge}</span>`;
+      return`<div style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--b1);flex-wrap:wrap">
+        <div style="min-width:160px;font-family:var(--D);font-size:1.05rem;color:var(--t1);display:flex;align-items:center">${p.name}${badge}</div>
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;gap:1.2rem;font-family:var(--M);font-size:.6rem;color:var(--t3);margin-bottom:.3rem;flex-wrap:wrap">
+            <span>⚡ <b style="color:${col};font-size:.65rem">${p.power}</b><span style="color:var(--t3)">/${p.maxpower}</span></span>
+            <span>🏴 <b style="color:var(--t1)">${p.claims}</b> claims</span>
+            ${p.mmr?`<span>🏆 <b style="color:var(--t1)">${p.mmr}</b> MMR</span>`:''}
+            <span>👥 <b style="color:var(--t1)">${p.members}</b> membres</span>
+            ${p.leader?`<span>👑 <b style="color:var(--t2)">${p.leader}</b></span>`:''}
           </div>
-          <div style="background:var(--bg2);border-radius:3px;height:4px;overflow:hidden">
+          <div style="background:var(--bg2);border-radius:4px;height:6px;overflow:hidden">
             <div style="height:100%;width:${pct}%;background:${col};transition:width .4s"></div>
           </div>
         </div>
       </div>`;
     };
     const section=(title,list,cat,color)=>list.length?`
-      <div style="font-family:var(--M);font-size:.48rem;color:${color};letter-spacing:.08em;padding:.5rem .7rem;border-bottom:1px solid var(--b1);background:rgba(0,0,0,.15)">${title} (${list.length})</div>
+      <div style="font-family:var(--M);font-size:.6rem;color:${color};letter-spacing:.1em;padding:.7rem 1rem;border-bottom:1px solid var(--b1);background:rgba(0,0,0,.2);font-weight:700">${title} — ${list.length} pays</div>
       ${list.map(p=>row(p,cat)).join('')}
     `:'';
     res.innerHTML=`<div style="border:1px solid var(--b1);border-radius:var(--r);overflow:hidden">
