@@ -640,9 +640,18 @@ async function openPlayerPanel(player){
   const seen=getLastSeenText(player);
   const online=ca&&ca.servers.length>0;
   const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
+
+  // Pays par serveur
+  const cbs=ca?.countries_by_server&&Object.keys(ca.countries_by_server).length
+    ?ca.countries_by_server
+    :ca?.country?{[ca.country_server||'lime']:ca.country}:null;
+  const countryBlock=cbs
+    ?`<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin:.4rem 0 .15rem">${Object.entries(cbs).map(([s,c])=>`<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--t2);background:rgba(91,163,255,.08);border:1px solid rgba(91,163,255,.22);border-radius:5px;padding:.22rem .65rem"><span>${EMO[s]||'🌐'}</span><span style="color:var(--t4);font-size:.46rem;letter-spacing:.1em">${s.toUpperCase()}</span><span style="opacity:.3">·</span>🌍 <b style="color:var(--blue-pale)">${c}</b></div>`).join('')}</div>`
+    :'';
+
   let h='';
   h+=`<div class="pp-info-row">
-    <div class="pp-avatar"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(player)}/64" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(player)}/64'" alt="" style="image-rendering:pixelated"></div>
+    <div class="pp-avatar"><img src="https://mc-heads.net/avatar/${encodeURIComponent(player)}/64" onerror="this.src='https://skins.nationsglory.fr/face/${encodeURIComponent(player)}/64'" alt=""></div>
     <div class="pp-info-meta">
       <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
       <div class="pp-status ${online?'on':'off'}">
@@ -652,9 +661,8 @@ async function openPlayerPanel(player){
       ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
     </div>
-  </div>`;
-  // Country block (populated after fetch)
-  h+=`<div id="pp-country-block" style="margin:.5rem 0 .2rem"></div>`;
+  </div>
+  ${countryBlock}`;
   h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
   h+=`<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>`;
   if(pr?.pronostic?.length){
@@ -671,27 +679,6 @@ async function openPlayerPanel(player){
     h+='</table></div></div>';
   }
   body.innerHTML=h;
-  // Fill country info from checkall data
-  if(ca){
-    const cEl=document.getElementById('pp-country-block');
-    if(cEl){
-      const cbs=ca.countries_by_server&&Object.keys(ca.countries_by_server).length?ca.countries_by_server:ca.country?{[ca.country_server||'lime']:ca.country}:null;
-      if(cbs){
-        const rows=Object.entries(cbs).map(([s,c])=>`
-          <div style="display:inline-flex;align-items:center;gap:.45rem;font-family:var(--M);font-size:.6rem;
-            color:var(--t2);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.2);
-            border-radius:5px;padding:.28rem .7rem;margin:.1rem .2rem .1rem 0">
-            <span style="font-size:.75rem">${EMO[s]||'🌐'}</span>
-            <span style="color:var(--t4);font-size:.5rem;letter-spacing:.1em">${s.toUpperCase()}</span>
-            <span style="color:var(--b2)">·</span>
-            🌍 <b style="color:var(--blue-pale)">${c}</b>
-          </div>`).join('');
-        cEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.05rem;margin-bottom:.3rem">${rows}</div>`;
-      }else{
-        cEl.innerHTML='';
-      }
-    }
-  }
 }
 function closePlayerPanel(){
   document.getElementById('player-panel').classList.remove('open');
