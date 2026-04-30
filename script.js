@@ -1602,18 +1602,80 @@ setInterval(()=>{
 },300000);
 
 // ── SOUS-POWER ──────────────────────────────────────────────────────
+
+// Fetches dimension marker JSON and returns a map: countryName (lowercase) → {claims, x, z}
+async function _fetchDimClaims(dimUrl){
+  try{
+    const r=await fetch(dimUrl);
+    if(!r.ok)return{};
+    const data=await r.json();
+    const areas=(data.sets||{})['factions.markerset']?.areas||{};
+    const map={};
+    for(const[k,v]of Object.entries(areas)){
+      // key format: CountryName__DIM-XX__N — we want the country label
+      const label=v.label||'';
+      if(!label)continue;
+      const name=label.toLowerCase();
+      // parse claims from desc
+      const desc=v.desc||'';
+      const cm=desc.match(/Claims<\/b>\s*(\d+)/);
+      const claims=cm?parseInt(cm[1]):0;
+      if(claims===0)continue; // skip if no claims
+      // compute centroid of polygon coords for dynmap link
+      const xs=v.x||[];const zs=v.z||[];
+      let cx=0,cz=0;
+      if(xs.length){cx=xs.reduce((a,b)=>a+b,0)/xs.length;}
+      if(zs.length){cz=zs.reduce((a,b)=>a+b,0)/zs.length;}
+      // If country appears multiple times (multi-poly), sum claims
+      if(map[name]){
+        map[name].claims+=claims;
+        // keep first centroid
+      } else {
+        map[name]={claims,x:Math.round(cx),z:Math.round(cz)};
+      }
+    }
+    return map;
+  }catch(e){return{};}
+}
+
 async function loadSouspower(){
   const s=$('sp-srv').value;
   if(!s){alert('Choisis un serveur');return;}
   const res=$('sp-result'),ts=$('sp-ts');
   res.innerHTML=ld();ts.textContent='';
   try{
-    const d=await api(`/api/souspower/${s}`);
+    // Fetch main souspower data + all 3 dimension markers in parallel
+    const [d, dimLune, dimMars, dimEdora] = await Promise.all([
+      api(`/api/souspower/${s}`),
+      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-28.json`),
+      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-29.json`),
+      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-31.json`),
+    ]);
     const pays=d.countries||[];
     if(!pays.length){res.innerHTML='<div class="empty">Aucun pays trouvé</div>';return;}
     const sp=pays.filter(p=>p.marge<0);
     const proche=pays.filter(p=>p.marge>=0&&p.marge<200);
     const safe=pays.filter(p=>p.marge>=200);
+
+    // Helper to build a dim claims chip
+    const dimChip=(dimData, dimWorldname, dimLabel, dimColor)=>{
+      const key=dimData; // already the entry {claims,x,z} or null
+      if(!key){
+        return`<span style="font-family:var(--M);font-size:.5rem;color:var(--t4);border:1px solid var(--b1);border-radius:3px;padding:.1rem .4rem;white-space:nowrap">${dimLabel} <span style="opacity:.5">aucun claim</span></span>`;
+      }
+      const url=`https://${s}.nationsglory.fr/?worldname=${dimWorldname}&mapname=flat&zoom=4&x=${key.x}&y=64&z=${key.z}`;
+      return`<a href="${url}" target="_blank" rel="noopener"
+          title="Voir ${dimLabel} sur la Dynmap"
+          style="display:inline-flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.5rem;
+            color:${dimColor};text-decoration:none;border:1px solid ${dimColor}33;
+            border-radius:3px;padding:.1rem .45rem;background:${dimColor}11;
+            transition:all .15s;white-space:nowrap"
+          onmouseover="this.style.background='${dimColor}22';this.style.borderColor='${dimColor}66'"
+          onmouseout="this.style.background='${dimColor}11';this.style.borderColor='${dimColor}33'">
+          ${dimLabel} <b>${key.claims}</b> <span style="opacity:.6">↗</span>
+        </a>`;
+    };
+
     const row=(p,cat)=>{
       const pct=p.maxpower?Math.min(100,Math.round(p.power/p.maxpower*100)):0;
       const col=cat==='sp'?'var(--red)':cat==='proche'?'var(--org)':'var(--grn)';
@@ -1637,6 +1699,19 @@ async function loadSouspower(){
           style="width:22px;height:22px;border-radius:3px;border:1px solid var(--b2);
             image-rendering:pixelated;flex-shrink:0;vertical-align:middle"
           onerror="this.style.display='none'">`:'';
+
+      // Dimension claims lookup
+      const nk=p.name.toLowerCase();
+      const luneData=dimLune[nk]||null;
+      const marsData=dimMars[nk]||null;
+      const edoraData=dimEdora[nk]||null;
+      const dimRow=`<div style="display:flex;align-items:center;gap:.5rem;margin-top:.45rem;flex-wrap:wrap">
+          <span style="font-family:var(--M);font-size:.48rem;color:var(--t4);letter-spacing:.08em;white-space:nowrap">DIMS :</span>
+          ${dimChip(luneData,'DIM-28','🌙 Lune','#c8aaff')}
+          ${dimChip(marsData,'DIM-29','🔴 Mars','#ff7755')}
+          ${dimChip(edoraData,'DIM-31','🟢 Edora','#44dd88')}
+        </div>`;
+
       return`<div style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--b1);flex-wrap:wrap">
         <div style="min-width:160px;font-family:var(--D);font-size:1.05rem;color:var(--t1);display:flex;align-items:center">${p.name}${badge}</div>
         <div style="flex:1;min-width:200px">
@@ -1651,6 +1726,7 @@ async function loadSouspower(){
             <div style="height:100%;width:${pct}%;background:${col};transition:width .4s"></div>
           </div>
           ${hasCoord?`<div style="margin-top:.4rem">${coordBlock}</div>`:''}
+          ${dimRow}
         </div>
       </div>`;
     };
@@ -1664,109 +1740,5 @@ async function loadSouspower(){
       ${section('✅ SAFE',safe,'safe','var(--grn)')}
     </div>`;
     ts.textContent=`${pays.length} pays analysés — ${new Date().toLocaleTimeString('fr-FR')}`;
-
-    // === CLAIMS DIMENSIONS ===
-    const dimsPanel=$('sp-dims-panel');
-    const dimsBlock=$('sp-dims');
-    if(dimsPanel)dimsPanel.style.display='';
-    if(dimsBlock){
-      dimsBlock.innerHTML=`<div class="ld">Chargement des dimensions<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-      loadDimsClaims(s,dimsBlock);
-    }
-
   }catch(e){res.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
-}
-
-async function loadDimsClaims(server,container){
-  const DIMS=[
-    {id:'DIM-28',name:'🌙 LUNE',worldname:'DIM-28'},
-    {id:'DIM-29',name:'🔴 MARS',worldname:'DIM-29'},
-    {id:'DIM-31',name:'🟣 EDORA',worldname:'DIM-31'},
-  ];
-  const NATIONS=['lune','mars','edora'];
-
-  async function fetchDimMarkers(dimId){
-    try{
-      const url=`https://lime.nationsglory.fr/tiles/_markers_/marker_${dimId}.json`;
-      const r=await fetch(url);
-      if(!r.ok)return null;
-      return await r.json();
-    }catch{return null;}
-  }
-
-  function extractClaims(markersJson){
-    if(!markersJson||!markersJson.sets)return[];
-    const claims=[];
-    for(const setKey of Object.keys(markersJson.sets)){
-      const set=markersJson.sets[setKey];
-      if(!set.areas)continue;
-      for(const areaKey of Object.keys(set.areas)){
-        const area=set.areas[areaKey];
-        const label=(area.label||areaKey).toLowerCase();
-        // Chercher le nom du pays dans le label ou la description
-        const desc=(area.desc||'').toLowerCase();
-        // Calculer un centroïde approximatif depuis les coordonnées du polygone
-        const xs=area['x']||[];
-        const zs=area['z']||[];
-        let cx=0,cz=0;
-        if(xs.length){cx=Math.round(xs.reduce((a,b)=>a+b,0)/xs.length);}
-        if(zs.length){cz=Math.round(zs.reduce((a,b)=>a+b,0)/zs.length);}
-        claims.push({label:area.label||areaKey,desc:area.desc||'',cx,cz,setKey});
-      }
-    }
-    return claims;
-  }
-
-  function groupByNation(claims){
-    // Regrouper les claims par pays (via le label du set ou la description)
-    const nations={};
-    for(const c of claims){
-      // Le nom du pays est souvent dans le setKey ou dans le label
-      const nation=(c.setKey||'').replace(/_/g,' ').trim()||c.label.split(' ')[0]||'?';
-      if(!nations[nation])nations[nation]={name:nation,count:0,cx:c.cx,cz:c.cz};
-      nations[nation].count++;
-    }
-    return Object.values(nations);
-  }
-
-  const results=await Promise.all(DIMS.map(async dim=>{
-    const data=await fetchDimMarkers(dim.id);
-    if(!data)return{dim,nations:[],error:true};
-    const claims=extractClaims(data);
-    if(!claims.length)return{dim,nations:[],empty:true};
-    const nations=groupByNation(claims);
-    return{dim,nations,totalClaims:claims.length};
-  }));
-
-  const dimCard=(result)=>{
-    const {dim,nations,error,empty,totalClaims}=result;
-    let content='';
-    if(error){
-      content=`<div style="font-family:var(--M);font-size:.6rem;color:var(--t4);padding:.4rem 0">Aucun claim (dimension inaccessible)</div>`;
-    }else if(empty||!nations.length){
-      content=`<div style="font-family:var(--M);font-size:.6rem;color:var(--t4);padding:.4rem 0">Aucun claim dans cette dimension</div>`;
-    }else{
-      content=nations.sort((a,b)=>b.count-a.count).map(n=>{
-        const dynUrl=`https://lime.nationsglory.fr/?worldname=${dim.worldname}&mapname=flat&zoom=4&x=${n.cx}&y=64&z=${n.cz}`;
-        return`<div style="display:flex;align-items:center;gap:.75rem;padding:.3rem 0;border-bottom:1px solid rgba(91,163,255,.06)">
-          <span style="font-family:var(--D);font-size:.95rem;color:var(--t1);min-width:120px">${n.name}</span>
-          <span style="font-family:var(--M);font-size:.6rem;color:var(--blue-pale)">🏴 <b>${n.count}</b> claim${n.count>1?'s':''}</span>
-          <a href="${dynUrl}" target="_blank" rel="noopener"
-            style="display:inline-flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.55rem;
-              color:var(--blue-pale);text-decoration:none;border:1px solid rgba(91,163,255,.25);
-              border-radius:4px;padding:.12rem .45rem;background:rgba(91,163,255,.07);transition:all .15s;white-space:nowrap"
-            onmouseover="this.style.background='rgba(91,163,255,.18)';this.style.borderColor='rgba(91,163,255,.5)'"
-            onmouseout="this.style.background='rgba(91,163,255,.07)';this.style.borderColor='rgba(91,163,255,.25)'">
-            📍 ${n.cx}, ${n.cz} <span style="font-size:.48rem;opacity:.7">↗</span>
-          </a>
-        </div>`;
-      }).join('');
-    }
-    return`<div style="flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.85rem 1rem">
-      <div style="font-family:var(--M);font-size:.62rem;letter-spacing:.12em;color:var(--blue-pale);margin-bottom:.55rem;padding-bottom:.4rem;border-bottom:1px solid var(--b1)">${dim.name}${totalClaims?` — <span style="color:var(--t3)">${totalClaims} claims total</span>`:''}</div>
-      ${content}
-    </div>`;
-  };
-
-  container.innerHTML=`<div style="display:flex;gap:.8rem;flex-wrap:wrap">${results.map(dimCard).join('')}</div>`;
 }
