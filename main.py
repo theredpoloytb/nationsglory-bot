@@ -648,7 +648,7 @@ async def api_checkall(r):
 	p=r.match_info['player'];all_=await get_all_online()
 	found=[s for(s,pl)in all_.items()if p in pl]
 	countries_by_server={}
-	for srv in (found if found else list(SERVERS.keys())[:3]):
+	for srv in list(SERVERS.keys()):
 		markers=await _fetch_dynmap_markers(srv)
 		for k,v in markers.items():
 			if not k.startswith('default_')or not k.endswith('__home'):continue
