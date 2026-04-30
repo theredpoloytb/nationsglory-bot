@@ -257,23 +257,29 @@ async def get_country_list(server):
 		return ctry_cache[server][0]
 	print(f"[countries] {server} fallback statique ({len(_STATIC_COUNTRIES_FALLBACK)} pays)",flush=True)
 	return _STATIC_COUNTRIES_FALLBACK
+DYNMAP_DIMS=['world','DIM-28','DIM-29','DIM-31']
 async def _fetch_dynmap_markers(server):
 	now=time.time()
 	if server in _dynmap_markers_cache and now-_dynmap_markers_cache[server][1]<DYNMAP_MARKERS_TTL:
 		return _dynmap_markers_cache[server][0]
+	all_markers={}
 	try:
-		url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_world.json"
 		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
-			async with s.get(url)as r:
-				if r.status==200:
-					data=await r.json(content_type=None)
-					markers=data.get('sets',{}).get('factions.markerset',{}).get('markers',{})
-					_dynmap_markers_cache[server]=(markers,now)
-					print(f"[dynmap] {server} markers OK ({len(markers)} pays)",flush=True)
-					return markers
+			for dim in DYNMAP_DIMS:
+				url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_{dim}.json"
+				try:
+					async with s.get(url)as r:
+						if r.status==200:
+							data=await r.json(content_type=None)
+							markers=data.get('sets',{}).get('factions.markerset',{}).get('markers',{})
+							all_markers.update(markers)
+							print(f"[dynmap] {server} dim={dim} OK ({len(markers)} pays)",flush=True)
+				except Exception as e:
+					print(f"[dynmap] {server} dim={dim} erreur: {e}",flush=True)
 	except Exception as e:
-		print(f"[dynmap] {server} erreur: {e}",flush=True)
-	return{}
+		print(f"[dynmap] {server} erreur session: {e}",flush=True)
+	if all_markers:_dynmap_markers_cache[server]=(all_markers,now)
+	return all_markers
 
 def _parse_marker_desc(desc):
 	import html as _html,re as _re
