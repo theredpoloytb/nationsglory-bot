@@ -653,7 +653,7 @@ async function openPlayerPanel(player){
       <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
       <div class="pp-status ${online?'on':'off'}">
         <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
-        ${online?ca.servers.map(s=>{const ctry=cbs[s]||'Wilderness';const isWild=ctry==='Wilderness';return`${EMO[s]} ${s.toUpperCase()} <span style="font-size:.5rem;color:${isWild?'var(--t4)':'var(--blue-pale)'};opacity:${isWild?.55:1}">${isWild?'🌿':'🌍'} ${ctry}</span>`;}).join(' · '):'Hors ligne'}
+        ${online?ca.servers.map(s=>{const ctry=cbs[s];const hasCtry=ctry&&ctry!=='Wilderness';return`${EMO[s]} ${s.toUpperCase()}${hasCtry?` <span style="font-size:.5rem;color:var(--blue-pale)">🌍 ${ctry}</span>`:''}`; }).join(' · '):'Hors ligne'}
       </div>
       ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
