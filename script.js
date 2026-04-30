@@ -1612,10 +1612,9 @@ async function _fetchDimClaims(dimUrl){
     const areas=(data.sets||{})['factions.markerset']?.areas||{};
     const map={};
     for(const[k,v]of Object.entries(areas)){
-      // key format: CountryName__DIM-XX__N — we want the country label
-      const label=v.label||'';
-      if(!label)continue;
-      const name=label.toLowerCase();
+      // key format: CountryName__DIM-XX__N — extract name from key for reliable matching
+      const name=k.split('__')[0].toLowerCase();
+      if(!name)continue;
       // parse claims from desc
       const desc=v.desc||'';
       const cm=desc.match(/Claims<\/b>\s*(\d+)/);
