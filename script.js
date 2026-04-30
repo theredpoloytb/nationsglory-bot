@@ -501,14 +501,15 @@ async function loadStats(){
   const loc=lR.status==='fulfilled'?lR.value:null,prn=pR.status==='fulfilled'?pR.value:null,plg=plR.status==='fulfilled'?plR.value:null;
   const srvs=loc?loc.servers:[];let h='';
   const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
-  const cbs=loc?.countries_by_server&&Object.keys(loc.countries_by_server).length?loc.countries_by_server:loc?.country?{[loc.country_server||'lime']:loc.country}:null;
+  const cbs=loc?.countries_by_server||{};
   h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
-  if(srvs.length){
-    h+=srvs.map(s=>{
-      const country=cbs?.[s];
-      return`<div class="ir"><span class="ik">${EMO[s]||''} ${s.toUpperCase()}</span><span class="iv" style="display:flex;align-items:center;gap:.5rem">${country?`<span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(91,163,255,.1);border:1px solid rgba(91,163,255,.25);border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:var(--blue-pale)">🌍 ${country}</span>`:`<span style="color:var(--t4);font-size:.6rem;font-family:var(--M)">—</span>`}</span></div>`;
-    }).join('');
-  }
+  h+=SRV.map(s=>{
+    const country=cbs[s]||'Wilderness';
+    const isOnline=srvs.includes(s);
+    const countryColor=country==='Wilderness'?'var(--t4)':'var(--blue-pale)';
+    const countryIcon=country==='Wilderness'?'🌿':'🌍';
+    return`<div class="ir"><span class="ik" style="${isOnline?'color:var(--grn)':''}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?` <span style="font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:''}</span><span class="iv"><span style="display:inline-flex;align-items:center;gap:.35rem;background:${country==='Wilderness'?'rgba(255,255,255,.04)':'rgba(91,163,255,.1)'};border:1px solid ${country==='Wilderness'?'rgba(255,255,255,.08)':'rgba(91,163,255,.25)'};border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:${countryColor}">${countryIcon} ${country}</span></span></div>`;
+  }).join('');
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
   if(prn?.pronostic?.length){h+=`<div style="font-family:var(--M);font-size:.48rem;color:var(--t3);margin-bottom:.35rem">Basé sur ${prn.total} connexions</div>`;h+=prn.pronostic.map(r=>`<div class="pr"><span class="pd">${r.day}</span><div class="pb3"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp">${r.pct}%</span><span class="pt3">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');}
@@ -643,9 +644,7 @@ async function openPlayerPanel(player){
   const online=ca&&ca.servers.length>0;
   const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
 
-  const cbs=ca?.countries_by_server&&Object.keys(ca.countries_by_server).length
-    ?ca.countries_by_server
-    :ca?.country?{[ca.country_server||'lime']:ca.country}:null;
+  const cbs=ca?.countries_by_server||{};
 
   let h='';
   h+=`<div class="pp-info-row">
@@ -654,11 +653,22 @@ async function openPlayerPanel(player){
       <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
       <div class="pp-status ${online?'on':'off'}">
         <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
-        ${online?ca.servers.map(s=>`${EMO[s]} ${s.toUpperCase()}${cbs?.[s]?` <span style="font-family:var(--M);font-size:.5rem;color:var(--blue-pale);opacity:.8">· 🌍 ${cbs[s]}</span>`:''}`).join(' &nbsp; '):'Hors ligne'}
+        ${online?ca.servers.map(s=>`${EMO[s]} ${s.toUpperCase()}`).join(' · '):'Hors ligne'}
       </div>
       ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
     </div>
+  </div>
+  <div style="margin:.5rem 0 .6rem;display:flex;flex-direction:column;gap:.2rem">
+    ${SRV.map(s=>{
+      const country=cbs[s]||'Wilderness';
+      const isOnline=online&&ca.servers.includes(s);
+      const isWild=country==='Wilderness';
+      return`<div style="display:flex;align-items:center;justify-content:space-between;padding:.22rem .5rem;border-radius:4px;background:${isOnline?'rgba(0,232,122,.05)':''};border:1px solid ${isOnline?'rgba(0,232,122,.15)':'transparent'}">
+        <span style="font-family:var(--M);font-size:.58rem;color:${isOnline?'var(--grn)':'var(--t3)'}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?' <span style="font-size:.44rem">●</span>':''}</span>
+        <span style="font-family:var(--M);font-size:.58rem;color:${isWild?'var(--t4)':'var(--blue-pale)'}${isWild?';opacity:.6':''}">${isWild?'🌿':'🌍'} ${country}</span>
+      </div>`;
+    }).join('')}
   </div>`;
   h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
   h+=`<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>`;
