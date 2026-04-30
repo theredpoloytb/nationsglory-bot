@@ -648,7 +648,7 @@ async function openPlayerPanel(player){
 
   let h='';
   h+=`<div class="pp-info-row">
-    <div class="pp-avatar"><img src="https://mc-heads.net/avatar/${encodeURIComponent(player)}/64" onerror="this.src='https://skins.nationsglory.fr/face/${encodeURIComponent(player)}/64'" alt=""></div>
+    <div class="pp-avatar"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(player)}/64" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(player)}/64'" alt=""></div>
     <div class="pp-info-meta">
       <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
       <div class="pp-status ${online?'on':'off'}">
