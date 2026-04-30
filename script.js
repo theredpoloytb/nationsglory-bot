@@ -508,8 +508,6 @@ async function loadStats(){
       const country=cbs?.[s];
       return`<div class="ir"><span class="ik">${EMO[s]||''} ${s.toUpperCase()}</span><span class="iv" style="display:flex;align-items:center;gap:.5rem">${country?`<span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(91,163,255,.1);border:1px solid rgba(91,163,255,.25);border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:var(--blue-pale)">🌍 ${country}</span>`:`<span style="color:var(--t4);font-size:.6rem;font-family:var(--M)">—</span>`}</span></div>`;
     }).join('');
-  } else if(cbs){
-    h+=Object.entries(cbs).map(([s,c])=>`<div class="ir"><span class="ik">${EMO[s]||'🌐'} ${s.toUpperCase()}</span><span class="iv"><span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(91,163,255,.1);border:1px solid rgba(91,163,255,.25);border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:var(--blue-pale)">🌍 ${c}</span></span></div>`).join('');
   }
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
@@ -645,13 +643,9 @@ async function openPlayerPanel(player){
   const online=ca&&ca.servers.length>0;
   const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
 
-  // Pays par serveur
   const cbs=ca?.countries_by_server&&Object.keys(ca.countries_by_server).length
     ?ca.countries_by_server
     :ca?.country?{[ca.country_server||'lime']:ca.country}:null;
-  const countryBlock=cbs
-    ?`<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin:.4rem 0 .15rem">${Object.entries(cbs).map(([s,c])=>`<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--t2);background:rgba(91,163,255,.08);border:1px solid rgba(91,163,255,.22);border-radius:5px;padding:.22rem .65rem"><span>${EMO[s]||'🌐'}</span><span style="color:var(--t4);font-size:.46rem;letter-spacing:.1em">${s.toUpperCase()}</span><span style="opacity:.3">·</span>🌍 <b style="color:var(--blue-pale)">${c}</b></div>`).join('')}</div>`
-    :'';
 
   let h='';
   h+=`<div class="pp-info-row">
@@ -660,13 +654,12 @@ async function openPlayerPanel(player){
       <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
       <div class="pp-status ${online?'on':'off'}">
         <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
-        ${online?ca.servers.map(s=>`${EMO[s]} ${s.toUpperCase()}`).join(' · '):'Hors ligne'}
+        ${online?ca.servers.map(s=>`${EMO[s]} ${s.toUpperCase()}${cbs?.[s]?` <span style="font-family:var(--M);font-size:.5rem;color:var(--blue-pale);opacity:.8">· 🌍 ${cbs[s]}</span>`:''}`).join(' &nbsp; '):'Hors ligne'}
       </div>
       ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
     </div>
-  </div>
-  ${countryBlock}`;
+  </div>`;
   h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
   h+=`<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>`;
   if(pr?.pronostic?.length){
