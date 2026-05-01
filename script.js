@@ -588,6 +588,35 @@ function drawActivityGraph(){
   }
 }
 
+// ── SSE — events temps réel ──────────────────────────────────────
+let _sseSource=null,_sseRetry=0;
+function _connectSSE(){
+  if(_sseSource)_sseSource.close();
+  const tok=sessionStorage.getItem('mg_token_v3');
+  if(!tok)return;
+  const url=`${API}/api/events?token=${encodeURIComponent(tok)}`;
+  _sseSource=new EventSource(url);
+  _sseSource.onopen=()=>{_sseRetry=0;console.log('[SSE] connecté');};
+  _sseSource.onmessage=(e)=>{
+    try{
+      const d=JSON.parse(e.data);
+      if(d.type==='ping')return;
+      if(d.type==='connect'||d.type==='disconnect'){
+        // Mettre à jour prev pour éviter doublon au prochain poll
+        const k=d.player+'@'+d.server;
+        prev[k]=d.type==='connect';
+        pAlert(d.type,d.player,d.server);
+      }
+    }catch{}
+  };
+  _sseSource.onerror=()=>{
+    _sseSource.close();_sseSource=null;
+    const delay=Math.min(2000*Math.pow(2,_sseRetry++),30000);
+    console.warn('[SSE] reconnexion dans',delay,'ms');
+    setTimeout(_connectSSE,delay);
+  };
+}
+
 let cdTotal=5,cdLeft=5;
 function startCountdown(total=5){cdTotal=total;cdLeft=total;updateCountdown();}
 function updateCountdown(){
@@ -918,6 +947,7 @@ async function init(){
     startCountdown(5);
     setInterval(tickCountdown,1000);
     setInterval(async()=>{await loadWL();await loadDash();},5000);
+    _connectSSE();
   }
 }
 init();
