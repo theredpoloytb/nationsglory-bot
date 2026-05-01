@@ -1603,32 +1603,34 @@ setInterval(()=>{
 
 // ── SOUS-POWER ──────────────────────────────────────────────────────
 
+// Calcule l'aire d'un polygone (Shoelace) pour déduire les claims réels dans une dimension
+function _polyArea(xs,zs){
+  let area=0;const n=xs.length;
+  for(let i=0;i<n;i++){const j=(i+1)%n;area+=xs[i]*zs[j]-xs[j]*zs[i];}
+  return Math.abs(area)/2;
+}
+
 // Fetches dimension marker JSON and returns a map: countryName (lowercase) → {claims, x, z}
+// Claims dans une dim = aire du polygone / 256 (chaque chunk = 16x16 blocs)
 async function _fetchDimClaims(dimUrl){
   try{
-    const r=await fetch(dimUrl,{headers:{..._authHeader()}});
+    const r=await fetch(dimUrl);
     if(!r.ok)return{};
     const data=await r.json();
     const areas=(data.sets||{})['factions.markerset']?.areas||{};
     const map={};
     for(const[k,v]of Object.entries(areas)){
-      // key format: CountryName__DIM-XX__N — extract name from key for reliable matching
-      const name=k.split('__')[0].toLowerCase().replace(/\s+/g,'');
-      if(!name)continue;
-      // parse claims from desc
-      const desc=v.desc||'';
-      const cm=desc.match(/Claims<\/b>\s*(\d+)/);
-      const claims=cm?parseInt(cm[1]):0;
-      if(claims===0)continue; // skip if no claims
-      // compute centroid of polygon coords for dynmap link
+      const label=v.label||'';
+      if(!label)continue;
+      const name=label.toLowerCase();
       const xs=v.x||[];const zs=v.z||[];
-      let cx=0,cz=0;
-      if(xs.length){cx=xs.reduce((a,b)=>a+b,0)/xs.length;}
-      if(zs.length){cz=zs.reduce((a,b)=>a+b,0)/zs.length;}
-      // If country appears multiple times (multi-poly), sum claims
+      if(xs.length<3)continue;
+      const claims=Math.round(_polyArea(xs,zs)/256);
+      if(claims===0)continue;
+      const cx=xs.reduce((a,b)=>a+b,0)/xs.length;
+      const cz=zs.reduce((a,b)=>a+b,0)/zs.length;
       if(map[name]){
         map[name].claims+=claims;
-        // keep first centroid
       } else {
         map[name]={claims,x:Math.round(cx),z:Math.round(cz)};
       }
@@ -1646,9 +1648,9 @@ async function loadSouspower(){
     // Fetch main souspower data + all 3 dimension markers in parallel
     const [d, dimLune, dimMars, dimEdora] = await Promise.all([
       api(`/api/souspower/${s}`),
-      _fetchDimClaims(`${API}/api/dynmap/${s}/DIM-28`),
-      _fetchDimClaims(`${API}/api/dynmap/${s}/DIM-29`),
-      _fetchDimClaims(`${API}/api/dynmap/${s}/DIM-31`),
+      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-28.json`),
+      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-29.json`),
+      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-31.json`),
     ]);
     const pays=d.countries||[];
     if(!pays.length){res.innerHTML='<div class="empty">Aucun pays trouvé</div>';return;}
@@ -1671,7 +1673,7 @@ async function loadSouspower(){
             transition:all .15s;white-space:nowrap"
           onmouseover="this.style.background='${dimColor}22';this.style.borderColor='${dimColor}66'"
           onmouseout="this.style.background='${dimColor}11';this.style.borderColor='${dimColor}33'">
-          ${dimLabel} <b>${key.claims}</b> claim <span style="opacity:.6">↗</span>
+          ${dimLabel} <b>${key.claims}</b> <span style="opacity:.6">↗</span>
         </a>`;
     };
 
@@ -1700,7 +1702,7 @@ async function loadSouspower(){
           onerror="this.style.display='none'">`:'';
 
       // Dimension claims lookup
-      const nk=p.name.toLowerCase().replace(/\s+/g,'');
+      const nk=p.name.toLowerCase();
       const luneData=dimLune[nk]||null;
       const marsData=dimMars[nk]||null;
       const edoraData=dimEdora[nk]||null;
