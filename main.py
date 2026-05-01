@@ -635,6 +635,29 @@ async def api_notes_delete(r):
                            
                                                 
 
+async def api_events(r):
+	"""SSE endpoint — pousse les events co/déco en temps réel"""
+	# EventSource ne supporte pas les headers, token en query param
+	t=r.rel_url.query.get('token') or _get_token(r)
+	if not t or not _jwt_verify(t):return web.Response(status=401,headers=CORS)
+	q=asyncio.Queue()
+	_sse_clients.append(q)
+	resp=web.StreamResponse(headers={**CORS,'Content-Type':'text/event-stream','Cache-Control':'no-cache','X-Accel-Buffering':'no'})
+	await resp.prepare(r)
+	try:
+		await resp.write(b'data: {"type":"ping"}\n\n')
+		while True:
+			try:
+				evt=await asyncio.wait_for(q.get(),timeout=25)
+				payload=json.dumps(evt,ensure_ascii=False)
+				await resp.write(f'data: {payload}\n\n'.encode())
+			except asyncio.TimeoutError:
+				await resp.write(b'data: {"type":"ping"}\n\n')  # keepalive
+	except Exception:pass
+	finally:
+		_sse_clients.remove(q) if q in _sse_clients else None
+	return resp
+
 async def api_health(r):
     return cors({'status':'ok','mongo':mongo_ok,'ng_key_len':len(NG_KEY or ''),'ng_key_start':(NG_KEY or '')[:10]})
 @require_auth
@@ -912,8 +935,14 @@ def _wl_cmd(name,lst,save_fn,label=''):
 _wl_cmd('',WL,save_watchlist)
 _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
+_sse_clients=[]  # liste des queues SSE connectées
 rapport_msg_id=None
 _rate_limited=False
+
+def _sse_broadcast(event):
+	for q in list(_sse_clients):
+		try:q.put_nowait(event)
+		except:pass
 
 async def safe_send(channel,**kwargs):
 	global _rate_limited
@@ -952,10 +981,12 @@ async def scan_server(server,alerte_ch):
 		if not prev.get(p):
 			record_connection(p,server)
 			if p in WL and alerte_ch:e=discord.Embed(title='🟢 CONNEXION',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts);await safe_send(alerte_ch,embed=e)
+			if p in WL:_sse_broadcast({'type':'connect','player':p,'server':server})
 			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🟢 CONNEXION — MOCHA',description=f"**{p}** → **MOCHA**",color=discord.Color.orange(),timestamp=ts);await safe_send(mocha_ch,embed=e)
 	for(p,was)in prev.items():
 		if was and p not in pset:
 			if p in WL and alerte_ch:e=discord.Embed(title='🔴 DÉCONNEXION',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts);await safe_send(alerte_ch,embed=e)
+			if p in WL:_sse_broadcast({'type':'disconnect','player':p,'server':server})
 			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🔴 DÉCONNEXION — MOCHA',description=f"**{p}** ← **MOCHA**",color=discord.Color.red(),timestamp=ts);await safe_send(mocha_ch,embed=e)
 	last_states[server]={p:True for p in pset};return players
 async def check_country_watch(watch):
@@ -1000,6 +1031,7 @@ async def start_web():
 	app=web.Application()
 	routes=[
 	 ('GET','/',api_health),
+ ('GET','/api/events',api_events),
 	 ('GET','/health',api_health),
 	 ('POST','/api/auth-check',api_auth_check),
 	 ('GET','/api/online/{server}',api_online),
