@@ -1671,7 +1671,7 @@ async function loadSouspower(){
             transition:all .15s;white-space:nowrap"
           onmouseover="this.style.background='${dimColor}22';this.style.borderColor='${dimColor}66'"
           onmouseout="this.style.background='${dimColor}11';this.style.borderColor='${dimColor}33'">
-          ${dimLabel} <b>${key.claims}</b> <span style="opacity:.6">↗</span>
+          ${dimLabel} <b>${key.claims}</b> claim <span style="opacity:.6">↗</span>
         </a>`;
     };
 
