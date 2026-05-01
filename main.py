@@ -979,6 +979,21 @@ async def scanner_loop():
 			else:print(f"❌ Scanner HTTP: {e}",flush=True)
 		except Exception as e:print(f"❌ Scanner: {e}",flush=True)
 		await asyncio.sleep(2)
+
+@require_auth
+async def api_dynmap_proxy(r):
+	server=r.match_info['server'].lower()
+	dim=r.match_info['dim']
+	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_{dim}.json"
+	try:
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
+			async with s.get(url)as resp:
+				if resp.status!=200:return cors({'error':f'Dynmap HTTP {resp.status}'},resp.status)
+				data=await resp.json(content_type=None)
+				return cors(data)
+	except Exception as e:return cors({'error':str(e)},500)
+
 async def start_web():
 	app=web.Application()
 	routes=[
@@ -1013,6 +1028,7 @@ async def start_web():
 	 ('GET','/api/referents/stats',api_referent_stats),
 	 ('GET','/api/referents/history',api_referent_history),
 	 ('GET','/api/referents/timeline',api_referent_timeline),
+	 ('GET','/api/dynmap/{server}/{dim}',api_dynmap_proxy),
 	 ('GET','/api/notes',api_notes_get),
 	 ('POST','/api/notes/save',api_notes_save),
 	 ('POST','/api/notes/delete',api_notes_delete),
