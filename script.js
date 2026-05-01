@@ -1613,7 +1613,7 @@ async function _fetchDimClaims(dimUrl){
     const map={};
     for(const[k,v]of Object.entries(areas)){
       // key format: CountryName__DIM-XX__N — extract name from key for reliable matching
-      const name=k.split('__')[0].toLowerCase();
+      const name=k.split('__')[0].toLowerCase().replace(/\s+/g,'');
       if(!name)continue;
       // parse claims from desc
       const desc=v.desc||'';
@@ -1700,7 +1700,7 @@ async function loadSouspower(){
           onerror="this.style.display='none'">`:'';
 
       // Dimension claims lookup
-      const nk=p.name.toLowerCase();
+      const nk=p.name.toLowerCase().replace(/\s+/g,'');
       const luneData=dimLune[nk]||null;
       const marsData=dimMars[nk]||null;
       const edoraData=dimEdora[nk]||null;
