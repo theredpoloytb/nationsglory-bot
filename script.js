@@ -1606,7 +1606,7 @@ setInterval(()=>{
 // Fetches dimension marker JSON and returns a map: countryName (lowercase) → {claims, x, z}
 async function _fetchDimClaims(dimUrl){
   try{
-    const r=await fetch(dimUrl);
+    const r=await fetch(dimUrl,{headers:{..._authHeader()}});
     if(!r.ok)return{};
     const data=await r.json();
     const areas=(data.sets||{})['factions.markerset']?.areas||{};
@@ -1646,9 +1646,9 @@ async function loadSouspower(){
     // Fetch main souspower data + all 3 dimension markers in parallel
     const [d, dimLune, dimMars, dimEdora] = await Promise.all([
       api(`/api/souspower/${s}`),
-      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-28.json`),
-      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-29.json`),
-      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-31.json`),
+      _fetchDimClaims(`${API}/api/dynmap/${s}/DIM-28`),
+      _fetchDimClaims(`${API}/api/dynmap/${s}/DIM-29`),
+      _fetchDimClaims(`${API}/api/dynmap/${s}/DIM-31`),
     ]);
     const pays=d.countries||[];
     if(!pays.length){res.innerHTML='<div class="empty">Aucun pays trouvé</div>';return;}
