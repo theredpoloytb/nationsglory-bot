@@ -1615,7 +1615,7 @@ function _polyArea(xs,zs){
 async function _fetchDimClaims(dimUrl){
   try{
     const r=await fetch(dimUrl);
-    if(!r.ok)return{};
+    if(!r.ok){console.warn('[dimClaims] HTTP',r.status,dimUrl);return{};}
     const data=await r.json();
     const areas=(data.sets||{})['factions.markerset']?.areas||{};
     const map={};
@@ -1636,7 +1636,7 @@ async function _fetchDimClaims(dimUrl){
       }
     }
     return map;
-  }catch(e){return{};}
+  }catch(e){console.error('[dimClaims] erreur fetch',dimUrl,e);return{};}
 }
 
 async function loadSouspower(){
