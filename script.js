@@ -1612,12 +1612,14 @@ function _polyArea(xs,zs){
 
 // Fetches dimension marker JSON and returns a map: countryName (lowercase) → {claims, x, z}
 // Claims dans une dim = aire du polygone / 256 (chaque chunk = 16x16 blocs)
-async function _fetchDimClaims(dimUrl){
+// Passe par le backend pour éviter le CORS
+async function _fetchDimClaims(server,dim){
   try{
-    const r=await fetch(dimUrl);
+    const dimUrl=`${API}/api/dim_markers/${server}/${dim}`;
+    const r=await fetch(dimUrl,{headers:{..._authHeader()}});
     if(!r.ok){console.warn('[dimClaims] HTTP',r.status,dimUrl);return{};}
-    const data=await r.json();
-    const areas=(data.sets||{})['factions.markerset']?.areas||{};
+    const areas=await r.json();
+    if(!areas||typeof areas!=='object')return{};
     const map={};
     for(const[k,v]of Object.entries(areas)){
       const label=v.label||'';
@@ -1648,9 +1650,9 @@ async function loadSouspower(){
     // Fetch main souspower data + all 3 dimension markers in parallel
     const [d, dimLune, dimMars, dimEdora] = await Promise.all([
       api(`/api/souspower/${s}`),
-      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-28.json`),
-      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-29.json`),
-      _fetchDimClaims(`https://${s}.nationsglory.fr/tiles/_markers_/marker_DIM-31.json`),
+      _fetchDimClaims(s,'DIM-28'),
+      _fetchDimClaims(s,'DIM-29'),
+      _fetchDimClaims(s,'DIM-31'),
     ]);
     const pays=d.countries||[];
     if(!pays.length){res.innerHTML='<div class="empty">Aucun pays trouvé</div>';return;}
