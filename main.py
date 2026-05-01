@@ -29,6 +29,7 @@ SERVERS={'blue':{'url':'https://blue.nationsglory.fr/standalone/dynmap_world.jso
 CACHE_TTL=900
 ctry_cache={}
 _dynmap_markers_cache={}
+_dim_markers_cache={}
 DYNMAP_MARKERS_TTL=120
 CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization'}
 
@@ -257,29 +258,23 @@ async def get_country_list(server):
 		return ctry_cache[server][0]
 	print(f"[countries] {server} fallback statique ({len(_STATIC_COUNTRIES_FALLBACK)} pays)",flush=True)
 	return _STATIC_COUNTRIES_FALLBACK
-DYNMAP_DIMS=['world','DIM-28','DIM-29','DIM-31']
 async def _fetch_dynmap_markers(server):
 	now=time.time()
 	if server in _dynmap_markers_cache and now-_dynmap_markers_cache[server][1]<DYNMAP_MARKERS_TTL:
 		return _dynmap_markers_cache[server][0]
-	all_markers={}
 	try:
+		url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_world.json"
 		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
-			for dim in DYNMAP_DIMS:
-				url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_{dim}.json"
-				try:
-					async with s.get(url)as r:
-						if r.status==200:
-							data=await r.json(content_type=None)
-							markers=data.get('sets',{}).get('factions.markerset',{}).get('markers',{})
-							all_markers.update(markers)
-							print(f"[dynmap] {server} dim={dim} OK ({len(markers)} pays)",flush=True)
-				except Exception as e:
-					print(f"[dynmap] {server} dim={dim} erreur: {e}",flush=True)
+			async with s.get(url)as r:
+				if r.status==200:
+					data=await r.json(content_type=None)
+					markers=data.get('sets',{}).get('factions.markerset',{}).get('markers',{})
+					_dynmap_markers_cache[server]=(markers,now)
+					print(f"[dynmap] {server} markers OK ({len(markers)} pays)",flush=True)
+					return markers
 	except Exception as e:
-		print(f"[dynmap] {server} erreur session: {e}",flush=True)
-	if all_markers:_dynmap_markers_cache[server]=(all_markers,now)
-	return all_markers
+		print(f"[dynmap] {server} erreur: {e}",flush=True)
+	return{}
 
 def _parse_marker_desc(desc):
 	import html as _html,re as _re
@@ -678,6 +673,28 @@ async def api_countries(r):
 	names=[x['name']if isinstance(x,dict)else x for x in raw if(isinstance(x,dict)and x.get('name','').strip())or(isinstance(x,str)and x.strip())]
 	return cors({'server':s,'countries':names,'claimed':names})
 @require_auth
+async def api_dim_markers(r):
+	s=r.match_info['server'].lower()
+	dim=r.match_info['dim'].upper()
+	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	if dim not in ('DIM-28','DIM-29','DIM-31'):return cors({'error':'Dimension invalide'},400)
+	cache_key=f"{s}_{dim}"
+	now=time.time()
+	if cache_key in _dim_markers_cache and now-_dim_markers_cache[cache_key][1]<300:
+		return cors(_dim_markers_cache[cache_key][0])
+	try:
+		url=f"https://{s}.nationsglory.fr/tiles/_markers_/marker_{dim}.json"
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as sess:
+			async with sess.get(url)as resp:
+				if resp.status==200:
+					data=await resp.json(content_type=None)
+					areas=data.get('sets',{}).get('factions.markerset',{}).get('areas',{})
+					_dim_markers_cache[cache_key]=(areas,now)
+					return cors(areas)
+				return cors({'error':f'HTTP {resp.status}'},502)
+	except Exception as e:return cors({'error':str(e)},502)
+
+@require_auth
 
 async def api_souspower(r):
 	s=r.match_info['server'].lower()
@@ -979,21 +996,6 @@ async def scanner_loop():
 			else:print(f"❌ Scanner HTTP: {e}",flush=True)
 		except Exception as e:print(f"❌ Scanner: {e}",flush=True)
 		await asyncio.sleep(2)
-
-@require_auth
-async def api_dynmap_proxy(r):
-	server=r.match_info['server'].lower()
-	dim=r.match_info['dim']
-	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
-	url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_{dim}.json"
-	try:
-		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
-			async with s.get(url)as resp:
-				if resp.status!=200:return cors({'error':f'Dynmap HTTP {resp.status}'},resp.status)
-				data=await resp.json(content_type=None)
-				return cors(data)
-	except Exception as e:return cors({'error':str(e)},500)
-
 async def start_web():
 	app=web.Application()
 	routes=[
@@ -1005,6 +1007,7 @@ async def start_web():
 	 ('GET','/api/checkall/{player}',api_checkall),
 	 ('GET','/api/countries/{server}',api_countries),
 	 ('GET','/api/souspower/{server}',api_souspower),
+ ('GET','/api/dim_markers/{server}/{dim}',api_dim_markers),
 	 ('GET','/api/check/{server}/{country}',api_check),
 	 ('GET','/api/watchlist',api_wl_get),
 	 ('POST','/api/watchlist/add',api_wl_add),
@@ -1028,7 +1031,6 @@ async def start_web():
 	 ('GET','/api/referents/stats',api_referent_stats),
 	 ('GET','/api/referents/history',api_referent_history),
 	 ('GET','/api/referents/timeline',api_referent_timeline),
-	 ('GET','/api/dynmap/{server}/{dim}',api_dynmap_proxy),
 	 ('GET','/api/notes',api_notes_get),
 	 ('POST','/api/notes/save',api_notes_save),
 	 ('POST','/api/notes/delete',api_notes_delete),
