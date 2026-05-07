@@ -217,6 +217,35 @@ async def get_playercount():
 	return{}
 
 async def api_playercount(r):return cors(await get_playercount())
+
+ACTIVITY_INTERVAL=300  # toutes les 5 minutes
+async def activity_recorder_loop():
+	await asyncio.sleep(15)
+	while True:
+		try:
+			if mongo_ok:
+				pc=await get_playercount()
+				if pc:
+					now=datetime.utcnow()+timedelta(hours=1)
+					doc={'ts':now,'data':{s:pc[s]['players']for s in SERVERS if s in pc}}
+					db['activity'].insert_one(doc)
+					# Nettoyage automatique : garder seulement 30 jours
+					cutoff=now-timedelta(days=30)
+					db['activity'].delete_many({'ts':{'$lt':cutoff}})
+		except Exception as e:print(f'❌ activity_recorder: {e}',flush=True)
+		await asyncio.sleep(ACTIVITY_INTERVAL)
+
+async def api_activity(r):
+	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
+	try:
+		hours=int(r.rel_url.query.get('hours',24))
+		now=datetime.utcnow()+timedelta(hours=1)
+		since=now-timedelta(hours=hours)
+		docs=list(db['activity'].find({'ts':{'$gte':since}},{'_id':0}).sort('ts',1))
+		for d in docs:
+			d['ts']=d['ts'].strftime('%Y-%m-%dT%H:%M:%S')
+		return cors({'points':docs,'hours':hours,'servers':list(SERVERS.keys())})
+	except Exception as e:return cors({'error':str(e)},500)
                                                                                 
 _STATIC_COUNTRIES_FALLBACK=sorted(["ArchipelCrozet","Algerie","Angola","IlesAndaman","Autriche","Azerbaidjan","Bahrein","Bangladesh","Belgique","Benin","Bielorussie","Bolivie","Bosnie","BurkinaFaso","Cambodge","CentreAfrique","Chili","Colombie","Congo","RDCongo","CoreeDuSud","CoteDivoire","Egypte","EmiratsArabesUnis","Equateur","Erythree","Ethiopie","Iakoutie","Iamalie","IleBolchevique","IlesBaleares","IleCoats","IleDeLaReunion","IlesFeroe","IlesFidji","IlesGalapagos","IleMaurice","IleVictoria","Gabon","Georgie","Ghana","Groenland","Guatemala","Guyane","Guyana","Hainan","Inde","Indonesie","Irak","Iran","Italie","IlesVancouver","Japon","Java","Kazakhstan","Khabarovsk","Kenya","Kosovo","Krasnoy","Laos","Lettonie","Libye","Lituanie","Macedoine","Malaisie","Malte","Kamtchatka","Mali","Maroc","Mauritanie","Magadan","Mozambique","Namibie","Niger","Nigeria","Norvege","NouvelleGuinee","NouvelleZemble","Ouganda","Ouzbekistan","Palaos","Pakistan","Portugal","Qatar","SaharaOccidental","Serbie","Somalie","Srilanka","StHelena","IlesSandwich","IleBouvet","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Tanzanie","Tchoukota","TerreSiple","TerreSpaatz","TerreMill","TerreGrant","TerreVega","TerreThor","TerreLow","TerrePowell","TerreBurke","TerreSigny","TerreBooth","TerreSmith","TerreRoss","TerreLiard","TerreMasson","Thailande","Tibet","Timor","Touva","Tunisie","Turkmenistan","Turquie","TriniteEtTobago","Uruguay","WallisEtFutuna","Yemen","Zambie","Zimbabwe","Montana","Michigan","Nunavut","Sonora","Queensland","Minnesota","Washington","Oregon","Idaho","Utah","NouveauMexique","Colorado","Wyoming","Quinghai","Xinjiang","Yunnam","Sichuan","Guizhou","Guangxi","Guangdong","Chypre","Roumanie","EmpireJordanien","Madagan","Tasmanie","EmpireBissaoguineen","Liberia","EmpireIrkoutsk","IleWrangel","Canada","TerreAdelie","Suede","Djibouti","Paraguay","Nepal","Bhoutan","Sakhaline","RoyaumeUni","IlesSalomon","EtatsUnis","Liban","Bahamas","EmpireOmanais","RepubliqueTcheque","Espagne","Danemark","Jamaique","NouvelleZelande","Bouriatie","Taiwan","Tomsk","Cameroun","Amour","Kirghizistan","Venezuela","IlesKerguelen","Soudan","Sardaigne","Luxembourg","Bresil","Nevada","Moldavie","Malawi","NouvelleCaledonie","AfriqueDuSud","CoreeDuNord","Estonie","Wisconsin","Birmanie","TerreDeFeu","Salvador","Koweit","Baja","Socotra","Botswana","TerreSnow","Allemagne","Pologne","Slovenie","PaysBas","Philippines","Texas","Suisse","Altai","Floride","Quebec","Slovaquie","Madagascar","Montenegro","Mongolie","Nicaragua","Sumatra","France","Bulgarie","Alaska","Argentine","Grece","Australie","Belize","Armenie","Afghanistan","Californie","Russie","Islande","Perou","Arizona","Tchad","Albanie","IlesCanaries","Togo","Chine","Mexique","Ontario","IleGraham","Dakota","Vietnam","Papouasie","Croatie"])
 
@@ -956,6 +985,7 @@ async def start_web():
 	 ('GET','/api/online/{server}',api_online),
 	 ('GET','/api/online_all',api_online_all),
 	 ('GET','/api/playercount',api_playercount),
+	 ('GET','/api/activity',api_activity),
 	 ('GET','/api/checkall/{player}',api_checkall),
 	 ('GET','/api/countries/{server}',api_countries),
 	 ('GET','/api/souspower/{server}',api_souspower),
@@ -997,7 +1027,8 @@ async def main():
 		asyncio.create_task(start_web())
 		if RENDER_URL:asyncio.create_task(self_ping())
 		asyncio.create_task(scanner_loop())
-		asyncio.create_task(referent_tracker_loop())             
+		asyncio.create_task(referent_tracker_loop())
+		asyncio.create_task(activity_recorder_loop())             
 		try:await client.start(TOKEN)
 		except discord.errors.HTTPException as e:print(f"❌ Rate limit Discord: {e}",flush=True);await asyncio.sleep(60);sys.exit(1)
 		except Exception as e:print(f"❌ Erreur: {e}",flush=True);await asyncio.sleep(30);sys.exit(1)
