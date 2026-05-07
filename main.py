@@ -218,7 +218,7 @@ async def get_playercount():
 
 async def api_playercount(r):return cors(await get_playercount())
 
-ACTIVITY_INTERVAL=300  # toutes les 5 minutes
+ACTIVITY_INTERVAL=60  # toutes les 1 minute
 async def activity_recorder_loop():
 	await asyncio.sleep(15)
 	while True:
