@@ -153,12 +153,6 @@ body::after {
 /* ════════════════════════════════════════
    ÉTOILE DE DAVID — réutilisable via pseudo
    ════════════════════════════════════════ */
-.star-deco {
-  position: absolute;
-  pointer-events: none;
-  opacity: .035;
-  animation: starPulse 8s ease-in-out infinite;
-}
 @keyframes starPulse {
   0%,100% { opacity: .03; transform: rotate(0deg) scale(1); }
   50%      { opacity: .07; transform: rotate(3deg) scale(1.05); }
@@ -226,15 +220,6 @@ body::after {
   box-shadow: 0 0 8px var(--il-blue-lt), 0 0 16px rgba(26,111,255,.4);
 }
 @keyframes sweep { to { transform: rotate(360deg) } }
-.radar-dot {
-  position: absolute; width: 5px; height: 5px;
-  background: var(--grn); border-radius: 50%;
-  box-shadow: 0 0 8px var(--grn), 0 0 16px rgba(0,232,122,.4);
-  animation: rdot 4s ease-in-out infinite;
-}
-.radar-dot:nth-child(3) { top:28%; left:62%; animation-delay:.8s }
-.radar-dot:nth-child(4) { top:60%; left:30%; animation-delay:2.1s }
-.radar-dot:nth-child(5) { top:42%; left:72%; animation-delay:3.2s }
 @keyframes rdot {
   0%,100% { opacity:0; transform:scale(0) }
   10%,70%  { opacity:1; transform:scale(1) }
@@ -352,7 +337,6 @@ body::after {
   display:flex; align-items:center; gap:.9rem;
   font-family:var(--M); font-size:.64rem; color:var(--t3); letter-spacing:.18em; white-space:nowrap;
 }
-.hsep { width:24px; height:1px; background:linear-gradient(90deg,transparent,rgba(0,56,184,.5)) }
 
 /* Header droite */
 .hdr-r { display:flex; align-items:center; gap:.48rem }
@@ -471,12 +455,11 @@ body::after {
 
 /* Grilles */
 .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.1rem }
-.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem }
 .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem }
 .mb { margin-bottom:1.1rem }
 .mb2 { margin-bottom:1.8rem }
 @media(max-width:1300px){.g4{grid-template-columns:1fr 1fr}}
-@media(max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}.main{padding:1rem}}
+@media(max-width:860px){.g2,.main{padding:1rem}}
 
 /* Section headers */
 .sh {
@@ -522,7 +505,6 @@ body::after {
 /* Ligne bleue en haut */
 .ptop { position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(26,111,255,.45),transparent) }
 /* Scan animé */
-.pscan { position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(26,111,255,.5),transparent);pointer-events:none;animation:pscan 7s linear infinite }
 @keyframes pscan { 0%{top:0;opacity:0}4%{opacity:1}96%{opacity:1}100%{top:100%;opacity:0} }
 
 .ph {
@@ -741,7 +723,7 @@ select option { background:#010814 }
 .ik { color:rgba(0,80,216,.65) }
 .iv { color:var(--t1) }
 .iv.ok { color:var(--grn) }
-.iv.hl { color:var(--il-blue-lt) }
+.iv
 .pr { display:flex; align-items:center; gap:.7rem; padding:.34rem 0; border-bottom:1px solid rgba(0,56,184,.06); font-family:var(--M); font-size:.8rem }
 .pr:last-child { border-bottom:none }
 .pd { min-width:65px; color:var(--il-blue-lt) }
