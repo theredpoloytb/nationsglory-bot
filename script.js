@@ -482,7 +482,7 @@ async function loadDashActivityChart(){
     const em=$('dash-act-empty');if(em)em.style.display='none';
 
     const labels=pts.map(p=>{
-      const raw=typeof p.ts==='string'&&!p.ts.endsWith('Z')?p.ts+'Z':p.ts;const dt=new Date(raw);
+      const dt=new Date(p.ts);
       return _dashPeriod<=24
         ?dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
         :dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+'  '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
