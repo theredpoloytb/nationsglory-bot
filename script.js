@@ -1577,6 +1577,58 @@ function renderActivityChart(d){
   legend.innerHTML=srvs.map(s=>`<div style="display:flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.52rem;color:${ACT_COLORS[s]||'var(--t2)'}"><div style="width:18px;height:2px;background:${ACT_COLORS[s]||'#fff'};border-radius:2px"></div>${s.toUpperCase()}</div>`).join('');
 }
 
+
+function renderTreemap(d){
+  const wrap=document.getElementById('treemap-wrap');
+  const legend=document.getElementById('treemap-legend');
+  if(!wrap||!d||!d.points||!d.points.length)return;
+  const pts=d.points;
+
+  // Calcule la moyenne de chaque serveur sur la période
+  const avgs=SRV.map(s=>{
+    const vals=pts.map(p=>p.data[s]||0);
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    return{s,avg};
+  }).filter(x=>x.avg>0).sort((a,b)=>b.avg-a.avg);
+
+  const total=avgs.reduce((a,x)=>a+x.avg,0)||1;
+
+  wrap.innerHTML=avgs.map(({s,avg})=>{
+    const pct=avg/total*100;
+    const color=ACT_COLORS[s]||'#ffffff';
+    const show=pct>4;
+    return `<div style="
+      flex:0 0 ${pct.toFixed(2)}%;
+      background:${color}22;
+      border:1px solid ${color}66;
+      border-radius:4px;
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      overflow:hidden;cursor:default;
+      transition:flex .6s cubic-bezier(.4,0,.2,1), background .3s;
+      position:relative;
+    "
+    onmouseenter="this.style.background='${color}44'"
+    onmouseleave="this.style.background='${color}22'"
+    title="${s.toUpperCase()} — ${pct.toFixed(1)}% (moy ${avg.toFixed(1)} joueurs)">
+      ${show?`<span style="font-family:var(--M);font-size:.46rem;color:${color};letter-spacing:.1em;text-align:center;line-height:1.3;padding:.2rem">${s.toUpperCase()}<br><span style="font-size:.55rem;color:var(--t1);font-weight:bold">${pct.toFixed(0)}%</span></span>`:''}
+    </div>`;
+  }).join('');
+
+  legend.innerHTML=avgs.map(({s,avg})=>{
+    const pct=(avg/total*100).toFixed(1);
+    const color=ACT_COLORS[s]||'#fff';
+    return `<div style="display:flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.48rem;color:var(--t2)">
+      <div style="width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></div>
+      <span style="color:${color}">${s.toUpperCase()}</span>
+      <span style="color:var(--t3)">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  const upd=document.getElementById('treemap-last-update');
+  if(upd)upd.textContent='Mis à jour '+new Date().toLocaleTimeString('fr-FR');
+}
+
 function renderActivityStats(d){
   const grid=$('act-stats-grid');
   if(!grid)return;
@@ -1588,6 +1640,7 @@ function renderActivityStats(d){
     const last=vals[vals.length-1]||0;
     return{s,max,avg,last};
   }).sort((a,b)=>b.avg-a.avg).slice(0,4);
+  renderTreemap(d);
   grid.innerHTML=stats.map(({s,max,avg,last})=>`
     <div class="panel" style="border-color:${ACT_COLORS[s]||'var(--b2)'}33">
       <div class="ptop" style="background:${ACT_COLORS[s]||'var(--blue)'}"></div>
