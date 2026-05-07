@@ -203,6 +203,20 @@ async def get_online(server):
 	except:pass
 	return[]
 async def get_all_online():results=await asyncio.gather(*[get_online(s)for s in SERVERS],return_exceptions=True);return{s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
+
+NG_PLAYERCOUNT_URL='https://publicapi.nationsglory.fr/playercount'
+NG_PLAYERCOUNT_TOKEN='Bearer NGAPI_q05@rd^9Gg!@A9(4YYQEHVj9)6fNTGF2c02f64647e5f99a75001c7cb30c1e8e5'
+async def get_playercount():
+	try:
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))as s:
+			async with s.get(NG_PLAYERCOUNT_URL,headers={'Authorization':NG_PLAYERCOUNT_TOKEN,'accept':'application/json'})as r:
+				if r.status==200:
+					data=await r.json()
+					return{k:{'players':v.get('players',0),'online':v.get('online',True)}for k,v in data.items()if isinstance(v,dict)and 'players'in v}
+	except:pass
+	return{}
+
+async def api_playercount(r):return cors(await get_playercount())
                                                                                 
 _STATIC_COUNTRIES_FALLBACK=sorted(["ArchipelCrozet","Algerie","Angola","IlesAndaman","Autriche","Azerbaidjan","Bahrein","Bangladesh","Belgique","Benin","Bielorussie","Bolivie","Bosnie","BurkinaFaso","Cambodge","CentreAfrique","Chili","Colombie","Congo","RDCongo","CoreeDuSud","CoteDivoire","Egypte","EmiratsArabesUnis","Equateur","Erythree","Ethiopie","Iakoutie","Iamalie","IleBolchevique","IlesBaleares","IleCoats","IleDeLaReunion","IlesFeroe","IlesFidji","IlesGalapagos","IleMaurice","IleVictoria","Gabon","Georgie","Ghana","Groenland","Guatemala","Guyane","Guyana","Hainan","Inde","Indonesie","Irak","Iran","Italie","IlesVancouver","Japon","Java","Kazakhstan","Khabarovsk","Kenya","Kosovo","Krasnoy","Laos","Lettonie","Libye","Lituanie","Macedoine","Malaisie","Malte","Kamtchatka","Mali","Maroc","Mauritanie","Magadan","Mozambique","Namibie","Niger","Nigeria","Norvege","NouvelleGuinee","NouvelleZemble","Ouganda","Ouzbekistan","Palaos","Pakistan","Portugal","Qatar","SaharaOccidental","Serbie","Somalie","Srilanka","StHelena","IlesSandwich","IleBouvet","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Tanzanie","Tchoukota","TerreSiple","TerreSpaatz","TerreMill","TerreGrant","TerreVega","TerreThor","TerreLow","TerrePowell","TerreBurke","TerreSigny","TerreBooth","TerreSmith","TerreRoss","TerreLiard","TerreMasson","Thailande","Tibet","Timor","Touva","Tunisie","Turkmenistan","Turquie","TriniteEtTobago","Uruguay","WallisEtFutuna","Yemen","Zambie","Zimbabwe","Montana","Michigan","Nunavut","Sonora","Queensland","Minnesota","Washington","Oregon","Idaho","Utah","NouveauMexique","Colorado","Wyoming","Quinghai","Xinjiang","Yunnam","Sichuan","Guizhou","Guangxi","Guangdong","Chypre","Roumanie","EmpireJordanien","Madagan","Tasmanie","EmpireBissaoguineen","Liberia","EmpireIrkoutsk","IleWrangel","Canada","TerreAdelie","Suede","Djibouti","Paraguay","Nepal","Bhoutan","Sakhaline","RoyaumeUni","IlesSalomon","EtatsUnis","Liban","Bahamas","EmpireOmanais","RepubliqueTcheque","Espagne","Danemark","Jamaique","NouvelleZelande","Bouriatie","Taiwan","Tomsk","Cameroun","Amour","Kirghizistan","Venezuela","IlesKerguelen","Soudan","Sardaigne","Luxembourg","Bresil","Nevada","Moldavie","Malawi","NouvelleCaledonie","AfriqueDuSud","CoreeDuNord","Estonie","Wisconsin","Birmanie","TerreDeFeu","Salvador","Koweit","Baja","Socotra","Botswana","TerreSnow","Allemagne","Pologne","Slovenie","PaysBas","Philippines","Texas","Suisse","Altai","Floride","Quebec","Slovaquie","Madagascar","Montenegro","Mongolie","Nicaragua","Sumatra","France","Bulgarie","Alaska","Argentine","Grece","Australie","Belize","Armenie","Afghanistan","Californie","Russie","Islande","Perou","Arizona","Tchad","Albanie","IlesCanaries","Togo","Chine","Mexique","Ontario","IleGraham","Dakota","Vietnam","Papouasie","Croatie"])
 
@@ -941,6 +955,7 @@ async def start_web():
 	 ('POST','/api/auth-check',api_auth_check),
 	 ('GET','/api/online/{server}',api_online),
 	 ('GET','/api/online_all',api_online_all),
+	 ('GET','/api/playercount',api_playercount),
 	 ('GET','/api/checkall/{player}',api_checkall),
 	 ('GET','/api/countries/{server}',api_countries),
 	 ('GET','/api/souspower/{server}',api_souspower),
