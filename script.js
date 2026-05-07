@@ -461,40 +461,98 @@ function pageFlash(){
   f.classList.add('go');
 }
 
-const actHistory=[];const actLabels=[];
-const MAX_ACT=30;
-function pushActivity(total){
-  const now=new Date();
-  actHistory.push(total);actLabels.push(now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'));
-  if(actHistory.length>MAX_ACT){actHistory.shift();actLabels.shift();}
-  drawActivityGraph();
+
+let _dashChart=null;
+let _dashPeriod=3;
+function pushActivity(total){} // gardé pour compatibilité, remplacé par Chart.js
+
+async function loadDashActivityChart(){
+  const canvas=document.getElementById('activity-graph');
+  if(!canvas)return;
+  try{
+    const d=await api(`/api/activity?hours=${_dashPeriod}`);
+    const pts=d.points||[];
+    if(!pts.length){
+      canvas.style.display='none';
+      const em=$('dash-act-empty');if(em){em.style.display='flex';}
+      return;
+    }
+    canvas.style.display='block';
+    const em=$('dash-act-empty');if(em)em.style.display='none';
+
+    const labels=pts.map(p=>{
+      const dt=new Date(p.ts);
+      return _dashPeriod<=24
+        ?dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
+        :dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+'  '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    });
+
+    const datasets=SRV.map(s=>({
+      label:s.toUpperCase(),
+      data:pts.map(p=>p.data[s]||0),
+      borderColor:ACT_COLORS[s]||'#ffffff',
+      backgroundColor:(ACT_COLORS[s]||'#ffffff')+'18',
+      borderWidth:1.6,
+      pointRadius:0,
+      pointHoverRadius:4,
+      tension:0.3,
+      fill:false,
+    }));
+
+    if(_dashChart){_dashChart.destroy();_dashChart=null;}
+    _dashChart=new Chart(canvas,{
+      type:'line',
+      data:{labels,datasets},
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{
+            position:'right',
+            labels:{
+              color:'rgba(255,255,255,.55)',
+              font:{family:'monospace',size:9},
+              boxWidth:14,
+              padding:8,
+            }
+          },
+          tooltip:{
+            backgroundColor:'rgba(1,10,26,.92)',
+            borderColor:'rgba(91,163,255,.2)',
+            borderWidth:1,
+            titleColor:'rgba(255,255,255,.6)',
+            bodyColor:'rgba(255,255,255,.85)',
+            titleFont:{family:'monospace',size:9},
+            bodyFont:{family:'monospace',size:9},
+          }
+        },
+        scales:{
+          x:{
+            ticks:{color:'rgba(255,255,255,.3)',font:{family:'monospace',size:8},maxRotation:0,maxTicksLimit:8},
+            grid:{color:'rgba(255,255,255,.04)'},
+            border:{color:'rgba(255,255,255,.08)'}
+          },
+          y:{
+            ticks:{color:'rgba(255,255,255,.3)',font:{family:'monospace',size:8}},
+            grid:{color:'rgba(255,255,255,.04)'},
+            border:{color:'rgba(255,255,255,.08)'},
+            min:0,
+          }
+        }
+      }
+    });
+  }catch(e){console.warn('activity chart:',e);}
 }
-function drawActivityGraph(){
-  const c=document.getElementById('activity-graph');if(!c||actHistory.length<2)return;
-  const W=c.parentElement.offsetWidth||400,H=80;
-  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
-  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
-  const mn=Math.min(...actHistory),mx=Math.max(...actHistory,1),range=mx-mn||1;
-  const pad=8,gW=W-pad*2,gH=H-pad*2;
-  for(let i=0;i<=4;i++){const y=pad+gH*(1-i/4);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.strokeStyle='rgba(0,56,184,.05)';ctx.lineWidth=1;ctx.stroke();}
-  const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'rgba(0,56,184,.22)');grad.addColorStop(1,'rgba(0,56,184,.01)');
-  ctx.beginPath();
-  actHistory.forEach((v,i)=>{const x=pad+i/(actHistory.length-1)*gW,y=pad+gH*(1-(v-mn)/range);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.lineTo(pad+gW,H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  ctx.beginPath();
-  actHistory.forEach((v,i)=>{const x=pad+i/(actHistory.length-1)*gW,y=pad+gH*(1-(v-mn)/range);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.strokeStyle='rgba(26,111,255,.7)';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
-  const lx=pad+gW,ly=pad+gH*(1-(actHistory[actHistory.length-1]-mn)/range);
-  ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);ctx.fillStyle='#4d9fff';ctx.fill();
-  ctx.beginPath();ctx.arc(lx,ly,6,0,Math.PI*2);ctx.fillStyle='rgba(26,111,255,.2)';ctx.fill();
-  const lel=document.getElementById('graph-labels');
-  if(lel&&actLabels.length>0){
-    const step=Math.max(1,Math.floor(actLabels.length/5));
-    const shown=actLabels.filter((_,i)=>i%step===0||i===actLabels.length-1);
-    lel.textContent='';shown.forEach(l=>{const s=document.createElement('span');s.textContent=l;lel.appendChild(s);});
-  }
+
+function setDashPeriod(btn){
+  document.querySelectorAll('.dash-period').forEach(b=>b.classList.remove('dash-period-active'));
+  btn.classList.add('dash-period-active');
+  _dashPeriod=parseInt(btn.dataset.h);
+  loadDashActivityChart();
 }
+
+function drawActivityGraph(){loadDashActivityChart();}
 
 // ── SSE — events temps réel ──────────────────────────────────────
 let _sseSource=null,_sseRetry=0;
@@ -853,6 +911,7 @@ async function init(){
   if(ok){
     await loadWL();await loadWLM();loadKP();await loadDash();
     startCountdown(5);
+    loadDashActivityChart();
     setInterval(tickCountdown,1000);
     setInterval(async()=>{await loadWL();await loadDash();},5000);
     _connectSSE();
