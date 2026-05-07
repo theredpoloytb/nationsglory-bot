@@ -1252,6 +1252,19 @@ select option{background:var(--bg2);color:var(--t1)}
     </div>
   </div>
 
+  <!-- Treemap répartition -->
+  <div class="panel mb">
+    <div class="ptop"></div>
+    <div class="ph">
+      <span class="pt">🧩 Répartition — part de joueurs par serveur</span>
+      <span id="treemap-last-update" style="font-family:var(--M);font-size:.5rem;color:var(--t3)"></span>
+    </div>
+    <div class="pb">
+      <div id="treemap-wrap" style="width:100%;height:120px;display:flex;gap:3px;border-radius:6px;overflow:hidden;position:relative"></div>
+      <div id="treemap-legend" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem"></div>
+    </div>
+  </div>
+
   <!-- Stats résumé -->
   <div class="g4 mb" id="act-stats-grid"></div>
 </section>
