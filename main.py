@@ -563,77 +563,9 @@ async def api_referent_history(r):
 		return cors({'events':docs,'curve':curve,'total':len(docs)})
 	except Exception as e:return cors({'error':str(e)},500)
 
-@require_auth
-async def api_referent_timeline(r):
 
-	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
-	try:
-		days=int(r.rel_url.query.get('days',30))
-		since=datetime.utcnow()+timedelta(hours=1)-timedelta(days=days)
-		pipeline=[
-		 {'$match':{'ts':{'$gte':since},'departure':{'$exists':False}}},
-		 {'$group':{
-		  '_id':{
-		   'date':{'$dateToString':{'format':'%Y-%m-%d','date':{'$subtract':['$ts',timedelta(hours=1)]}}},
-		   'server':'$server',
-		   'country':'$country',
-		   'country_name':'$country_name',
-		  },
-		  'count':{'$sum':1}
-		 }},
-		 {'$sort':{'_id.date':1}}
-		]
-		docs=list(db['recruitments'].aggregate(pipeline))
-		return cors({'timeline':docs,'days':days})
-	except Exception as e:return cors({'error':str(e)},500)
 
-                                                
-                 
-                                                
 
-@require_auth
-async def api_notes_get(r):
-
-	if not mongo_ok:return cors({'notes':{}})
-	try:
-		docs=list(db['notes'].find({},{'_id':0}))
-		notes={d['player']:{'text':d.get('text',''),'tag':d.get('tag',''),'updated':d.get('updated','')} for d in docs}
-		return cors({'notes':notes})
-	except Exception as e:return cors({'error':str(e)},500)
-
-@require_auth
-async def api_notes_save(r):
-
-	try:
-		body=await r.json()
-		player=body.get('player','').strip()
-		text=body.get('text','').strip()
-		tag=body.get('tag','')
-		if not player:return cors({'error':'Joueur requis'},400)
-		now=(datetime.utcnow()+timedelta(hours=1)).strftime('%d/%m/%Y %H:%M')
-		if mongo_ok:
-			db['notes'].update_one(
-			 {'player':player},
-			 {'':{'player':player,'text':text,'tag':tag,'updated':now}},
-			 upsert=True
-			)
-		return cors({'ok':True,'updated':now})
-	except Exception as e:return cors({'error':str(e)},500)
-
-@require_auth
-async def api_notes_delete(r):
-
-	try:
-		body=await r.json()
-		player=body.get('player','').strip()
-		if not player:return cors({'error':'Joueur requis'},400)
-		if mongo_ok:db['notes'].delete_one({'player':player})
-		return cors({'ok':True})
-	except Exception as e:return cors({'error':str(e)},500)
-
-                                                
-                           
-                                                
 
 async def api_events(r):
 	"""SSE endpoint — pousse les events co/déco en temps réel"""
@@ -830,33 +762,6 @@ async def api_auth_check(r):
 		if blocked:return cors({'ok':False,'error':'Trop de tentatives, réessaie dans 15 minutes'},429)
 		return cors({'ok':False,'error':f'Mot de passe incorrect ({remaining} essais restants)'},401)
 	except:return cors({'ok':False},400)
-@require_auth
-async def api_top_players(r):
-	if not mongo_ok:return cors({'players':[]})
-	try:
-		limit=int(r.rel_url.query.get('limit',20))
-		docs=list(db['presence'].find({},{'_id':0}).sort('total',-1).limit(limit))
-		for d in docs:
-			if 'last_seen' in d and hasattr(d['last_seen'],'strftime'):
-				d['last_seen']=d['last_seen'].strftime('%d/%m/%Y %H:%M')
-		return cors({'players':docs})
-	except Exception as e:return cors({'error':str(e)},500)
-@require_auth
-async def api_top_players_server(r):
-	server=r.match_info['server'].lower()
-	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
-	if not mongo_ok:return cors({'players':[]})
-	try:
-		limit=int(r.rel_url.query.get('limit',10))
-		docs=list(db['presence'].find(
-		 {f'servers.{server}':{'$exists':True,'$gt':0}},
-		 {'_id':0}
-		).sort(f'servers.{server}',-1).limit(limit))
-		for d in docs:
-			if 'last_seen' in d and hasattr(d['last_seen'],'strftime'):
-				d['last_seen']=d['last_seen'].strftime('%d/%m/%Y %H:%M')
-		return cors({'players':docs})
-	except Exception as e:return cors({'error':str(e)},500)
 
 async def srv_ac(i,cur):return[app_commands.Choice(name=s.upper(),value=s)for s in SERVERS if cur.lower()in s][:25]
 async def ctry_ac(i,cur):
@@ -1054,18 +959,12 @@ async def start_web():
 	 ('GET','/api/country_watches',api_cw_get),
 	 ('POST','/api/country_watches/add',api_cw_add),
 	 ('POST','/api/country_watches/remove',api_cw_remove),
-	 ('GET','/api/top_players',api_top_players),
-	 ('GET','/api/top_players/{server}',api_top_players_server),
                                    
 	 ('GET','/api/referents',api_referent_get),
 	 ('POST','/api/referents/add',api_referent_add),
 	 ('POST','/api/referents/remove',api_referent_remove),
 	 ('GET','/api/referents/stats',api_referent_stats),
 	 ('GET','/api/referents/history',api_referent_history),
-	 ('GET','/api/referents/timeline',api_referent_timeline),
-	 ('GET','/api/notes',api_notes_get),
-	 ('POST','/api/notes/save',api_notes_save),
-	 ('POST','/api/notes/delete',api_notes_delete),
 	]
 	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
 	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
