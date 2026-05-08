@@ -824,6 +824,23 @@ async def api_grades_all(r):
 	except Exception as e:
 		print(f"[grades] {player} error: {e}",flush=True)
 		return cors({'player':player,'grades':{},'error':str(e)})
+
+@require_auth
+async def api_debug_country_desc(r):
+	"""Debug: retourne la desc brute d'un marker dynmap pour voir les grades"""
+	server=r.match_info['server'].lower()
+	country=r.match_info['country']
+	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	markers=await _fetch_dynmap_markers(server)
+	key=f"default_{country}__home"
+	if key not in markers:
+		cl=country.lower()
+		for k,v in markers.items():
+			if cl in k.lower():key=k;break
+	if key not in markers:return cors({'error':'Pays non trouvé','available_keys':list(markers.keys())[:20]},404)
+	v=markers[key]
+	return cors({'key':key,'label':v.get('label',''),'desc_raw':v.get('desc','')[:3000]})
+
 @require_auth
 async def api_known_players(r):
 	if not mongo_ok:return cors({'players':[]})
@@ -1040,6 +1057,7 @@ async def start_web():
 	 ('GET','/api/known_players',api_known_players),
 	 ('GET','/api/grade/{player}/{server}',api_grade),
 	 ('GET','/api/grades/{player}',api_grades_all),
+	 ('GET','/api/debug/country/{server}/{country}',api_debug_country_desc),
 	 ('GET','/api/country_watches',api_cw_get),
 	 ('POST','/api/country_watches/add',api_cw_add),
 	 ('POST','/api/country_watches/remove',api_cw_remove),
