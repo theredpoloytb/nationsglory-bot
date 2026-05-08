@@ -844,8 +844,7 @@ async def api_debug_country_desc(r):
 
 @require_auth
 async def api_history(r):
-	"""Retourne l'historique brut des connexions d'un joueur sur N jours,
-	groupé par jour + heure pour afficher un timeline par serveur."""
+	"""Retourne l'historique complet sur N jours — tous les jours inclus même sans session."""
 	player=r.match_info['player']
 	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
 	try:
@@ -854,21 +853,35 @@ async def api_history(r):
 		now=datetime.utcnow()+timedelta(hours=1)
 		since=now-timedelta(days=days)
 		from pymongo import ASCENDING
+		DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
 		docs=list(sessions_col.find(
 			{'player':player,'ts':{'$gte':since}},
 			{'_id':0,'server':1,'ts':1,'hour':1,'minute':1}
-		).sort('ts',ASCENDING).limit(5000))
-		# Groupe par jour (YYYY-MM-DD) → liste de {hour, server}
+		).sort('ts',ASCENDING).limit(10000))
+		# Groupe par jour
 		by_day={}
 		for d in docs:
 			ts=d['ts']
 			day_key=ts.strftime('%Y-%m-%d')
-			day_label=ts.strftime('%A %d/%m').capitalize()
-			if day_key not in by_day:by_day[day_key]={'label':day_label,'slots':[]}
+			if day_key not in by_day:
+				label=DAYS_FR[ts.weekday()]+' '+ts.strftime('%d/%m')
+				by_day[day_key]={'label':label,'slots':[]}
 			by_day[day_key]['slots'].append({'h':d.get('hour',ts.hour),'m':d.get('minute',ts.minute),'s':d['server']})
-		# Retourne dans l'ordre chronologique
-		result=[{'date':k,'label':v['label'],'slots':v['slots']} for k,v in sorted(by_day.items())]
-		return cors({'player':player,'days':days,'history':result})
+		# Génère tous les jours de la période (même sans session)
+		result=[]
+		for i in range(days):
+			day_dt=since+timedelta(days=i+1)
+			day_key=day_dt.strftime('%Y-%m-%d')
+			if day_key>now.strftime('%Y-%m-%d'):break
+			label=DAYS_FR[day_dt.weekday()]+' '+day_dt.strftime('%d/%m')
+			slots=by_day.get(day_key,{}).get('slots',[])
+			result.append({'date':day_key,'label':label,'slots':slots})
+		# Calcule la moyenne de connexion par jour (en minutes)
+		# On estime qu'un ping = ~2 min de connexion
+		total_pings=sum(len(d['slots']) for d in result)
+		days_with_data=sum(1 for d in result if d['slots'])
+		avg_min_per_day=round(total_pings*2/days) if days>0 else 0
+		return cors({'player':player,'days':days,'history':result,'avg_min_per_day':avg_min_per_day,'days_with_data':days_with_data})
 	except Exception as e:return cors({'error':str(e)},500)
 
 @require_auth
