@@ -1109,17 +1109,28 @@ async def self_ping():
 				async with aiohttp.ClientSession()as s:await s.get(url,timeout=aiohttp.ClientTimeout(total=10))
 			except:pass
 		await asyncio.sleep(600)
+async def _start_discord():
+	"""Démarre le bot Discord avec retry — ne tue jamais le process."""
+	while True:
+		try:
+			async with client:
+				asyncio.create_task(scanner_loop())
+				asyncio.create_task(referent_tracker_loop())
+				asyncio.create_task(activity_recorder_loop())
+				await client.start(TOKEN)
+		except discord.errors.HTTPException as e:
+			wait=getattr(e,'retry_after',60)
+			print(f"⚠️ Rate limit Discord ({e.status}), retry dans {wait}s",flush=True)
+			await asyncio.sleep(max(float(wait),60))
+		except Exception as e:
+			print(f"❌ Discord erreur: {e}, retry dans 30s",flush=True)
+			await asyncio.sleep(30)
+
 async def main():
-	print('🚀 Démarrage...',flush=True);init_mongo();await asyncio.sleep(5)
-	async with client:
-		asyncio.create_task(start_web())
-		if RENDER_URL:asyncio.create_task(self_ping())
-		asyncio.create_task(scanner_loop())
-		asyncio.create_task(referent_tracker_loop())
-		asyncio.create_task(activity_recorder_loop())             
-		try:await client.start(TOKEN)
-		except discord.errors.HTTPException as e:print(f"❌ Rate limit Discord: {e}",flush=True);await asyncio.sleep(60);sys.exit(1)
-		except Exception as e:print(f"❌ Erreur: {e}",flush=True);await asyncio.sleep(30);sys.exit(1)
+	print('🚀 Démarrage...',flush=True);init_mongo();await asyncio.sleep(2)
+	asyncio.create_task(start_web())
+	if RENDER_URL:asyncio.create_task(self_ping())
+	await _start_discord()
 @client.event
 async def on_ready():await tree.sync();print(f"✅ {client.user} | {len(SERVERS)} serveurs | MongoDB {'✅'if mongo_ok else'❌'}",flush=True)
 if __name__=='__main__':asyncio.run(main())
