@@ -403,24 +403,105 @@ async function switchWl(s){cwl=s;document.querySelectorAll('.wtb').forEach(e=>e.
 async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>{setLastSeen(p,s);loadSessionDurations(p);});el.innerHTML=[...on.map(p=>{const pred=predictDecoTime(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span>${pred?`<span class="pred-badge ${pred.cls}">⏳ ${pred.text}</span>`:''}</div>`;}),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0;opacity:${seen?.cls==='fresh'?'.6':'.3'}" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
 .join('')||'<div class="empty">Aucune donnée</div>';}catch{el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur</div>`;}}
 
+
+// ── Historique de connexion ───────────────────────────────────────────────
+const SRV_COLORS={
+  lime:'#00e87a',mocha:'#c68642',blue:'#5ba3ff',coral:'#ff4466',
+  orange:'#ff9900',red:'#ff3355',yellow:'#ffd700',white:'#e0e0e0',
+  jade:'#00c896',black:'#9e9e9e',cyan:'#00d4ff'
+};
+
+function renderHistoryTimeline(history,containerId){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return;
+  if(!history||!history.length){
+    wrap.innerHTML='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);padding:.5rem 0">Aucune connexion sur cette période</div>';
+    return;
+  }
+  // Grille horaire : 24 colonnes = 0h à 23h, chaque colonne = 1h
+  // Chaque slot (ping toutes ~2s) => on marque la case h de ce serveur
+  const HOURS=Array.from({length:24},(_,i)=>i);
+  let html='<div style="overflow-x:auto">';
+  html+='<table style="border-collapse:collapse;font-family:var(--M);font-size:.48rem;min-width:100%">';
+  // Header heures
+  html+='<tr><td style="color:var(--t3);padding-right:.4rem;white-space:nowrap;font-size:.42rem;min-width:70px">Jour</td>';
+  HOURS.forEach(h=>{
+    html+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem;width:22px">${h}</td>`;
+  });
+  html+='</tr>';
+  // Une ligne par jour
+  history.forEach(day=>{
+    // Construit map h -> [servers]
+    const hmap={};
+    day.slots.forEach(({h,s})=>{
+      if(!hmap[h])hmap[h]=new Set();
+      hmap[h].add(s);
+    });
+    html+=`<tr><td style="color:var(--g);padding-right:.4rem;white-space:nowrap;padding-top:3px;font-size:.46rem">${day.label}</td>`;
+    HOURS.forEach(h=>{
+      const servers=hmap[h]?[...hmap[h]]:[];
+      if(!servers.length){
+        html+=`<td style="width:22px;height:14px;background:rgba(2,5,12,.8);border-radius:2px;padding:0;margin:0 1px"></td>`;
+      } else if(servers.length===1){
+        const col=SRV_COLORS[servers[0]]||'#ffffff';
+        html+=`<td title="${servers[0].toUpperCase()} ${h}h" style="width:22px;height:14px;background:${col}33;border:1px solid ${col}88;border-radius:2px;padding:0;cursor:default"></td>`;
+      } else {
+        // Plusieurs serveurs sur la même heure — gradient
+        const cols=servers.map(s=>SRV_COLORS[s]||'#fff');
+        const grad=`linear-gradient(135deg,${cols.map((c,i)=>`${c}55 ${Math.round(i/cols.length*100)}%,${c}55 ${Math.round((i+1)/cols.length*100)}%`).join(',')})`;
+        html+=`<td title="${servers.map(s=>s.toUpperCase()).join('+')} ${h}h" style="width:22px;height:14px;background:${grad};border-radius:2px;padding:0;cursor:default"></td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  html+='</table></div>';
+  // Légende serveurs présents
+  const usedSrvs=new Set();
+  history.forEach(d=>d.slots.forEach(({s})=>usedSrvs.add(s)));
+  if(usedSrvs.size){
+    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">';
+    [...usedSrvs].sort().forEach(s=>{
+      const col=SRV_COLORS[s]||'#fff';
+      html+=`<span style="font-family:var(--M);font-size:.46rem;display:inline-flex;align-items:center;gap:.25rem;color:${col}"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${col}44;border:1px solid ${col}88"></span>${s.toUpperCase()}</span>`;
+    });
+    html+='</div>';
+  }
+  wrap.innerHTML=html;
+}
+
+async function loadHistorySection(player,containerId,periodBtnId,curDays){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return;
+  wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div>';
+  try{
+    const d=await api('/api/history/'+encodeURIComponent(player)+'?days='+curDays);
+    renderHistoryTimeline(d.history||[],containerId);
+  }catch(e){
+    wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--red)">Erreur chargement</div>';
+  }
+}
+
+
+function stHistSwitch(btn,player,gridId){
+  document.querySelectorAll('.st-hist-btn').forEach(b=>{b.style.background='';b.style.borderColor='';});
+  btn.style.background='rgba(0,56,184,.25)';btn.style.borderColor='rgba(26,111,255,.5)';
+  loadHistorySection(decodeURIComponent(player),gridId,'',parseInt(btn.dataset.d));
+}
+function ppHistSwitch(btn,player,gridId){
+  btn.closest('.pp-section').querySelectorAll('.pp-hist-btn').forEach(b=>{b.style.background='';b.style.borderColor='';});
+  btn.style.background='rgba(0,56,184,.25)';btn.style.borderColor='rgba(26,111,255,.5)';
+  loadHistorySection(decodeURIComponent(player),gridId,'',parseInt(btn.dataset.d));
+}
+
 async function loadStats(){
   const raw=$('st-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('st-input').value=p;
   const res=$('st-result');res.innerHTML=`<div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
-  const[lR,plR,grR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/plages/'+encodeURIComponent(p)),api('/api/grades/'+encodeURIComponent(p))]);
-  const loc=lR.status==='fulfilled'?lR.value:null,plg=plR.status==='fulfilled'?plR.value:null;
+  const[lR,grR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/grades/'+encodeURIComponent(p))]);
+  const loc=lR.status==='fulfilled'?lR.value:null;
   const gradeByServer=(grR.status==='fulfilled'?grR.value?.grades:null)||{};
   const srvs=loc?loc.servers:[];let h='';
   const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
   const cbs=loc?.countries_by_server||{};
-  function _stPlages(hm,days){
-    if(!hm)return[];
-    return days.map((day,di)=>{
-      const row=hm[di];const slots=[];let start=null;
-      for(let h=0;h<24;h++){if(row[h]>=1){if(start===null)start=h;}else{if(start!==null){slots.push(`${start}h–${h}h`);start=null;}}}
-      if(start!==null)slots.push(`${start}h–0h`);
-      return slots.length?{day,slots}:null;
-    }).filter(Boolean);
-  }
   h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
   h+=SRV.map(s=>{
     const country=cbs[s]||'Wilderness';
@@ -429,21 +510,22 @@ async function loadStats(){
     const countryIcon=country==='Wilderness'?'🌿':'🌍';
     const grade=gradeByServer[s]||null;
     const gradeColor=grade==='leader'?'#ffd700':grade==='recruit'?'var(--red)':grade?'var(--grn)':'var(--t4)';
-    const gradeChip=grade&&country!=='Wilderness'?`<span style="font-family:var(--M);font-size:.48rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.08rem .35rem;white-space:nowrap">${grade==='leader'?'👑':grade==='recruit'?'🪶':'⚔'} ${grade}</span>`:'';
+    const gradeChip=grade&&country!=='Wilderness'?`<span style="font-family:var(--M);font-size:.48rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.08rem .35rem;white-space:nowrap">${grade==='leader'?'👑':grade==='recruit'?'🪖':'⚔'} ${grade}</span>`:'';
     return`<div class="ir"><span class="ik" style="${isOnline?'color:var(--grn)':''}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?` <span style="font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:''}</span><span class="iv" style="display:inline-flex;align-items:center;gap:.35rem"><span style="display:inline-flex;align-items:center;gap:.35rem;background:${country==='Wilderness'?'rgba(255,255,255,.04)':'rgba(91,163,255,.1)'};border:1px solid ${country==='Wilderness'?'rgba(255,255,255,.08)':'rgba(91,163,255,.25)'};border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:${countryColor}">${countryIcon} ${country}</span>${gradeChip}</span></div>`;
   }).join('');
   h+='</div>';
-  h+=`<div class="sb"><div class="sbt">🕐 Habitudes de connexion</div>`;
-  const stPlages=_stPlages(plg?.heatmap,plg?.days||[]);
-  if(stPlages.length){
-    h+=`<div style="display:flex;flex-direction:column;gap:.18rem;margin-top:.3rem">`;
-    stPlages.forEach(({day,slots})=>{
-      h+=`<div style="display:flex;align-items:baseline;gap:.6rem;padding:.28rem 0;border-bottom:1px solid var(--b1)"><span style="font-family:var(--M);font-size:.55rem;color:var(--g);min-width:32px;flex-shrink:0">${day}</span><span style="font-family:var(--M);font-size:.6rem;color:var(--t1)">${slots.join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</span></div>`;
-    });
-    h+='</div>';
-  }else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée de connexion</span></div>`;
+  // Section historique interactive
+  let _stHistDays=7;
+  const _histId='st-hist-grid';
+  h+=`<div class="sb"><div class="sbt">🕐 Historique de connexion</div>
+  <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin:.4rem 0 .6rem">
+    ${[1,2,7,15,30].map(d=>`<button class="btn st-hist-btn" data-d="${d}" onclick="stHistSwitch(this,'${encodeURIComponent(p)}','${_histId}')" style="font-size:.48rem;padding:.15rem .5rem${d===7?';background:rgba(0,56,184,.25);border-color:rgba(26,111,255,.5)':''}">${d===1?'1j':d===2?'2j':d===7?'7j':d===15?'15j':'30j'}</button>`).join('')}
+  </div>
+  <div id="${_histId}"></div></div>`;
   h+='</div>';
-  h+='</div>';res.innerHTML=h;
+  res.innerHTML=h;
+  loadHistorySection(p,_histId,'',7);
+
 }
 
 let actx=null,_au=false;
@@ -695,22 +777,17 @@ async function openPlayerPanel(player){
     }).join('')}
   </div>`;
   h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
-  h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Habitudes de connexion</div>`;
-  const plages=_buildPlages(pl?.heatmap,pl?.days||[]);
-  if(plages.length){
-    h+=`<div style="display:flex;flex-direction:column;gap:.18rem;margin-top:.3rem">`;
-    plages.forEach(({day,slots})=>{
-      h+=`<div style="display:flex;align-items:baseline;gap:.6rem;padding:.22rem 0;border-bottom:1px solid var(--b1)">
-        <span style="font-family:var(--M);font-size:.52rem;color:var(--g);min-width:28px;flex-shrink:0">${day}</span>
-        <span style="font-family:var(--M);font-size:.56rem;color:var(--t1)">${slots.join('&nbsp; · &nbsp;')}</span>
-      </div>`;
-    });
-    h+='</div>';
-  }else{
-    h+=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Pas assez de données</div>`;
-  }
-  h+='</div>';
+  let _ppHistDays=7;
+  const _ppHistId='pp-hist-grid-'+player.replace(/[^a-z0-9]/gi,'_');
+  h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Historique de connexion</div>
+  <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin:.3rem 0 .5rem">
+    ${[1,2,7,15,30].map(d=>`<button class="btn pp-hist-btn" data-d="${d}" onclick="ppHistSwitch(this,'${encodeURIComponent(player)}','${_ppHistId.replace(/'/g,"\\'")}')" style="font-size:.46rem;padding:.12rem .45rem${d===7?';background:rgba(0,56,184,.25);border-color:rgba(26,111,255,.5)':''}">${d===1?'1j':d===2?'2j':d===7?'7j':d===15?'15j':'30j'}</button>`).join('')}
+  </div>
+  <div id="${_ppHistId}"><div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div></div></div>`;
   body.innerHTML=h;
+  // Load history async après rendu
+  loadHistorySection(player,_ppHistId,'',7);
+
 }
 function closePlayerPanel(){
   document.getElementById('player-panel').classList.remove('open');
