@@ -114,8 +114,14 @@ def init_mongo():
 		print('✅ MongoDB OK',flush=True)
 	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
 
+_rec_last={}  # dédup : 1 ping par minute max par (player, server)
 def record_connection(player,server):
 	if not mongo_ok:return
+	key=(player,server)
+	now_ts=time.time()
+	# Ne stocke pas si on a déjà pingué cette minute
+	if now_ts-_rec_last.get(key,0)<60:return
+	_rec_last[key]=now_ts
 	try:
 		now=datetime.utcnow()+timedelta(hours=1)
 		sessions_col.insert_one({'player':player,'server':server,'ts':now,'day':now.weekday(),'hour':now.hour,'minute':now.minute})
@@ -857,7 +863,7 @@ async def api_history(r):
 		docs=list(sessions_col.find(
 			{'player':player,'ts':{'$gte':since}},
 			{'_id':0,'server':1,'ts':1,'hour':1,'minute':1}
-		).sort('ts',ASCENDING).limit(10000))
+		).sort('ts',ASCENDING).limit(100000))
 		# Groupe par jour
 		by_day={}
 		for d in docs:
