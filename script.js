@@ -415,85 +415,67 @@ function renderHistoryTimeline(history,containerId,append=false){
   const wrap=document.getElementById(containerId);
   if(!wrap)return;
   if(!history||!history.length){
-    wrap.innerHTML='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);padding:.5rem 0">Aucune connexion sur cette période</div>';
+    if(!append)wrap.innerHTML='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);padding:.5rem 0">Aucune connexion sur cette période</div>';
     return;
   }
-  const TOTAL_SECS=24*3600;
-  function fmt(secs){
-    secs=((secs%TOTAL_SECS)+TOTAL_SECS)%TOTAL_SECS;
-    return `${String(Math.floor(secs/3600)).padStart(2,'0')}:${String(Math.floor((secs%3600)/60)).padStart(2,'0')}`;
-  }
-  function durStr(secs){
-    const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60);
-    return h>0?(m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):(m>0?`${m}min`:'< 1min');
-  }
+  const TOTAL=86400;
+  const fmt=s=>{s=((s%TOTAL)+TOTAL)%TOTAL;return`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}`;};
+  const durFmt=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?(m?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):(m?`${m}min`:'<1min');};
 
-  // collecte les serveurs utilisés pour la légende
   const usedSrvs=new Set();
   history.forEach(day=>(day.sessions||[]).forEach(s=>usedSrvs.add(s.server)));
 
   let html='';
-  // Marqueurs heures
-  html+='<div style="position:relative;height:12px;margin-left:70px;margin-right:48px;margin-bottom:2px">';
-  for(let h=0;h<24;h+=3){
-    const pct=(h/24*100).toFixed(2);
-    html+=`<span style="position:absolute;left:${pct}%;font-family:var(--M);font-size:.34rem;color:var(--t4);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
-  }
-  html+='</div>';
+  // Axe horaire
+  html+='<div style="display:flex;margin-bottom:3px"><div style="width:80px;flex-shrink:0"></div><div style="flex:1;position:relative;height:10px">';
+  for(let h=0;h<=24;h+=3)html+=`<span style="position:absolute;left:${h/24*100}%;font-family:var(--M);font-size:.32rem;color:rgba(255,255,255,.22);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
+  html+='</div><div style="width:44px"></div></div>';
 
-  history.forEach(day=>{
-    const sessions=day.sessions||[];
-    const isEmpty=sessions.length===0;
-    const dayDur=day.total_dur||0;
-
-    html+=`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:5px">`;
-    // Label jour
-    html+=`<span style="font-family:var(--M);font-size:.44rem;color:${isEmpty?'var(--t4)':'var(--g)'};opacity:${isEmpty?'.35':'1'};min-width:66px;flex-shrink:0;text-align:right">${day.label}</span>`;
+  history.forEach(({label,sessions,total_dur})=>{
+    const empty=!sessions||!sessions.length;
+    html+=`<div style="display:flex;align-items:center;gap:0;margin-bottom:4px">`;
+    // Label
+    html+=`<div style="width:80px;flex-shrink:0;font-family:var(--M);font-size:.42rem;color:${empty?'rgba(255,255,255,.18)':'rgba(255,255,255,.7)'};text-align:right;padding-right:8px;white-space:nowrap">${label||'—'}</div>`;
     // Barre
-    html+=`<div style="position:relative;flex:1;height:18px;background:rgba(255,255,255,.03);border-radius:3px;overflow:visible;border:1px solid rgba(255,255,255,.04)">`;
-    if(isEmpty){
-      html+=`<div style="position:absolute;inset:0;display:flex;align-items:center;padding-left:.4rem"><span style="font-family:var(--M);font-size:.34rem;color:var(--t4)">—</span></div>`;
+    html+=`<div style="flex:1;height:16px;background:rgba(255,255,255,.03);border-radius:3px;position:relative;border:1px solid rgba(255,255,255,.04)">`;
+    if(empty){
+      html+=`<div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 6px"><span style="font-family:var(--M);font-size:.3rem;color:rgba(255,255,255,.15)">—</span></div>`;
     } else {
-      sessions.forEach(({server,start,end,approx})=>{
-        const col=SRV_COLORS[server]||'#fff';
-        // gère les sessions qui passent minuit
-        const s=Math.max(0,start),e=end>start?Math.min(TOTAL_SECS,end):TOTAL_SECS;
-        const left=(s/TOTAL_SECS*100).toFixed(3);
-        const width=Math.max(((e-s)/TOTAL_SECS*100),0.4).toFixed(3);
-        const label=`${server.toUpperCase()} ${fmt(s)}→${fmt(e)} (${durStr(e-s)})${approx?' ~':''}`;
-        html+=`<div title="${label}" style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${col}${approx?'77':'cc'};border-left:2px solid ${col};border-radius:2px;box-sizing:border-box;cursor:default"></div>`;
+      (sessions||[]).forEach(({server,start,end,dur,migrated})=>{
+        const col=SRV_COLORS[server]||'#aaa';
+        const s=Math.max(0,start),e=end>start?Math.min(TOTAL,end):TOTAL;
+        const l=(s/TOTAL*100).toFixed(3),w=Math.max((e-s)/TOTAL*100,0.35).toFixed(3);
+        const tip=`${server.toUpperCase()}  ${fmt(s)} → ${fmt(e)}  (${durFmt(e-s)})${migrated?' ~':''}`;
+        html+=`<div title="${tip}" style="position:absolute;left:${l}%;width:${w}%;height:100%;background:${col};opacity:${migrated?.65:.9};border-radius:2px;box-sizing:border-box;cursor:default"></div>`;
       });
     }
     html+=`</div>`;
-    // Durée totale
-    if(dayDur>0)html+=`<span style="font-family:var(--M);font-size:.42rem;color:var(--t2);flex-shrink:0;min-width:42px;text-align:right">${durStr(dayDur)}</span>`;
-    else html+=`<span style="min-width:42px"></span>`;
+    // Durée
+    html+=`<div style="width:44px;flex-shrink:0;font-family:var(--M);font-size:.42rem;color:rgba(255,255,255,.45);text-align:right;padding-left:6px">${total_dur>0?durFmt(total_dur):''}</div>`;
     html+=`</div>`;
 
-    // Labels sous la barre pour les sessions longues (>15min)
-    if(!isEmpty){
-      const hasLabel=sessions.some(s=>s.end-s.start>=900);
-      if(hasLabel){
-        html+=`<div style="position:relative;height:9px;margin-left:70px;margin-right:48px;margin-bottom:1px">`;
-        sessions.forEach(({server,start,end})=>{
-          if(end-start<900)return;
-          const col=SRV_COLORS[server]||'#fff';
-          const s=Math.max(0,start),e=end>start?Math.min(TOTAL_SECS,end):TOTAL_SECS;
-          const left=(s/TOTAL_SECS*100).toFixed(3);
-          const width=((e-s)/TOTAL_SECS*100).toFixed(3);
-          html+=`<span style="position:absolute;left:${left}%;width:${width}%;font-family:var(--M);font-size:.3rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:clip;display:block;text-align:center;line-height:9px">${fmt(s)}–${fmt(e)}</span>`;
+    // Labels sous les sessions longues (>20min)
+    if(!empty){
+      const longOnes=(sessions||[]).filter(s=>s.end-s.start>=1200);
+      if(longOnes.length){
+        html+=`<div style="display:flex;margin-bottom:2px"><div style="width:80px;flex-shrink:0"></div><div style="flex:1;position:relative;height:8px">`;
+        longOnes.forEach(({server,start,end})=>{
+          const col=SRV_COLORS[server]||'#aaa';
+          const s=Math.max(0,start),e=end>start?Math.min(TOTAL,end):TOTAL;
+          const l=(s/TOTAL*100).toFixed(3),w=((e-s)/TOTAL*100).toFixed(3);
+          html+=`<span style="position:absolute;left:${l}%;width:${w}%;font-family:var(--M);font-size:.28rem;color:${col};overflow:hidden;white-space:nowrap;text-overflow:clip;display:block;text-align:center;line-height:8px">${fmt(s)}–${fmt(e)}</span>`;
         });
-        html+=`</div>`;
+        html+=`</div><div style="width:44px"></div></div>`;
       }
     }
   });
 
   // Légende
   if(usedSrvs.size){
-    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem;margin-left:70px">';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;margin-left:80px">';
     [...usedSrvs].sort().forEach(s=>{
       const col=SRV_COLORS[s]||'#fff';
-      html+=`<span style="font-family:var(--M);font-size:.44rem;display:inline-flex;align-items:center;gap:.25rem;color:${col}"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${col}77;border:1px solid ${col}"></span>${s.toUpperCase()}</span>`;
+      html+=`<span style="font-family:var(--M);font-size:.42rem;display:inline-flex;align-items:center;gap:.22rem;color:${col}"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${col};opacity:.8"></span>${s.toUpperCase()}</span>`;
     });
     html+='</div>';
   }
