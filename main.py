@@ -1,1816 +1,1158 @@
-(function(){
-  const SESSION_KEY = 'mg_token_v3';
-  const MAIN = document.querySelector('.main');
-  const HDR  = document.querySelector('.hdr');
-  const NAV  = document.querySelector('.nav');
-
-  function lockContent() {
-    if(MAIN) MAIN.style.display = 'none';
-    if(HDR)  HDR.style.display  = 'none';
-    if(NAV)  NAV.style.display  = 'none';
-  }
-
-  function unlockContent() {
-    const lock = document.getElementById('init-lock');
-    if(lock) lock.remove();
-    if(MAIN) MAIN.style.display = '';
-    if(HDR)  HDR.style.display  = '';
-    if(NAV)  NAV.style.display  = '';
-  }
-
-  function watchGate() {
-    const gate = document.getElementById('pw-gate');
-    
-    if(!gate && !sessionStorage.getItem(SESSION_KEY)) {
-      trollUser();
-    }
-  }
-
-  function trollUser() {
-    lockContent();
-    document.body.innerHTML = `
-      <div style="
-        position:fixed;inset:0;background:#000;
-        display:flex;flex-direction:column;
-        align-items:center;justify-content:center;
-        font-family:monospace;color:#4d9fff;text-align:center;gap:2rem;
-        z-index:99999;
-      ">
-        <div style="font-size:5rem">🕵️</div>
-        <div style="font-size:1.6rem;letter-spacing:.2em">INTRUSION DÉTECTÉE</div>
-        <div style="font-size:.85rem;color:rgba(26,111,255,.5);letter-spacing:.15em;max-width:420px;line-height:1.8">
-          La tentative de contournement a été enregistrée.<br>
-          IP transmise à l'unité de surveillance.<br>
-          <span style="color:#f04040">Accès définitivement révoqué.</span>
-        </div>
-        <div style="font-size:.7rem;color:rgba(200,100,100,.4);letter-spacing:.1em" id="fake-ip">
-          Identification en cours...
-        </div>
-        <div style="font-size:.6rem;color:rgba(26,111,255,.2);margin-top:1rem">
-          מוסד גלורי — CLASSIFIED
-        </div>
-      </div>
-    `;
-    
-    setTimeout(() => {
-      const fake = `${rand(1,254)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`;
-      document.getElementById('fake-ip').textContent =
-        `Adresse identifiée : ${fake} — signalement en cours...`;
-    }, 1800);
-  }
-
-  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
-
-  if(sessionStorage.getItem(SESSION_KEY)){
-    const gate = document.getElementById('pw-gate');
-    if(gate) gate.style.display = 'none';
-    unlockContent();
-  } else {
-    lockContent();
-    setTimeout(() => {
-      const el = document.getElementById('pw-input-el');
-      if(el) el.focus();
-    }, 100);
-    
-    const observer = setInterval(watchGate, 500);
-    
-    window._stopGateWatch = () => clearInterval(observer);
-  }
-
-  window.pwCheck = async function(){
-    const inp = document.getElementById('pw-input-el');
-    const err = document.getElementById('pw-err');
-    const val = inp.value;
-    if(!val) return;
-    try{
-      const r = await fetch('https://nationsglory-spy.onrender.com/api/auth-check', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({password: val})
-      });
-      const d = await r.json();
-      if(d.ok){
-        sessionStorage.setItem(SESSION_KEY, d.token);
-        if(window._stopGateWatch) window._stopGateWatch();
-        requestNotifPerms();
-        unlockContent();
-        const gate = document.getElementById('pw-gate');
-        gate.style.transition = 'opacity .6s';
-        gate.style.opacity = '0';
-        setTimeout(() => { gate.style.display = 'none'; }, 600);
-      } else {
-        const msg = d.error || 'MOT DE PASSE INCORRECT';
-        err.textContent = msg;
-        err.style.opacity = '1';
-        inp.value = '';
-        inp.style.borderColor = 'rgba(255,24,64,.5)';
-        
-        if(r.status === 429){
-          inp.disabled = true;
-          inp.placeholder = 'Bloqué 15 minutes...';
-          setTimeout(() => { inp.disabled = false; inp.placeholder = ''; err.style.opacity='0'; inp.style.borderColor='rgba(0,80,216,.2)'; }, 900000);
-        } else {
-          setTimeout(() => {
-            err.style.opacity = '0';
-            inp.style.borderColor = 'rgba(0,80,216,.2)';
-          }, 3000);
-        }
-      }
-    } catch(e){
-      err.textContent = 'ERREUR SERVEUR';
-      err.style.opacity = '1';
-      setTimeout(() => {
-        err.style.opacity = '0';
-        err.textContent = 'CODE INVALIDE — ACCÈS REFUSÉ';
-      }, 2500);
-    }
-  };
-})();
-
-const API='https://nationsglory-spy.onrender.com';
-const SRV=["blue","coral","orange","red","yellow","mocha","white","jade","black","cyan","lime"];
-const EMO={blue:"🔵",coral:"🔴",orange:"🟠",red:"🔴",yellow:"🟡",mocha:"🟤",white:"⚪",jade:"🟢",black:"⚫",cyan:"🔵",lime:"🟢"};
-
-const STATIC_COUNTRIES_FALLBACK=["AfriqueDuSud","Afghanistan","Alaska","Albanie","Algerie","Allemagne","Altai","Amour","Angola","ArchipelCrozet","Argentine","Armenie","Arizona","Australie","Autriche","Azerbaidjan","Bahamas","Bahrein","Baja","Bangladesh","Belgique","Belize","Benin","Bhoutan","Bielorussie","Birmanie","Bolivie","Bosnie","Botswana","Bouriatie","Bresil","Bulgarie","BurkinaFaso","Californie","Cambodge","Cameroun","Canada","CentreAfrique","Chili","Chine","Chypre","Colombie","Congo","CoreeDuNord","CoreeDuSud","CoteDivoire","Croatie","Dakota","Danemark","Djibouti","Egypte","EmiratsArabesUnis","EmpireBissaoguineen","EmpireIrkoutsk","EmpireJordanien","EmpireOmanais","Equateur","Erythree","Espagne","Estonie","EtatsUnis","Ethiopie","Floride","France","Gabon","Georgie","Ghana","Grece","Groenland","Guatemala","Guangdong","Guangxi","Guizhou","Guyana","Guyane","Hainan","Iakoutie","Iamalie","Idaho","IleCoats","IleBolchevique","IleDeLaReunion","IleGraham","IleMaurice","IleVictoria","IleWrangel","IlesBaleares","IlesCanaries","IlesFeroe","IlesFidji","IlesGalapagos","IlesKerguelen","IlesSalomon","IlesSandwich","IlesVancouver","IleBouvet","Inde","Indonesie","Irak","Iran","Islande","Italie","Jamaique","Japon","Java","Kazakhstan","Kenya","Khabarovsk","Kirghizistan","Kosovo","Koweit","Krasnoy","Laos","Liban","Liberia","Libye","Lituanie","Lettonie","Luxembourg","Macedoine","Madagan","Madagascar","Magadan","Malaisie","Malawi","Mali","Malte","Maroc","Mauritanie","Mexique","Michigan","Minnesota","Moldavie","Mongolie","Montenegro","Montana","Mozambique","Namibie","Nepal","Nevada","Nicaragua","Niger","Nigeria","Norvege","NouvelleCaledonie","NouvelleGuinee","NouvelleZelande","NouvelleZemble","NouveauMexique","Nunavut","Ontario","Oregon","Ouganda","Ouzbekistan","Pakistan","Palaos","Papouasie","Paraguay","PaysBas","Perou","Philippines","Pologne","Portugal","Qatar","Quebec","Quinghai","RDCongo","RepubliqueTcheque","Roumanie","RoyaumeUni","Russie","SaharaOccidental","Sakhaline","Salvador","Sardaigne","Serbie","Sichuan","Slovaquie","Slovenie","Socotra","Somalie","Sonora","Soudan","Srilanka","StHelena","Suede","Suisse","Sumatra","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Taiwan","Tanzanie","Tasmanie","Tchad","Tchoukota","TerreAdelie","TerreBooth","TerreBurke","TerreDeFeu","TerreGrant","TerreLiard","TerreLow","TerreMasson","TerreMill","TerrePowell","TerreRoss","TerreSigny","TerreSiple","TerreSmith","TerreSnow","TerreSpaatz","TerreThor","TerreVega","Texas","Thailande","Tibet","Timor","Togo","Tomsk","Touva","TriniteEtTobago","Tunisie","Turkmenistan","Turquie","Uruguay","Utah","Venezuela","Vietnam","WallisEtFutuna","Washington","Wisconsin","Xinjiang","Yemen","Yunnam","Zambie","Zimbabwe"].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-
-const CC_LS_KEY='mg_cc_v1';const CC_LS_TTL=6*3600*1000;
-function _ccLoadLS(){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');const now=Date.now();Object.entries(r).forEach(([s,v])=>{if(now-v.ts<CC_LS_TTL)cc[s]=v.list;});console.log('[countries] cache localStorage chargé:',Object.keys(cc));}catch{}}
-function _ccSaveLS(server,list){try{const r=JSON.parse(localStorage.getItem(CC_LS_KEY)||'{}');r[server]={list,ts:Date.now()};localStorage.setItem(CC_LS_KEY,JSON.stringify(r));}catch{}}
-_ccLoadLS();
-
-async function getCountries(server){
-  if(cc[server])return cc[server];
-  try{
-    const d=await fetch(API+'/api/countries/'+server,{headers:{..._authHeader()}});
-    if(d.status===429){console.warn('[countries] 429 rate-limit →',server,'fallback statique');cc[server]=[...STATIC_COUNTRIES_FALLBACK];return cc[server];}
-    const j=await d.json();
-    const raw=j.countries||j.claimed||[];
-    const list=raw.map(x=>x.name||x).filter(Boolean).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-    if(list.length){cc[server]=list;_ccSaveLS(server,list);}
-    else{cc[server]=[...STATIC_COUNTRIES_FALLBACK];}
-  }catch{cc[server]=[...STATIC_COUNTRIES_FALLBACK];}
-  return cc[server];
-}
-const BUG=s=>false; // dynmap instabilité gérée via playercount API
-const WARN=`<div class="warn">⚠ Dynmap limité — données possiblement incomplètes</div>`;
-const PC_FORCED=new Set(['mocha','red']); // ces serveurs ignorent la dynmap, toujours playercount
-let _pcCache={};
-async function getPlayerCount(){try{const d=await api('/api/playercount');_pcCache=d;return d;}catch{return _pcCache;}}
-function getPCCount(srv){return _pcCache[srv]?.players??null;}
-let WL=[],WLM=[],cwl='lime',snd=localStorage.getItem('mg_sound')!=='off';
-let ALR=[],prev={},hist=JSON.parse(localStorage.getItem('mg_h')||'[]'),cc={},oP=[];
-const $=id=>document.getElementById(id);
-const ld=()=>`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-const ld2=()=>ld();
-const rP=(i,p)=>p.find(x=>x.toLowerCase()===i.toLowerCase())||i;
-
-const sparkData={total:[],wl:[],wc:[]};
-function drawSpark(canvasId,data,color='rgba(0,80,216,.55)'){
-  const c=$(canvasId);if(!c||!data.length)return;
-  const W=c.offsetWidth,H=c.offsetHeight;c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
-  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
-  if(data.length<2)return;
-  const mn=Math.min(...data),mx=Math.max(...data),range=mx-mn||1;
-  ctx.beginPath();
-  data.forEach((v,i)=>{const x=i/(data.length-1)*W,y=H-(v-mn)/range*H*.8-H*.1;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
-  ctx.strokeStyle=color;ctx.lineWidth=1;ctx.stroke();
-  const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'rgba(0,80,216,.1)');grad.addColorStop(1,'transparent');
-  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-}
-
-(()=>{
-  const c=$('bg'),ctx=c.getContext('2d');
-  const sz=()=>{c.width=innerWidth;c.height=innerHeight};sz();window.addEventListener('resize',sz);
-  const pts=Array.from({length:55},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*.9+.2,a:Math.random()*.2+.04}));
-  let mx=innerWidth/2,my=innerHeight/2,t=0;
-  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
-  const orbs=[[.14,.1,0,56,184,.055,.44],[.86,.84,26,111,255,.038,.42],[.5,.44,77,159,255,.025,.36]];
-  const draw=()=>{
-    t+=.003;ctx.clearRect(0,0,c.width,c.height);
-    orbs.forEach(([ox,oy,r,g,b,a,s])=>{
-      const px=c.width*(ox+Math.sin(t*.6+ox*10)*.038),py=c.height*(oy+Math.cos(t*.42+oy*8)*.028);
-      const grd=ctx.createRadialGradient(px,py,0,px,py,c.width*s);
-      grd.addColorStop(0,`rgba(${r},${g},${b},${a})`);grd.addColorStop(1,'transparent');
-      ctx.fillStyle=grd;ctx.fillRect(0,0,c.width,c.height);
-    });
-    pts.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
-      const d=Math.hypot(p.x-mx,p.y-my),br=d<90?1-d/90:0;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r+br*1.2,0,Math.PI*2);
-      ctx.fillStyle=`rgba(26,111,255,${p.a+br*.16})`;ctx.fill();
-    });
-    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
-      const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
-      if(d<80){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,80,216,${.028*(1-d/80)})`;ctx.lineWidth=.5;ctx.stroke();}
-    }
-    requestAnimationFrame(draw);
-  };draw();
-})();
-
-(()=>{
-  
-  const tc=document.createElement('canvas');
-  tc.id='trl';tc.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none';
-  document.body.appendChild(tc);
-  const ctx=tc.getContext('2d');
-  const sync=()=>{tc.width=innerWidth;tc.height=innerHeight};sync();
-  window.addEventListener('resize',sync);
-  let trail=[],MAX=14;
-  document.addEventListener('mousemove',e=>{
-    trail.push({x:e.clientX,y:e.clientY,t:Date.now()});
-    if(trail.length>MAX)trail.shift();
-  });
-  const draw=()=>{
-    ctx.clearRect(0,0,tc.width,tc.height);
-    const now=Date.now();
-    trail.forEach((p,i)=>{
-      const s=(i+1)/MAX*(1-(now-p.t)/220);
-      if(s<=0)return;
-      ctx.beginPath();ctx.arc(p.x,p.y,1.4*s,0,Math.PI*2);
-      ctx.fillStyle=`rgba(26,111,255,${s*.14})`;ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  };draw();
-})();
-
-setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('fr-FR');$('hdr-date').textContent=new Date().toLocaleDateString('fr-FR');},1000);
-
-function showToast(msg,duration=3000){
-  const wrap=$('toast-wrap'),t=document.createElement('div');
-  t.className='toast';t.textContent=msg;wrap.appendChild(t);
-  setTimeout(()=>{t.style.animation='toastOut .3s ease forwards';setTimeout(()=>t.remove(),300);},duration);
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
-  const tabs=document.querySelectorAll('.tab');
-  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8};
-  if(map[e.key]!==undefined&&tabs[map[e.key]]){tabs[map[e.key]].click();showToast(`Onglet ${e.key} — ${tabs[map[e.key]].textContent.trim()}`);return;}
-  if(e.key==='/'||e.key==='k'&&(e.ctrlKey||e.metaKey)){e.preventDefault();tabs[2].click();setTimeout(()=>$('ca-input').focus(),300);}
-});
-
-let pct=0;
-const pctT=setInterval(()=>{pct=Math.min(pct+(Math.random()*8+2),92);if($('l-pct'))$('l-pct').textContent=Math.floor(pct)+'%';},85);
-const msgs=['CHARGEMENT DES MODULES...','CONNEXION API SÉCURISÉE...','SYNCHRONISATION SERVEURS...','VÉRIFICATION INTÉGRITÉ...','CHIFFREMENT CANAL...','SYSTÈME PRÊT À DÉMARRER...'];
-let mi=0;const msgT=setInterval(()=>{if(mi<msgs.length-1&&$('l-msg'))$('l-msg').textContent=msgs[mi++];},500);
-
-function _loaderReady(){
-  clearInterval(pctT);clearInterval(msgT);
-  if($('l-pct'))$('l-pct').textContent='100%';
-  if($('l-fill'))$('l-fill').style.width='100%';
-  setTimeout(()=>{
-    const m=$('l-msg');
-    if(m){m.textContent='SYSTÈME PRÊT — CLIQUEZ POUR ENTRER';m.classList.remove('blink');m.classList.add('rdy');}
-    const b=$('lbtn');if(b)b.style.display='block';
-  },300);
-}
-
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',_loaderReady);
-}else{
-  
-  setTimeout(_loaderReady,200);
-}
-
-setTimeout(()=>{
-  const b=$('lbtn');
-  if(b&&b.style.display==='none'||b&&!b.style.display){_loaderReady();}
-},4000);
-function enterSite(){
-  try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}
-  _au=true;window.scrollTo(0,0);
-  $('ldr').classList.add('out');
-  setTimeout(()=>{$('ldr').style.display='none';showToast('SYSTÈME OPÉRATIONNEL',2500);},900);
-}
-
-let scW=null,scOn=false,scBarT=null;
-(()=>{
-  const ifr=document.createElement('iframe');ifr.allow='autoplay';
-  ifr.style.cssText='position:absolute;width:0;height:0;border:none;opacity:0;pointer-events:none';
-  ifr.src='https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user-164072391-103154989/omer-adam-feat-arisa-tel-aviv&color=%23f0c040&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false';
-  document.body.appendChild(ifr);
-  const s=document.createElement('script');s.src='https://w.soundcloud.com/player/api.js';
-  s.onload=()=>{
-    scW=SC.Widget(ifr);
-    scW.bind(SC.Widget.Events.READY,()=>scW.setVolume(70));
-    scW.bind(SC.Widget.Events.PLAY,()=>{scOn=true;$('scp-tri').classList.add('p');$('scp-eq').classList.add('on');scStartBar();});
-    scW.bind(SC.Widget.Events.PAUSE,()=>{scOn=false;$('scp-tri').classList.remove('p');$('scp-eq').classList.remove('on');scStopBar();});
-    scW.bind(SC.Widget.Events.FINISH,()=>{scOn=false;$('scp-tri').classList.remove('p');$('scp-eq').classList.remove('on');$('scp-bf').style.width='0%';});
-  };document.head.appendChild(s);
-})();
-function scToggle(){if(!scW)return;scOn?scW.pause():scW.play();}
-function scVol(v){if(scW)scW.setVolume(parseInt(v));}
-function scStartBar(){scStopBar();scBarT=setInterval(()=>{if(!scW)return;scW.getPosition(p=>{scW.getDuration(d=>{if(d>0)$('scp-bf').style.width=(p/d*100)+'%';});});},500);}
-function scStopBar(){if(scBarT){clearInterval(scBarT);scBarT=null;}}
-
-function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'Authorization':'Bearer '+t}:{};}
-async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
-async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
-
-async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='referents'){loadReferents();}if(id==='activite'){initActivity();}}
-
-function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
-function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
-function ppCA(p){$('ca-input').value=p;$('ca-pl').innerHTML='';$('ca-list').style.display='none';doCA();}
-function ppST(p){$('st-input').value=p;$('st-pl').innerHTML='';$('st-list').style.display='none';loadStats();}
-function ppWL(p){$('wl-add').value=p;$('wl-pl').innerHTML='';$('wl-acl').style.display='none';}
-function acF(ii,li,pool){const v=$(ii).value.trim().toLowerCase(),l=$(li);if(!v||!pool.length){l.style.display='none';return;}const m=pool.filter(p=>p.toLowerCase().includes(v)).slice(0,10);if(!m.length){l.style.display='none';return;}l.innerHTML=m.map(p=>`<div class="aci" onmousedown="acP('${ii}','${li}','${p.replace(/'/g,"\\'")}')">${p}</div>`).join('');l.style.display='block';}
-function acFC(){const s=$('ck-srv').value;if(!s)return;const v=$('ck-country').value.trim().toLowerCase(),p=cc[s]||[];$('ck-suggest').innerHTML=(v?p.filter(c=>c.toLowerCase().includes(v)):p).map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');acF('ck-country','ck-list',p);}
-function acP(i,l,v){$(i).value=v;$(l).style.display='none';}
-function acK(e,l,cb){const list=$(l),items=list.querySelectorAll('.aci'),cur=list.querySelector('.sel');if(e.key==='ArrowDown'){e.preventDefault();const n=cur?cur.nextElementSibling:items[0];if(cur)cur.classList.remove('sel');if(n)n.classList.add('sel');}else if(e.key==='ArrowUp'){e.preventDefault();const p=cur?cur.previousElementSibling:items[items.length-1];if(cur)cur.classList.remove('sel');if(p)p.classList.add('sel');}else if(e.key==='Enter'){if(cur){cur.onmousedown();return;}list.style.display='none';cb();}else if(e.key==='Escape')list.style.display='none';}
-document.addEventListener('click',e=>{document.querySelectorAll('.acl').forEach(l=>{if(!l.parentElement.contains(e.target))l.style.display='none';});});
-
-async function chkAPI(){try{await api('/health');$('api-led').className='led on';$('api-txt').textContent='API OK';return true;}catch{$('api-led').className='led off';$('api-txt').textContent='DOWN';return false;}}
-async function loadWL(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist',{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json();WL=d.players||[];animStat('st-wcount',WL.length);sparkData.wc.push(WL.length);if(sparkData.wc.length>30)sparkData.wc.shift();drawSpark('spark-wc',sparkData.wc);}catch{}}
-async function loadWLM(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);const r=await fetch(API+'/api/watchlist_mocha',{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json();WLM=d.players||[];}catch{}}
-async function loadKP(){try{const d=await fetch(API+'/api/known_players',{headers:{..._authHeader()}}).then(r=>r.json());oP=[...new Set([...(d.players||[]),...oP])].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));rAT('ca-pl','ppCA');rAT('st-pl','ppST');rAT('wl-pl','ppWL');}catch{}}
-
-function animStat(id,val){
-  const el=$(id);if(!el)return;
-  const prev=parseInt(el.textContent)||0;if(prev===val)return;
-  el.style.opacity='.12';
-  setTimeout(()=>{el.textContent=val;el.style.opacity='1';el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),350);},120);
-}
-
-async function loadDash(){
-  if(!$('srv-overview').children.length)$('srv-overview').innerHTML=ld();
-  try{
-    const [all,pc]=await Promise.all([api('/api/online_all'),getPlayerCount()]);
-    const lp=all['lime']||[];
-    const pool=new Set(oP);SRV.forEach(s=>(all[s]||[]).forEach(p=>pool.add(p)));
-    oP=[...pool].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
-    WL.forEach(p=>{const lc=p.toLowerCase(),on=(all['lime']||[]).map(x=>x.toLowerCase()).includes(lc),k=p+'@lime';if(on&&!prev[k])pAlert('connect',p,'lime');if(!on&&prev[k])pAlert('disconnect',p,'lime');prev[k]=on;});
-    WLM.forEach(p=>{const lc=p.toLowerCase(),on=(all['mocha']||[]).map(x=>x.toLowerCase()).includes(lc),k=p+'@mocha';if(on&&!prev[k])pAlert('connect',p,'mocha');if(!on&&prev[k])pAlert('disconnect',p,'mocha');prev[k]=on;});
-    const getCount=s=>PC_FORCED.has(s)?(pc[s]?.players??0):(()=>{const d=(all[s]||[]).length;return d>0?d:(pc[s]?.players??0);})();
-    const dynmapDown=s=>PC_FORCED.has(s)||((all[s]||[]).length===0&&(pc[s]?.players??0)>0);
-    let tot=0;SRV.forEach(s=>tot+=getCount(s));
-    animStat('st-total',tot);
-    sparkData.total.push(tot);if(sparkData.total.length>30)sparkData.total.shift();drawSpark('spark-total',sparkData.total);
-    const wonline=WL.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase())).length;
-    animStat('st-wonline',wonline);updateWeather(wonline);
-    sparkData.wl.push(wonline);if(sparkData.wl.length>30)sparkData.wl.shift();drawSpark('spark-wl',sparkData.wl);
-    const mx=Math.max(...SRV.map(s=>getCount(s)),1);
-    const srvSorted=[...SRV].sort((a,b)=>getCount(b)-getCount(a));
-    const cards=$('srv-overview').querySelectorAll('.sc');
-    if(cards.length===SRV.length||true){$('srv-overview').innerHTML=srvSorted.map(s=>{const cnt=getCount(s),bug=BUG(s);return`<div class="sc" onmouseenter="sndH()" onclick="gOL('${s}')" ${bug?'style="border-color:rgba(255,119,0,.22)"':dynmapDown(s)?'style="border-color:rgba(91,163,255,.22)"':''}><div class="sc-top"><span class="sc-name">${s.toUpperCase()}</span><span class="sc-emo">${EMO[s]}</span></div><div class="sc-n">${cnt}</div><div class="sc-lbl">${bug?'⚠ INSTABLE':dynmapDown(s)?'📡 PLAYERCOUNT':'EN LIGNE'}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/mx*100)}%"></div></div></div>`;}).join('');}
-    else $('srv-overview').innerHTML=srvSorted.map(s=>{const cnt=(all[s]||[]).length,bug=BUG(s);return`<div class="sc" onmouseenter="sndH()" onclick="gOL('${s}')" ${bug?'style="border-color:rgba(255,119,0,.22)"':''}><div class="sc-top"><span class="sc-name">${s.toUpperCase()}</span><span class="sc-emo">${EMO[s]}</span></div><div class="sc-n">${cnt}</div>${bug?'<div class="sc-lbl warn">⚠ INSTABLE</div>':'<div class="sc-lbl">EN LIGNE</div>'}<div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/mx*100)}%"></div></div></div>`;}).join('');
-    const mp=await api('/api/online/mocha').then(d=>d.players||[]).catch(()=>[]);
-    const mk=(pl,l,c,lb)=>l.length?`<div style="font-family:var(--M);font-size:.46rem;color:${c};letter-spacing:.22em;margin-bottom:.28rem">${lb}</div><div style="display:flex;flex-direction:column;gap:.22rem;margin-bottom:.5rem">${l.map(p=>{const on=pl.map(x=>x.toLowerCase()).includes(p.toLowerCase());const seen=getLastSeenText(p);return`<div class="wi" style="padding:.28rem .5rem;cursor:pointer;opacity:${on?'1':'.55'}" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:24px;height:24px;border-radius:3px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.6rem;color:${on?'var(--t1)':'var(--t3)'}">${on?'🟢':'⚫'} ${p}</span>${seen?`<span class="wi-seen ${seen.cls}" style="margin-left:auto">${seen.text}</span>`:on?'<span style="font-family:var(--M);font-size:.46rem;color:var(--grn);margin-left:auto">EN LIGNE</span>':''}</div>`;}).join('')}</div>`:'' ;
-    $('wl-quick').innerHTML=(mk(lp,WL,'var(--grn)','🟢 LIME')||'')+(mk(mp,WLM,'var(--org)','🟤 MOCHA')||'')||'<div class="empty">Watchlists vides</div>';
-    if($('last-update'))$('last-update').textContent=new Date().toLocaleTimeString('fr-FR');
-    pushActivity(tot);startCountdown(5);
-    _firstCycle=false;
-    if(document.getElementById('wl-status')&&document.getElementById('wl-status').innerHTML.trim()!=='')wlRS();
-  }catch(e){$('srv-overview').innerHTML=`<div class="empty" style="color:var(--red)">Bot hors ligne<br/><span style="font-size:.52rem;opacity:.6">${e.message}</span></div>`;}
-}
-const _authed=()=>!!sessionStorage.getItem('mg_token_v3');
-let _firstCycle=true;
-
-
-function pAlert(t,p,s){
-  ALR.unshift({type:t,player:p,server:s,time:new Date().toLocaleTimeString('fr-FR')});
-  if(ALR.length>60)ALR.pop();
-  rAlerts();
-  if(!_authed()||_firstCycle)return;
-  const inWL=WL.map(x=>x.toLowerCase()).includes(p.toLowerCase())||WLM.map(x=>x.toLowerCase()).includes(p.toLowerCase());
-  if(inWL){
-    if(t==='connect'){setLastSeen(p,s);startSession(p);sendBrowserNotif('connect',p,s);}
-    else{endSession(p);sendBrowserNotif('disconnect',p,s);}
-    showPop(t,p,s);
-  }
-}
-function rAlerts(){$('alert-badge').textContent=ALR.length+' évts';$('alert-feed').innerHTML=ALR.length?ALR.map(a=>`<div class="fi"><div class="fi-d ${a.type==='connect'?'g':'r'}"></div><span class="fi-t">${a.time}</span><span class="fi-m">${a.type==='connect'?'🟢':'🔴'} <b style="cursor:pointer" onclick="openPlayerPanel('${a.player}')">${a.player}</b><span class="fi-s">${a.server.toUpperCase()}</span></span></div>`).join(''):'<div class="empty">En attente...</div>';}
-
-function gOL(s){document.querySelectorAll('.tab')[2].click();$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
-function fOL(s){$('ol-srv').value=s;$('ol-body').innerHTML=ld();loadOLS(s);}
-async function loadOLS(srv){const body=$('ol-body'),w=BUG(srv)?WARN:'';try{const d=await api('/api/online/'+srv),pl=d.players||[];body.innerHTML=w+(pl.length?`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);margin-bottom:.5rem"><span style="color:var(--gb)">${pl.length}</span> joueurs — ${srv.toUpperCase()}</div><div style="display:flex;flex-direction:column;gap:.3rem">${pl.map(p=>`<div class="wi" style="cursor:pointer" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.62rem;color:${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'var(--grn)':'var(--t1)'}">${p}${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'<span style="font-size:.46rem;color:var(--grn);margin-left:.3rem">🎯</span>':''}</span><div class="wis on" style="margin-left:auto"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div></div>`).join('')}</div>`:`<div class="empty">${BUG(srv)?'0 joueur (dynmap limité)':'Aucun joueur sur '+srv.toUpperCase()}</div>`);}catch(e){body.innerHTML=w+`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
-async function loadOnline(){const srv=$('ol-srv').value,body=$('ol-body');body.innerHTML=ld();try{if(!srv){const [all,pc]=await Promise.all([api('/api/online_all'),getPlayerCount()]);const getCount=s=>PC_FORCED.has(s)?(pc[s]?.players??0):(()=>{const d=(all[s]||[]).length;return d>0?d:(pc[s]?.players??0);})();const dynmapDown=s=>PC_FORCED.has(s)||((all[s]||[]).length===0&&(pc[s]?.players??0)>0);let tot=0;SRV.forEach(s=>tot+=getCount(s));body.innerHTML=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);margin-bottom:.55rem">TOTAL <span style="color:var(--gb)">${tot}</span> joueurs</div><div class="sg">${SRV.map(s=>{const pl=all[s]||[],cnt=getCount(s),down=dynmapDown(s);return`<div class="sc" onmouseenter="sndH()" onclick="fOL('${s}')" ${down?'style="border-color:rgba(91,163,255,.22)"':''}><div class="sc-top"><span class="sc-name">${s.toUpperCase()}</span><span class="sc-emo">${EMO[s]}</span></div><div class="sc-n">${cnt}</div><div class="sc-lbl">${down?'📡 PLAYERCOUNT':'CLIQUER'}</div><div class="tags" style="max-height:110px;overflow-y:auto;padding-right:2px" onclick="event.stopPropagation()">${pl.slice(0,20).map(p=>`<span class="tag ${WL.map(w=>w.toLowerCase()).includes(p.toLowerCase())?'wl':''}" onclick="event.stopPropagation();qCA('${p}')">${p}</span>`).join('')}${pl.length>20?`<span style="font-family:var(--M);font-size:.46rem;color:var(--t3)">+${pl.length-20}</span>`:down&&!pl.length?`<span style="font-family:var(--M);font-size:.46rem;color:var(--t3)">Dynmap indispo — ${cnt} joueurs via API NG</span>`:''}</div><div class="sbar"><div class="sbar-f" style="width:${Math.round(cnt/Math.max(...SRV.map(ss=>getCount(ss)),1)*100)}%"></div></div></div>`;}).join('')}</div>`;}else await loadOLS(srv);}catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}}
-
-async function doCA(){const raw=$('ca-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('ca-input').value=p;const res=$('ca-result');res.innerHTML=ld();try{const d=await api('/api/checkall/'+encodeURIComponent(p));if(d.servers.length)sndF();const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;const countryOnline=d.country&&d.country_server&&d.servers.includes(d.country_server);const countryInfo=countryOnline?`<div style="display:inline-flex;align-items:center;gap:.4rem;font-family:var(--M);font-size:.58rem;color:var(--blue-pale);background:rgba(91,163,255,.07);border:1px solid rgba(91,163,255,.22);border-radius:4px;padding:.2rem .6rem;margin-top:.4rem">🌍 <b>${d.country}</b><span style="color:var(--t4);font-size:.5rem">${d.country_server.toUpperCase()}</span></div>`:'';res.innerHTML=d.servers.length?`<div class="res ok"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.5rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><div><div class="rt" style="margin-bottom:.2rem">Joueur localisé — ${p}</div>${d.servers.map(s=>`<div style="margin:.15rem 0">${EMO[s]} <span style="color:var(--g)">${s.toUpperCase()}</span></div>`).join('')}${countryInfo}</div></div></div>`:`<div class="res err"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.3rem"><img src="${skinUrl}" style="width:40px;height:40px;border-radius:5px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0;opacity:.5" onerror="this.style.display='none'" alt=""><div><div class="rt">Résultat</div><span style="color:var(--t3)">${p} n'est connecté nulle part</span>${countryInfo}</div></div></div>`;hist=hist.filter(h=>h.p.toLowerCase()!==p.toLowerCase());hist.unshift({p,servers:d.servers,t:new Date().toLocaleTimeString('fr-FR')});if(hist.length>15)hist.pop();localStorage.setItem('mg_h',JSON.stringify(hist));rHist();}catch(e){res.innerHTML=`<div class="res err">Erreur : ${e.message}</div>`;}}
-function qCA(player){openPlayerPanel(player);}
-function rHist(){const el=$('ca-history');if(!hist.length){el.innerHTML='<div class="empty">Aucune recherche</div>';return;}el.innerHTML=`<table class="tbl"><thead><tr><th>Joueur</th><th>Serveurs</th><th>Heure</th></tr></thead><tbody>`+hist.slice(0,12).map(h=>`<tr><td style="color:var(--g)" onclick="qCA('${h.p}')">${h.p}</td><td>${h.servers.length?h.servers.map(s=>`<span class="stag">${s.toUpperCase()}</span>`).join(''):'<span style="color:var(--t3)">Hors ligne</span>'}</td><td style="color:var(--t3)">${h.t}</td></tr>`).join('')+'</tbody></table>';}
-
-async function loadCS(){const s=$('ck-srv').value;if(!s)return;await getCountries(s);rCS(s);}
-function rCS(s){const el=$('ck-suggest'),p=cc[s]||[];if(!p.length){el.innerHTML='';return;}el.innerHTML=p.map(c=>`<span class="tag" onclick="selC('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');}
-function selC(c){$('ck-country').value=c;$('ck-list').style.display='none';doCheck();}
-async function doCheck(){const s=$('ck-srv').value,raw=$('ck-country').value.trim();if(!s||!raw)return;await getCountries(s);const c=rP(raw,cc[s]||[]);$('ck-country').value=c;const res=$('ck-result');res.innerHTML=ld();try{const d=await api(`/api/check/${s}/${encodeURIComponent(c)}`);const note=`<div class="warn" style="margin-top:.34rem">⚠ Dynmap hors service</div>`;const hasDynmap=d.power||d.claims||d.mmr;const powerPct=d.power&&d.maxpower?Math.min(100,Math.round(d.power/d.maxpower*100)):0;const isSP=d.power<d.claims;const powerBar=d.maxpower?`<div style="margin:.3rem 0 .1rem;background:var(--bg2);border-radius:3px;height:4px;overflow:hidden"><div style="height:100%;width:${powerPct}%;background:${isSP?'var(--red)':'var(--grn)'};transition:width .4s"></div></div>`:'';const infoBloc=hasDynmap?`<div style="font-family:var(--M);font-size:.49rem;color:var(--t3);margin:.35rem 0 .05rem;display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">${d.claims?`<span>🏴 <b style="color:var(--t1)">${d.claims}</b> claims</span>`:''}${d.power?`<span>⚡ <b style="color:${isSP?'var(--red)':'var(--grn)'}">${d.power}</b>/<b style="color:var(--t2)">${d.maxpower}</b> power${isSP?` <span style="color:var(--red);font-size:.44rem">▼ SOUS-POWER (${d.claims-d.power})</span>`:''}</span>`:''}${d.mmr?`<span>🏆 <b style="color:var(--t1)">${d.mmr}</b> MMR</span>`:''}${d.leader?`<span style="display:inline-flex;align-items:center;gap:.3rem"><img src="https://skins.nationsglory.fr/face/${d.leader}/32" style="width:20px;height:20px;border-radius:3px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'">👑 <b style="color:var(--t1)">${d.leader}</b></span>`:''}</div>${powerBar}`:'';if(d.online_total===0){res.innerHTML=`<div class="res ok"><div class="rt">Pays : <a href="https://${s}.nationsglory.fr/" target="_blank" rel="noopener" style="color:var(--blue-pale);text-decoration:none" title="Dynmap ${s}">${d.country} ↗</a> — ${d.members_total} membres</div>${infoBloc}<span style="color:var(--grn)">✓ Aucun membre connecté</span>${BUG(s)?note:''}</div>`;}else{res.innerHTML=`<div class="res err"><div class="rt">Pays : <a href="https://${s}.nationsglory.fr/" target="_blank" rel="noopener" style="color:var(--blue-pale);text-decoration:none" title="Dynmap ${s}">${d.country} ↗</a> — ${d.online_total}/${d.members_total} connectés</div>${infoBloc}`+Object.entries(d.servers).sort((a,b)=>a[0]===s?-1:1).map(([x,pl])=>`<div style="margin:.2rem 0">${EMO[x]} <span style="color:var(--g)">${x.toUpperCase()}</span>${BUG(x)?'<span style="color:var(--org);font-size:.46rem"> ⚠</span>':''}${x===s?'<span style="color:var(--red);font-size:.46rem"> ← CIBLE</span>':''} <span style="color:var(--t3);margin-left:.22rem">${pl.join(', ')}</span></div>`).join('')+(Object.keys(d.servers).some(x=>BUG(x))||BUG(s)?note:'')+'</div>';}}catch(e){res.innerHTML=`<div class="res err"><div class="rt">Erreur</div>${e.message}</div>`;}}
-
-function wlR(){const el=$('wl-manage'),wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}el.innerHTML=wl.map(p=>`<div class="wi"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.62rem">${p}</span><button class="btn btn-r" style="padding:.07rem .34rem;font-size:.48rem;margin-left:auto" onclick="wlRm('${p}')">✕</button></div>`).join('');}
-async function wlAdd(){const raw=$('wl-add').value.trim();if(!raw)return;const name=rP(raw,oP);$('wl-add').value='';try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/add':'/api/watchlist/add',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} ajouté à la watchlist`);}catch(e){showToast('Erreur : '+e.message);}}
-async function wlRm(name){try{const d=await apiP(cwl==='mocha'?'/api/watchlist_mocha/remove':'/api/watchlist/remove',{player:name});if(cwl==='mocha')WLM=d.players;else WL=d.players;wlR();wlRS();showToast(`${name} retiré`);}catch(e){showToast('Erreur : '+e.message);}}
-async function switchWl(s){cwl=s;document.querySelectorAll('.wtb').forEach(e=>e.classList.remove('act'));const a=$('wl-tab-'+s);if(a)a.classList.add('act');if($('wl-pt'))$('wl-pt').textContent='◈ Watchlist — '+s.toUpperCase();if($('wl-st'))$('wl-st').textContent='⚡ Statut live — '+s.toUpperCase();$('wl-manage').innerHTML='';$('wl-status').innerHTML='';if(s==='lime')await loadWL();else await loadWLM();wlR();wlRS();}
-async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();const s=cwl==='mocha'?'mocha':'lime',wl=cwl==='mocha'?WLM:WL;if(!wl.length){el.innerHTML='<div class="empty">Watchlist vide</div>';return;}try{const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);const r=await fetch(API+'/api/online/'+s,{signal:c.signal,headers:{..._authHeader()}});clearTimeout(t);const d=await r.json(),lp=d.players||[];const on=wl.filter(p=>lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));const off=wl.filter(p=>!lp.map(x=>x.toLowerCase()).includes(p.toLowerCase()));on.forEach(p=>{setLastSeen(p,s);loadSessionDurations(p);});el.innerHTML=[...on.map(p=>{const pred=predictDecoTime(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.62rem">${p}</span><div class="wis on"><div class="led on" style="width:5px;height:5px;flex-shrink:0"></div>EN LIGNE</div><span class="session-timer" data-player="${p}">${getSessionTime(p)||''}</span>${pred?`<span class="pred-badge ${pred.cls}">⏳ ${pred.text}</span>`:''}</div>`;}),...off.map(p=>{const seen=getLastSeenText(p);return`<div class="wi" onclick="openPlayerPanel('${p}')"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/32" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0;opacity:${seen?.cls==='fresh'?'.6':'.3'}" onerror="this.style.display='none'" alt=""><span style="font-family:var(--M);font-size:.62rem;opacity:${seen?.cls==='fresh'?'.7':'.38'}">${p}</span><div class="wis off">${seen?`<span class="wi-seen ${seen.cls}">${seen.text}</span>`:'◯ Hors ligne'}</div></div>`;})]
-.join('')||'<div class="empty">Aucune donnée</div>';}catch{el.innerHTML=`<div class="empty" style="color:var(--red)">Erreur</div>`;}}
-
-
-// ── Historique de connexion ───────────────────────────────────────────────
-const SRV_COLORS={
-  lime:'#00e87a',mocha:'#c68642',blue:'#5ba3ff',coral:'#ff4466',
-  orange:'#ff9900',red:'#ff3355',yellow:'#ffd700',white:'#e0e0e0',
-  jade:'#00c896',black:'#9e9e9e',cyan:'#00d4ff'
-};
-
-function renderHistoryTimeline(history,containerId,append=false){
-  const wrap=document.getElementById(containerId);
-  if(!wrap)return;
-  if(!history||!history.length){
-    wrap.innerHTML='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);padding:.5rem 0">Aucune connexion sur cette période</div>';
-    return;
-  }
-  const TOTAL_SECS=24*3600;
-  const GAP_SECS=20*60; // 20 min de gap = nouvelle session (était 10, trop court)
-  const PAD_SECS=10*60; // on ajoute 10 min à la fin de chaque session (était 5)
-
-  function buildSessions(slots){
-    if(!slots||!slots.length)return[];
-    // slots peuvent avoir {t, s} (secondes) ou legacy {h, m, s}
-    const norm=slots.map(sl=>({t:sl.t!=null?sl.t:(sl.h*3600+sl.m*60),s:sl.s}));
-    const sorted=[...norm].sort((a,b)=>a.t-b.t);
-    const sessions=[];let cur=null;
-    for(const {t,s} of sorted){
-      if(!cur||s!==cur.server||t-cur.lastPing>GAP_SECS){
-        if(cur)sessions.push({...cur,end:cur.lastPing+PAD_SECS});
-        cur={server:s,start:t,lastPing:t};
-      } else {
-        cur.lastPing=t;
-      }
-    }
-    if(cur)sessions.push({...cur,end:cur.lastPing+PAD_SECS});
-    return sessions;
-  }
-  function fmt(secs){
-    const s=Math.min(secs,TOTAL_SECS-1);
-    return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}`;
-  }
-
-  let html='';
-  // Marqueurs heures en haut
-  html+='<div style="position:relative;height:12px;margin-left:60px;margin-bottom:1px;margin-right:0">';
-  for(let h=0;h<24;h+=3){
-    const pct=(h*3600/TOTAL_SECS*100).toFixed(2);
-    html+=`<span style="position:absolute;left:${pct}%;font-family:var(--M);font-size:.36rem;color:var(--t4);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
-  }
-  html+='</div>';
-
-  const usedSrvs=new Set();
-  history.forEach(day=>{
-    const isEmpty=!day.slots||day.slots.length===0;
-    const sessions=buildSessions(day.slots||[]);
-    sessions.forEach(s=>usedSrvs.add(s.server));
-    const durSec=sessions.reduce((a,s)=>a+(s.end-s.start),0);
-    const durMin=Math.round(durSec/60);
-    const durStr=durMin>=60?`${Math.floor(durMin/60)}h${durMin%60?String(durMin%60).padStart(2,'0'):''}`:durMin?`${durMin}min`:'';
-
-    // Ligne = label + barre + durée totale
-    html+=`<div style="margin-bottom:6px">`;
-    html+=`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:2px">`;
-    html+=`<span style="font-family:var(--M);font-size:.46rem;color:${isEmpty?'var(--t4)':'var(--g)'};opacity:${isEmpty?'.35':'1'};min-width:56px;flex-shrink:0;text-align:right">${day.label}</span>`;
-    html+=`<div style="position:relative;flex:1;height:16px;background:rgba(255,255,255,.03);border-radius:3px;overflow:visible;border:1px solid rgba(255,255,255,.05)">`;
-
-    if(isEmpty){
-      html+=`<div style="position:absolute;inset:0;border-radius:3px;display:flex;align-items:center;padding-left:.4rem"><span style="font-family:var(--M);font-size:.36rem;color:var(--t4)">— absent</span></div>`;
-    } else {
-      sessions.forEach(({server,start,end})=>{
-        const col=SRV_COLORS[server]||'#fff';
-        const left=(start/TOTAL_SECS*100).toFixed(3);
-        const width=Math.max(((end-start)/TOTAL_SECS*100),0.5).toFixed(3);
-        html+=`<div style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${col}bb;border-left:2px solid ${col};border-radius:1px;box-sizing:border-box"></div>`;
-      });
-    }
-    html+=`</div>`;
-    if(durStr)html+=`<span style="font-family:var(--M);font-size:.44rem;color:var(--t2);flex-shrink:0;min-width:32px">${durStr}</span>`;
-    html+=`</div>`;
-
-    // Labels de sessions sous la barre
-    if(!isEmpty&&sessions.length){
-      html+=`<div style="position:relative;height:10px;margin-left:60px">`;
-      sessions.forEach(({server,start,end})=>{
-        const col=SRV_COLORS[server]||'#fff';
-        const left=(start/TOTAL_SECS*100).toFixed(3);
-        const width=((end-start)/TOTAL_SECS*100).toFixed(3);
-        const durSecs=end-start;
-        // Affiche le label si la session dure plus de 10 minutes
-        if(durSecs>=600){
-          const label=`${fmt(start)}–${fmt(end)}`;
-          html+=`<span style="position:absolute;left:${left}%;width:${width}%;font-family:var(--M);font-size:.32rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:clip;display:block;text-align:center;line-height:10px">${label}</span>`;
-        }
-      });
-      html+=`</div>`;
-    }
-    html+=`</div>`;
-  });
-
-  // Légende
-  if(usedSrvs.size){
-    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;margin-left:60px">';
-    [...usedSrvs].sort().forEach(s=>{
-      const col=SRV_COLORS[s]||'#fff';
-      html+=`<span style="font-family:var(--M);font-size:.44rem;display:inline-flex;align-items:center;gap:.25rem;color:${col}"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${col}77;border:1px solid ${col}"></span>${s.toUpperCase()}</span>`;
-    });
-    html+='</div>';
-  }
-  if(append)wrap.innerHTML+=html;else wrap.innerHTML=html;
-}
-
-async function loadHistorySection(player,containerId,periodBtnId,curDays){
-  const wrap=document.getElementById(containerId);
-  if(!wrap)return;
-  wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div>';
-  try{
-    const d=await api('/api/history/'+encodeURIComponent(player)+'?days='+curDays);
-    // Affiche la moyenne avant le tableau
-    let avgHtml='';
-    if(d.avg_min_per_day!=null){
-      const h=Math.floor(d.avg_min_per_day/60),m=d.avg_min_per_day%60;
-      const avgStr=h>0?(m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):(m>0?`${m}min`:'< 1 min');
-      avgHtml=`<div style="font-family:var(--M);font-size:.52rem;color:var(--t2);margin-bottom:.5rem;display:flex;gap:.8rem;flex-wrap:wrap">
-        <span>📊 Moy. <b style="color:var(--t1)">${avgStr}/jour</b> sur ${curDays}j</span>
-        <span style="color:var(--t3)">${d.days_with_data||0} jour(s) actif(s)</span>
-      </div>`;
-    }
-    wrap.innerHTML=avgHtml;
-    renderHistoryTimeline(d.history||[],containerId,true);
-  }catch(e){
-    wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--red)">Erreur chargement</div>';
-  }
-}
-
-
-function stHistSwitch(btn,player,gridId){
-  document.querySelectorAll('.st-hist-btn').forEach(b=>{b.style.background='';b.style.borderColor='';});
-  btn.style.background='rgba(0,56,184,.25)';btn.style.borderColor='rgba(26,111,255,.5)';
-  loadHistorySection(decodeURIComponent(player),gridId,'',parseInt(btn.dataset.d));
-}
-function ppHistSwitch(btn,player,gridId){
-  btn.closest('.pp-section').querySelectorAll('.pp-hist-btn').forEach(b=>{b.style.background='';b.style.borderColor='';});
-  btn.style.background='rgba(0,56,184,.25)';btn.style.borderColor='rgba(26,111,255,.5)';
-  loadHistorySection(decodeURIComponent(player),gridId,'',parseInt(btn.dataset.d));
-}
-
-async function loadStats(){
-  const raw=$('st-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('st-input').value=p;
-  const res=$('st-result');res.innerHTML=`<div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
-  const[lR,grR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/grades/'+encodeURIComponent(p))]);
-  const loc=lR.status==='fulfilled'?lR.value:null;
-  const gradeByServer=(grR.status==='fulfilled'?grR.value?.grades:null)||{};
-  const srvs=loc?loc.servers:[];let h='';
-  const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
-  const cbs=loc?.countries_by_server||{};
-  h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
-  h+=SRV.map(s=>{
-    const country=cbs[s]||'Wilderness';
-    const isOnline=srvs.includes(s);
-    const countryColor=country==='Wilderness'?'var(--t4)':'var(--blue-pale)';
-    const countryIcon=country==='Wilderness'?'🌿':'🌍';
-    const grade=gradeByServer[s]||null;
-    const gradeColor=grade==='leader'?'#ffd700':grade==='recruit'?'var(--red)':grade?'var(--grn)':'var(--t4)';
-    const gradeChip=grade&&country!=='Wilderness'?`<span style="font-family:var(--M);font-size:.48rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.08rem .35rem;white-space:nowrap">${grade==='leader'?'👑':grade==='recruit'?'🪖':'⚔'} ${grade}</span>`:'';
-    return`<div class="ir"><span class="ik" style="${isOnline?'color:var(--grn)':''}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?` <span style="font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:''}</span><span class="iv" style="display:inline-flex;align-items:center;gap:.35rem"><span style="display:inline-flex;align-items:center;gap:.35rem;background:${country==='Wilderness'?'rgba(255,255,255,.04)':'rgba(91,163,255,.1)'};border:1px solid ${country==='Wilderness'?'rgba(255,255,255,.08)':'rgba(91,163,255,.25)'};border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:${countryColor}">${countryIcon} ${country}</span>${gradeChip}</span></div>`;
-  }).join('');
-  h+='</div>';
-  // Section historique interactive
-  let _stHistDays=7;
-  const _histId='st-hist-grid';
-  h+=`<div class="sb"><div class="sbt">🕐 Historique de connexion</div>
-  <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin:.4rem 0 .6rem">
-    ${[1,2,7,15,30].map(d=>`<button class="btn st-hist-btn" data-d="${d}" onclick="stHistSwitch(this,'${encodeURIComponent(p)}','${_histId}')" style="font-size:.48rem;padding:.15rem .5rem${d===7?';background:rgba(0,56,184,.25);border-color:rgba(26,111,255,.5)':''}">${d===1?'1j':d===2?'2j':d===7?'7j':d===15?'15j':'30j'}</button>`).join('')}
-  </div>
-  <div id="${_histId}"></div></div>`;
-  h+='</div>';
-  res.innerHTML=h;
-  loadHistorySection(p,_histId,'',7);
-
-}
-
-let actx=null,_au=false;
-function gCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}
-function unlockAudio(){if(_au)return;_au=true;try{gCtx().resume();}catch(e){}}
-document.addEventListener('click',unlockAudio,{once:true});
-function toggleSound(){snd=!snd;localStorage.setItem('mg_sound',snd?'on':'off');const b=$('sound-btn');if(b){b.textContent=snd?'🔊 SON':'🔇 SON';b.style.color=snd?'var(--g)':'var(--t3)';}showToast(snd?'Son activé':'Son désactivé');}
-function pT(f,t='sine',d=.08,v=.08,dl=0){if(!snd)return;try{const ctx=gCtx(),o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=t;o.frequency.value=f;const ts=ctx.currentTime+dl;g.gain.setValueAtTime(0,ts);g.gain.linearRampToValueAtTime(v,ts+.01);g.gain.exponentialRampToValueAtTime(.001,ts+d);o.start(ts);o.stop(ts+d);}catch(e){}}
-function sndNav(){pT(880,'sine',.06,.055);pT(1100,'sine',.05,.038,.04);}
-function sndH(){pT(660,'sine',.04,.018);}
-function sndF(){pT(523,'sine',.08,.09);pT(659,'sine',.08,.09,.07);}
-function sndA(c){if(c){[0,.14,.28,.42,.56].forEach((dl,i)=>{pT(580+i*85,'square',.11,.28,dl);pT(1160+i*110,'sine',.07,.12,dl+.05);});}else{[0,.17,.34].forEach((dl,i)=>{pT(490-i*95,'sawtooth',.14,.28,dl);pT(245-i*48,'square',.11,.18,dl+.07);});}}
-function spk(t){if(!snd)return;try{window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='fr-FR';m.rate=.88;m.pitch=1.25;m.volume=1;const voices=window.speechSynthesis.getVoices();const v=voices.find(v=>v.lang.startsWith('fr')&&v.name.toLowerCase().includes('female'))||voices.find(v=>v.lang.startsWith('fr')&&(v.name.includes('Amélie')||v.name.includes('Audrey')||v.name.includes('Marie')||v.name.includes('Julie')||v.name.includes('Léa')||v.name.includes('Google français')))||voices.find(v=>v.lang.startsWith('fr'));if(v)m.voice=v;window.speechSynthesis.speak(m);}catch(e){}}
-if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();}
-function showPop(type,player,server){
-  sndA(type==='connect');setTimeout(()=>spk(type==='connect'?`${player} vient de se connecter`:`${player} s'est déconnecté`),400);
-  const pop=$('apop'),n=document.createElement('div');
-  n.className='an'+(type==='disconnect'?' dc':'');
-  n.innerHTML=`<div class="an-type">${type==='connect'?'🟢 Connexion détectée':'🔴 Déconnexion'}</div><div class="an-name">${player}</div><div class="an-meta"><span>${server.toUpperCase()}</span><span style="opacity:.3">·</span><span>${new Date().toLocaleTimeString('fr-FR')}</span></div><span class="an-x" onclick="this.parentElement.remove()">✕</span>`;
-  n.onclick=e=>{if(e.target.classList.contains('an-x'))return;qCA(player);};
-  pop.appendChild(n);
-  setTimeout(()=>{n.style.animation='anOut .28s ease forwards';setTimeout(()=>n.remove(),280);},8000);
-}
-
-function pageFlash(){
-  const f=document.getElementById('page-flash');
-  f.classList.remove('go');void f.offsetWidth;
-  f.classList.add('go');
-}
-
-
-let _dashChart=null;
-let _dashPeriod=3;
-function pushActivity(total){} // gardé pour compatibilité, remplacé par Chart.js
-
-async function loadDashActivityChart(){
-  const canvas=document.getElementById('activity-graph');
-  if(!canvas)return;
-  try{
-    const d=await api(`/api/activity?hours=${_dashPeriod}`);
-    const pts=d.points||[];
-    if(!pts.length){
-      canvas.style.display='none';
-      const em=$('dash-act-empty');if(em){em.style.display='flex';}
-      return;
-    }
-    canvas.style.display='block';
-    const em=$('dash-act-empty');if(em)em.style.display='none';
-
-    const labels=pts.map(p=>{
-      const dt=new Date(p.ts);
-      return _dashPeriod<=24
-        ?dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
-        :dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+'  '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    });
-
-    const datasets=SRV.map(s=>({
-      label:s.toUpperCase(),
-      data:pts.map(p=>p.data[s]||0),
-      borderColor:ACT_COLORS[s]||'#ffffff',
-      backgroundColor:(ACT_COLORS[s]||'#ffffff')+'18',
-      borderWidth:1.6,
-      pointRadius:0,
-      pointHoverRadius:4,
-      tension:0.3,
-      fill:false,
-    }));
-
-    if(_dashChart){_dashChart.destroy();_dashChart=null;}
-    _dashChart=new Chart(canvas,{
-      type:'line',
-      data:{labels,datasets},
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        interaction:{mode:'index',intersect:false},
-        plugins:{
-          legend:{
-            position:'right',
-            labels:{
-              color:'rgba(255,255,255,.55)',
-              font:{family:'monospace',size:9},
-              boxWidth:14,
-              padding:8,
-            }
-          },
-          tooltip:{
-            backgroundColor:'rgba(1,10,26,.92)',
-            borderColor:'rgba(91,163,255,.2)',
-            borderWidth:1,
-            titleColor:'rgba(255,255,255,.6)',
-            bodyColor:'rgba(255,255,255,.85)',
-            titleFont:{family:'monospace',size:9},
-            bodyFont:{family:'monospace',size:9},
-            itemSort:(a,b)=>b.parsed.y-a.parsed.y,
-          }
-        },
-        scales:{
-          x:{
-            ticks:{color:'rgba(255,255,255,.3)',font:{family:'monospace',size:8},maxRotation:0,maxTicksLimit:8},
-            grid:{color:'rgba(255,255,255,.04)'},
-            border:{color:'rgba(255,255,255,.08)'}
-          },
-          y:{
-            ticks:{color:'rgba(255,255,255,.3)',font:{family:'monospace',size:8}},
-            grid:{color:'rgba(255,255,255,.04)'},
-            border:{color:'rgba(255,255,255,.08)'},
-            min:0,
-          }
-        }
-      }
-    });
-  }catch(e){console.warn('activity chart:',e);}
-}
-
-function setDashPeriod(btn){
-  document.querySelectorAll('.dash-period').forEach(b=>b.classList.remove('dash-period-active'));
-  btn.classList.add('dash-period-active');
-  _dashPeriod=parseInt(btn.dataset.h);
-  loadDashActivityChart();
-}
-
-function drawActivityGraph(){loadDashActivityChart();}
-
-// ── SSE — events temps réel ──────────────────────────────────────
-let _sseSource=null,_sseRetry=0;
-function _connectSSE(){
-  if(_sseSource)_sseSource.close();
-  const tok=sessionStorage.getItem('mg_token_v3');
-  if(!tok)return;
-  const url=`${API}/api/events?token=${encodeURIComponent(tok)}`;
-  _sseSource=new EventSource(url);
-  _sseSource.onopen=()=>{_sseRetry=0;console.log('[SSE] connecté');};
-  _sseSource.onmessage=(e)=>{
-    try{
-      const d=JSON.parse(e.data);
-      if(d.type==='ping')return;
-      if(d.type==='connect'||d.type==='disconnect'){
-        // Mettre à jour prev pour éviter doublon au prochain poll
-        const k=d.player+'@'+d.server;
-        prev[k]=d.type==='connect';
-        pAlert(d.type,d.player,d.server);
-      }
-    }catch{}
-  };
-  _sseSource.onerror=()=>{
-    _sseSource.close();_sseSource=null;
-    const delay=Math.min(2000*Math.pow(2,_sseRetry++),30000);
-    console.warn('[SSE] reconnexion dans',delay,'ms');
-    setTimeout(_connectSSE,delay);
-  };
-}
-
-let cdTotal=5,cdLeft=5;
-function startCountdown(total=5){cdTotal=total;cdLeft=total;updateCountdown();}
-function updateCountdown(){
-  const txt=document.getElementById('cd-txt'),fill=document.getElementById('cd-fill');
-  if(txt)txt.textContent=cdLeft+'s';
-  if(fill)fill.style.width=(cdLeft/cdTotal*100)+'%';
-}
-function tickCountdown(){cdLeft=Math.max(0,cdLeft-1);updateCountdown();}
-
-const lastSeen={};
-function setLastSeen(player,server){lastSeen[player]={ts:Date.now(),server};}
-function getLastSeenText(player){
-  const s=lastSeen[player];if(!s)return null;
-  const sec=Math.floor((Date.now()-s.ts)/1000);
-  if(sec<60)return{text:`vu il y a ${sec}s`,cls:'fresh'};
-  if(sec<3600)return{text:`vu il y a ${Math.floor(sec/60)}min`,cls:'recent'};
-  return{text:`vu il y a ${Math.floor(sec/3600)}h`,cls:''};
-}
-
-let notifGranted=false;
-async function requestNotifPerms(){
-  if(!('Notification' in window))return;
-  if(Notification.permission==='granted'){notifGranted=true;return;}
-  if(Notification.permission!=='denied'){const p=await Notification.requestPermission();notifGranted=p==='granted';}
-}
-function sendBrowserNotif(type,player,server){
-  if(!notifGranted||document.visibilityState==='visible')return;
-  const icon='https://nationsglory.fr/favicon.ico';
-  const title=type==='connect'?`🟢 ${player} connecté`:`🔴 ${player} déconnecté`;
-  const body=`Serveur : ${server.toUpperCase()} · ${new Date().toLocaleTimeString('fr-FR')}`;
-  try{const n=new Notification(title,{body,icon,silent:false});n.onclick=()=>{window.focus();n.close();};}catch(e){}
-}
-
-let ppOpen=false;
-async function openPlayerPanel(player){
-  const panel=document.getElementById('player-panel');
-  const overlay=document.getElementById('pp-overlay');
-  const nameEl=document.getElementById('pp-name');
-  const body=document.getElementById('pp-body');
-  nameEl.textContent=player;
-  body.innerHTML=`<div class="pp-loading">◌ Chargement du profil...</div>`;
-  panel.classList.add('open');overlay.classList.add('open');
-  document.body.style.overflow='hidden';
-  ppOpen=true;
-  const[caR,plR,grR]=await Promise.allSettled([
-    api('/api/checkall/'+encodeURIComponent(player)),
-    api('/api/plages/'+encodeURIComponent(player)),
-    api('/api/grades/'+encodeURIComponent(player))
-  ]);
-  const ca=caR.status==='fulfilled'?caR.value:null;
-  const pl=plR.status==='fulfilled'?plR.value:null;
-  const gr=grR.status==='fulfilled'?grR.value:null;
-  const gradeByServer=gr?.grades||{};
-  const seen=getLastSeenText(player);
-  const online=ca&&ca.servers.length>0;
-  const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
-  const cbs=ca?.countries_by_server||{};
-
-  function _buildPlages(hm,days){
-    if(!hm)return[];
-    return days.map((day,di)=>{
-      const row=hm[di];const slots=[];let start=null;
-      for(let h=0;h<24;h++){
-        if(row[h]>=1){if(start===null)start=h;}
-        else{if(start!==null){slots.push(`${start}h–${h}h`);start=null;}}
-      }
-      if(start!==null)slots.push(`${start}h–0h`);
-      return slots.length?{day,slots}:null;
-    }).filter(Boolean);
-  }
-
-  let h='';
-  h+=`<div class="pp-info-row">
-    <div class="pp-avatar"><img src="https://skins.nationsglory.fr/face/${encodeURIComponent(player)}/64" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(player)}/64'" alt=""></div>
-    <div class="pp-info-meta">
-      <div class="pp-meta-line">${WL.includes(player)?'🎯 Dans la watchlist LIME':''}${WLM.includes(player)?' 🟤 Dans la watchlist MOCHA':''}</div>
-      <div class="pp-status ${online?'on':'off'}">
-        <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
-        ${online?ca.servers.map(s=>{const ctry=cbs[s];const hasCtry=ctry&&ctry!=='Wilderness';return`${EMO[s]} ${s.toUpperCase()}${hasCtry?` <span style="font-size:.5rem;color:var(--blue-pale)">🌍 ${ctry}</span>`:''}`; }).join(' · '):'Hors ligne'}
-      </div>
-      ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
-    </div>
-  </div>
-  <div style="margin:.5rem 0 .6rem;display:flex;flex-direction:column;gap:.2rem">
-    ${SRV.map(s=>{
-      const country=cbs[s]||'Wilderness';
-      const isOnline=online&&ca.servers.includes(s);
-      const isWild=country==='Wilderness';
-      const grade=gradeByServer[s]||null;
-      const gradeColor=grade==='leader'?'#ffd700':grade==='recruit'?'var(--red)':grade?'var(--grn)':'var(--t4)';
-      const gradeChip=grade&&!isWild?`<span style="font-family:var(--M);font-size:.46rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.06rem .3rem">${grade==='leader'?'👑':grade==='recruit'?'🪖':'⚔'} ${grade}</span>`:'';
-      return`<div style="display:flex;align-items:center;justify-content:space-between;padding:.22rem .5rem;border-radius:4px;background:${isOnline?'rgba(0,232,122,.05)':''};border:1px solid ${isOnline?'rgba(0,232,122,.15)':'transparent'}">
-        <span style="font-family:var(--M);font-size:.58rem;color:${isOnline?'var(--grn)':'var(--t3)'}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?' <span style="font-size:.44rem">●</span>':''}</span>
-        <span style="display:inline-flex;align-items:center;gap:.3rem">${isWild?`<span style="font-family:var(--M);font-size:.58rem;color:var(--t4);opacity:.6">🌿 Wilderness</span>`:`<span style="font-family:var(--M);font-size:.58rem;color:var(--blue-pale)">🌍 ${country}</span>${gradeChip}`}</span>
-      </div>`;
-    }).join('')}
-  </div>`;
-  h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
-  let _ppHistDays=7;
-  const _ppHistId='pp-hist-grid-'+player.replace(/[^a-z0-9]/gi,'_');
-  h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Historique de connexion</div>
-  <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin:.3rem 0 .5rem">
-    ${[1,2,7,15,30].map(d=>`<button class="btn pp-hist-btn" data-d="${d}" onclick="ppHistSwitch(this,'${encodeURIComponent(player)}','${_ppHistId.replace(/'/g,"\\'")}')" style="font-size:.46rem;padding:.12rem .45rem${d===7?';background:rgba(0,56,184,.25);border-color:rgba(26,111,255,.5)':''}">${d===1?'1j':d===2?'2j':d===7?'7j':d===15?'15j':'30j'}</button>`).join('')}
-  </div>
-  <div id="${_ppHistId}"><div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div></div></div>`;
-  body.innerHTML=h;
-  // Load history async après rendu
-  loadHistorySection(player,_ppHistId,'',7);
-
-}
-function closePlayerPanel(){
-  document.getElementById('player-panel').classList.remove('open');
-  document.getElementById('pp-overlay').classList.remove('open');
-  document.body.style.overflow='';ppOpen=false;
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ppOpen)closePlayerPanel();});
-
-(()=>{
-  const c=document.getElementById('matrix-canvas');
-  if(!c)return;
-  const ctx=c.getContext('2d');
-  const resize=()=>{c.width=window.innerWidth;c.height=window.innerHeight;};
-  resize();window.addEventListener('resize',resize);
-  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF◈⊕◉◎';
-  const fs=14;let cols=Math.floor(c.width/fs);
-  let drops=Array(cols).fill(1);
-  const draw=()=>{
-    ctx.fillStyle='rgba(1,4,8,.08)';ctx.fillRect(0,0,c.width,c.height);
-    cols=Math.floor(c.width/fs);if(drops.length!==cols)drops=Array(cols).fill(1);
-    ctx.font=fs+'px JetBrains Mono,monospace';
-    drops.forEach((y,i)=>{
-      const ch=chars[Math.floor(Math.random()*chars.length)];
-      const bright=Math.random()>.92;
-      ctx.fillStyle=bright?'#4d9fff':`rgba(0,80,216,${Math.random()*.6+.15})`;
-      ctx.fillText(ch,i*fs,y*fs);
-      if(y*fs>c.height&&Math.random()>.975)drops[i]=0;
-      drops[i]++;
-    });
-  };
-  const interval=setInterval(draw,45);
-  const obs=new MutationObserver(()=>{
-    const ldr=document.getElementById('ldr');
-    if(ldr&&ldr.style.display==='none'){clearInterval(interval);obs.disconnect();}
-  });
-  const ldr=document.getElementById('ldr');
-  if(ldr)obs.observe(ldr,{attributes:true,attributeFilter:['style']});
-})();
-
-function updateWeather(onlineCount){
-  const icon=document.getElementById('weather-icon');
-  const label=document.getElementById('weather-label');
-  if(!icon||!label)return;
-  const wl=WL.length+WLM.length;
-  const ratio=wl>0?onlineCount/wl:0;
-  let ic,lb,cls;
-  if(onlineCount===0){ic='🌙';lb='CALME';cls='calm';}
-  else if(ratio<.3){ic='🌤';lb='ACTIVITÉ';cls='active';}
-  else if(ratio<.6){ic='⚡';lb='AGITÉ';cls='hot';}
-  else{ic='🔥';lb='CRITIQUE';cls='critical';}
-  if(icon.textContent!==ic){icon.style.transform='scale(1.4)';icon.textContent=ic;setTimeout(()=>icon.style.transform='',300);}
-  label.textContent=lb;
-  label.className='weather-label '+cls;
-}
-
-const sessionStart={};
-function startSession(player){if(!sessionStart[player])sessionStart[player]=Date.now();}
-function getSessionTime(player){
-  if(!sessionStart[player])return null;
-  const sec=Math.floor((Date.now()-sessionStart[player])/1000);
-  if(sec<60)return sec+'s';
-  if(sec<3600)return Math.floor(sec/60)+'min '+String(sec%60).padStart(2,'0')+'s';
-  return Math.floor(sec/3600)+'h '+String(Math.floor(sec%3600/60)).padStart(2,'0')+'min';
-}
-setInterval(()=>{
-  document.querySelectorAll('.session-timer[data-player]').forEach(el=>{
-    const t=getSessionTime(el.dataset.player);
-    if(t)el.textContent=t;
-  });
-},1000);
-
-function predictDecoTime(player){
-  const s=sessionStart[player];
-  if(!s)return null;
-  const elapsed=Math.floor((Date.now()-s)/1000/60);
-  const durs=sessionDurations[player]||[];
-  if(durs.length<2)return null;
-  const avg=durs.reduce((a,b)=>a+b,0)/durs.length;
-  const remaining=Math.round(avg-elapsed);
-  if(remaining<=0)return{text:'déco imminente',cls:'verysoon'};
-  if(remaining<=10)return{text:`~${remaining}min restantes`,cls:'verysoon'};
-  if(remaining<=30)return{text:`~${remaining}min restantes`,cls:'soon'};
-  return{text:`~${remaining}min restantes`,cls:''};
-}
-
-const sessionDurations={};
-function endSession(player){
-  if(sessionStart[player]){
-    const dur=Math.floor((Date.now()-sessionStart[player])/1000/60);
-    if(dur>1){
-      if(!sessionDurations[player])sessionDurations[player]=[];
-      sessionDurations[player].push(dur);
-      if(sessionDurations[player].length>10)sessionDurations[player].shift();
-    }
-  }
-  delete sessionStart[player];
-}
-
-async function loadSessionDurations(player){
-  try{
-    const d=await api('/api/plages/'+encodeURIComponent(player));
-    if(!d||!d.heatmap)return;
-    const hm=d.heatmap;
-    let totalSessions=0,totalDur=0;
-    hm.forEach(dayRow=>{
-      let streak=0,maxStreak=0;
-      dayRow.forEach(v=>{if(v>0){streak++;maxStreak=Math.max(maxStreak,streak);}else{streak=0;}});
-      if(maxStreak>0){totalSessions++;totalDur+=maxStreak*60;}
-    });
-    if(totalSessions>0&&!sessionDurations[player]?.length){
-      const avgMin=Math.round(totalDur/totalSessions);
-      sessionDurations[player]=[avgMin,avgMin];
-    }
-  }catch(e){}
-}
-
-let cwWatches=[];
-let cwCountries={};
-
-async function cwSave(){localStorage.setItem('mg_cw',JSON.stringify(cwWatches));}
-
-async function cwLoadCountries(){
-  const s=$('cw-srv').value;if(!s)return;
-  $('cw-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
-  try{
-    cwCountries[s]=await getCountries(s);
-    cwFilterCountries();
-  }catch{$('cw-suggest').innerHTML='';}
-}
-
-function cwFilterCountries(){
-  const s=$('cw-srv').value,v=$('cw-country').value.trim().toLowerCase();
-  const p=cwCountries[s]||[];
-  const f=v?p.filter(x=>x.toLowerCase().includes(v)):p;
-  $('cw-suggest').innerHTML=f.slice(0,60).map(x=>`<span class="tag" onclick="$('cw-country').value='${x.replace(/'/g,"\'")}';$('cw-acl').style.display='none';cwFilterCountries()">${x}</span>`).join('');
-  const acl=$('cw-acl');
-  if(v&&f.length){
-    acl.innerHTML=f.slice(0,8).map(x=>`<div class="aci" onmousedown="$('cw-country').value='${x.replace(/'/g,"\'")}';acl.style.display='none'">${x}</div>`).join('');
-    acl.style.display='block';
-  }else acl.style.display='none';
-}
-
-function cwAdd(){
-  const s=$('cw-srv').value,country=$('cw-country').value.trim();
-  if(!s||!country)return showToast('Sélectionne un serveur et un pays');
-  const exists=cwWatches.find(w=>w.server===s&&w.country.toLowerCase()===country.toLowerCase());
-  if(exists)return showToast('Déjà surveillé !');
-  cwWatches.push({server:s,country,threshold:2,online:0,members:[],alertFired:false});
-  cwSave();cwRender();cwRefreshAll();
-  $('cw-country').value='';
-  showToast(`${country} (${s.toUpperCase()}) ajouté`);
-}
-
-async function cwRemove(idx){
-  const w=cwWatches[idx];if(!w)return;
-  try{await apiP('/api/country_watches/remove',{server:w.server,country:w.country});}catch(e){}
-  cwWatches.splice(idx,1);cwSave();cwRender();
-  showToast('Surveillance supprimée');
-}
-
-async function cwRefreshOne(idx){
-  const w=cwWatches[idx];if(!w)return;
-  try{
-    const d=await api(`/api/check/${w.server}/${encodeURIComponent(w.country)}`);
-    const members=d.servers?.[w.server]||[];
-    const online=members.length;
-    const wasAlert=w.alertFired;
-    w.online=online;w.members=members;w.hasNonRecruit=false;w.alertFired=false;w.leader=d.leader||'';
-    if(online>=2){const _nr=await hasNonRecruit(members,w.server);w.hasNonRecruit=_nr;w.alertFired=_nr;}
-    if(w.alertFired&&!wasAlert){
-      showPop('connect',`⚔ ${w.country}`,`${online} membres · assaut possible · ${w.server.toUpperCase()}`);
-      sendBrowserNotif('connect',`🚨 Assaut possible sur ${w.country} — ${online} membres connectés`,w.server);
-      sndA(true);
-      showToast(`🚨 ASSAUT POSSIBLE — ${w.country} · ${online} membres sur ${w.server.toUpperCase()}`);
-    }
-    cwSave();
-  }catch(e){w.online=-1;}
-  cwRender();
-}
-
-async function cwRefreshAll(){await Promise.all(cwWatches.map((_,i)=>cwRefreshOne(i)));}
-
-function cwRender(){
-  const el=$('cw-list');if(!el)return;
-  if(!cwWatches.length){el.innerHTML='<div class="cw-empty">Aucun pays surveillé — ajoutez-en un ci-dessus</div>';return;}
-  el.innerHTML=cwWatches.map((w,i)=>{
-    const alert=w.alertFired;const recruitOnly=w.online>=2&&!w.hasNonRecruit&&!alert;
-    const cnt=w.online<0?'?':w.online;
-    return`<div class="cw-item ${alert?'alert':recruitOnly?'recruit-only':''}" style="margin-bottom:.5rem">
-      <div class="cw-count ${alert?'danger':''}">${cnt}</div>
-      <div class="cw-info">
-        <div class="cw-name">${w.country}</div>${w.leader?`<div style="display:flex;align-items:center;gap:.4rem;margin-top:.2rem;font-family:var(--M);font-size:.52rem;color:var(--t3)"><img src="https://skins.nationsglory.fr/face/${w.leader}/16" style="width:16px;height:16px;border-radius:2px;image-rendering:pixelated" onerror="this.style.display='none'"> 👑 ${w.leader}</div>`:''}
-        <div class="cw-meta">${EMO[w.server]||''} ${w.server.toUpperCase()} · assaut possible si ≥ 2 connectés</div>
-        ${w.members.length?`<div class="cw-members">${w.members.slice(0,8).map(p=>{const k=p+'@'+w.server;const g=gradeCache[k]?.rank||'?';const col=g&&g!=='recruit'&&g!=='?'?'var(--grn)':g==='recruit'?'var(--red)':'var(--t3)';return`<span style="color:${col}">${p} <span style="font-size:.4rem;opacity:.7">[${g}]</span></span>`;}).join(', ')}${w.members.length>8?` <span style="color:var(--t3)">+${w.members.length-8}</span>`:''}</div>`:''}
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">
-        <span class="cw-status ${alert?'':'ok'}">${alert?'🚨 ASSAUT POSSIBLE':'◯ PAS ASSEZ'}</span>
-        <button class="btn btn-r" style="padding:.08rem .35rem;font-size:.46rem" onclick="cwRemove(${i})">✕</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-setInterval(cwRefreshAll, 30000);
-
-const gradeCache={};
-async function getPlayerGrade(player,server){
-  const key=player+'@'+server;
-  if(gradeCache[key]&&Date.now()-gradeCache[key].ts<120000)return gradeCache[key].rank;
-  try{
-    const r=await fetch(`${API}/api/grade/${encodeURIComponent(player)}/${server}`,{headers:{..._authHeader()}});
-    if(!r.ok)return null;
-    const d=await r.json();
-    gradeCache[key]={rank:d.rank,ts:Date.now()};
-    return d.rank;
-  }catch{return null;}
-}
-async function hasNonRecruit(members,server){
-  const results=await Promise.allSettled(members.slice(0,12).map(p=>getPlayerGrade(p,server)));
-  return results.some(r=>r.status==='fulfilled'&&r.value&&r.value!==''&&r.value!=='recruit');
-}
-
-async function init(){
-  const b=$('sound-btn');if(b&&!snd){b.textContent='🔇 SON';b.style.color='var(--t3)';}
-  if(_authed()) requestNotifPerms();
-  api('/api/country_watches').then(d=>{cwWatches=d.watches||[];const stored=JSON.parse(localStorage.getItem('mg_cw')||'[]');stored.forEach(w=>{if(!cwWatches.find(x=>x.server===w.server&&x.country===w.country))cwWatches.push(w);});cwRender();}).catch(()=>{cwWatches=JSON.parse(localStorage.getItem('mg_cw')||'[]');cwRender();});
-  rHist();const ok=await chkAPI();$('scan-led').className=ok?'led on':'led off';
-  if(ok){
-    await loadWL();await loadWLM();loadKP();await loadDash();
-    startCountdown(5);
-    loadDashActivityChart();
-    setInterval(tickCountdown,1000);
-    setInterval(async()=>{await loadWL();await loadDash();},5000);
-    _connectSSE();
-  }
-}
-init();
-
-function rmCalc() {
-  const power   = parseFloat(document.getElementById('rm-power')?.value)   || 0;
-  let   warzone = parseFloat(document.getElementById('rm-warzone')?.value)  || 0;
-  const claims  = parseFloat(document.getElementById('rm-claims')?.value)   || 0;
-
-  if (power <= 0) {
-    showToast('⚠ Entre un power total valide');
-    return;
-  }
-
-  if (warzone > power) warzone = power;
-
-  const factor      = Math.pow(0.96, 18);
-  const soumis      = power - warzone;
-  const powerAfter  = Math.round(soumis * factor);
-  const powerLost   = power - powerAfter;          
-  const claimsAfter = Math.max(0, claims - 8);
-
-  const results = document.getElementById('rm-results');
-  if (results) results.style.display = 'block';
-
-  const elLost   = document.getElementById('rm-lost');
-  const elRemain = document.getElementById('rm-remain');
-  const elClaims = document.getElementById('rm-claims-out');
-  const elAlert  = document.getElementById('rm-alert');
-
-  if (elLost)   { elLost.textContent   = powerLost.toLocaleString('fr-FR');   elLost.style.animation='none'; setTimeout(()=>{elLost.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
-  if (elRemain) { elRemain.textContent = powerAfter.toLocaleString('fr-FR');  elRemain.style.animation='none'; setTimeout(()=>{elRemain.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
-  if (elClaims) { elClaims.textContent = claimsAfter.toLocaleString('fr-FR'); elClaims.style.animation='none'; setTimeout(()=>{elClaims.style.animation='bump .35s cubic-bezier(.34,1.56,.64,1)';},10); }
-
-  if (elAlert) {
-    elAlert.style.display = 'block';
-    const diff = powerAfter - claimsAfter;
-    const isSafe = powerAfter >= claimsAfter;
-
-    if (isSafe) {
-      elAlert.style.background = 'rgba(0,240,122,.06)';
-      elAlert.style.border     = '1px solid rgba(0,240,122,.25)';
-      elAlert.style.color      = '#00f07a';
-      elAlert.innerHTML = `
-        ✅ &nbsp;<strong>SAFE</strong> — Le pays survit au Red Matter<br>
-        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Claims restants : <strong>${claimsAfter.toLocaleString('fr-FR')}</strong> · Avance : <strong>+${diff.toLocaleString('fr-FR')}</strong> power</span>
-      `;
-    } else {
-      elAlert.style.background = 'rgba(255,24,64,.06)';
-      elAlert.style.border     = '1px solid rgba(255,24,64,.25)';
-      elAlert.style.color      = '#ff1840';
-      const manquant = Math.abs(diff);
-      elAlert.innerHTML = `
-        ☢ &nbsp;<strong>SOUS-POWER</strong> — Le pays sera en sous-power !<br>
-        <span style="opacity:.7">Power restant : <strong>${powerAfter.toLocaleString('fr-FR')}</strong> · Claims restants : <strong>${claimsAfter.toLocaleString('fr-FR')}</strong> · Il manque : <strong>${manquant.toLocaleString('fr-FR')}</strong> power</span>
-      `;
-    }
-  }
-
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.setValueAtTime(80, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.3);
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.4);
-  } catch(e) {}
-}
-
-
-
-
-
-setInterval(()=>{
-  const active=document.querySelector('.sec.active');
-  if(!active)return;
-},30000);
-
-
-let refAllReferents=[],refAllStats=[],refCurSrv=null,refCurCtry=null,refCmpPeriod=90;
-const refCountryCache={};
-
-async function refLoadCountries(){
-  const s=$('ref-add-srv').value;
-  if(!s){$('ref-suggest').innerHTML='';return;}
-  $('ref-suggest').innerHTML=`<span style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</span>`;
-  try{
-    refCountryCache[s]=await getCountries(s);
-    refFilterCountries();
-  }catch(e){$('ref-suggest').innerHTML='';}
-}
-
-function refFilterCountries(){
-  const s=$('ref-add-srv').value,v=$('ref-add-country').value.trim().toLowerCase();
-  const p=refCountryCache[s]||[];
-  const f=v?p.filter(x=>x.toLowerCase().includes(v)):p;
-  $('ref-suggest').innerHTML=f.slice(0,60).map(x=>`<span class="tag" onclick="refSelectTag('${x.replace(/'/g,"\\'")}')">${x}</span>`).join('');
-  const acl=$('ref-add-acl');
-  if(v&&f.length){acl.innerHTML=f.slice(0,8).map(x=>`<div class="aci" onmousedown="refSelectTag('${x.replace(/'/g,"\\'")}')">${x}</div>`).join('');acl.style.display='block';}
-  else acl.style.display='none';
-}
-
-function refSelectTag(name){$('ref-add-country').value=name;$('ref-add-acl').style.display='none';refFilterCountries();}
-
-async function loadReferents(){
-  const grid=$('ref-grid');
-  grid.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-  try{
-    const[rRefs,rStats7,rStats30,rStats90]=await Promise.all([
-      fetch(API+'/api/referents',{headers:{..._authHeader()}}).then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=7',{headers:{..._authHeader()}}).then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=30',{headers:{..._authHeader()}}).then(r=>r.json()),
-      fetch(API+'/api/referents/stats?days=90',{headers:{..._authHeader()}}).then(r=>r.json()),
-    ]);
-    refAllReferents=rRefs.watches||[];
-    refAllStats=rStats90.stats||[];
-    $('ref-gs-total').textContent=refAllReferents.length;
-    $('ref-gs-week').textContent=(rStats7.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
-    $('ref-gs-month').textContent=(rStats30.stats||[]).reduce((a,x)=>a+x.total_recruits,0);
-    const leader=(rStats90.stats||[])[0];
-    if(leader){$('ref-gs-leader').textContent=leader.country_name;$('ref-gs-leader-sub').textContent=leader.total_recruits+' recrues — '+leader.server.toUpperCase();}
-    renderRefGrid();
-    loadRefCmp();
-  }catch(e){grid.innerHTML=`<div class="empty" style="color:var(--red)">Erreur chargement</div>`;}
-}
-
-function renderRefGrid(){
-  const el=$('ref-grid');
-  if(!refAllReferents.length){el.innerHTML='<div class="empty">Aucun pays référent surveillé — ajoutez-en un ci-dessus</div>';return;}
-  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem">${refAllReferents.map(w=>{
-    const stat=refAllStats.find(s=>s.server===w.server&&s.country.toLowerCase()===w.country.toLowerCase());
-    const recruits=stat?.total_recruits||0;
-    const isSel=refCurSrv===w.server&&refCurCtry===w.country;
-    return`<div onclick="openRefMembers('${w.server}','${w.country.replace(/'/g,"\\'")}')"
-      style="background:var(--bg2);border:1px solid ${isSel?'var(--blue-lt)':'var(--b1)'};border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s;${isSel?'box-shadow:0 0 0 1px var(--blue-mid)':''}"
-      onmouseenter="this.style.borderColor='var(--b3)'" onmouseleave="this.style.borderColor='${isSel?'var(--blue-lt)':'var(--b1)'}'">
-      <div style="padding:.7rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-family:var(--D);font-size:1.3rem;letter-spacing:.2em;color:var(--t1)">${w.name||w.country}</span>
-        <span style="font-family:var(--M);font-size:.55rem;color:var(--t3);background:var(--bg3);padding:.12rem .4rem;border-radius:3px">${w.server.toUpperCase()}</span>
-      </div>
-      <div style="padding:.65rem 1rem">
-        <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">
-          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">MEMBRES</span>
-          <span style="font-family:var(--D);font-size:1rem;color:var(--t1)">${w.member_count||'—'}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:.45rem">
-          <span style="font-family:var(--M);font-size:.58rem;color:var(--t3)">RECRUES 30J</span>
-          <span style="font-family:var(--D);font-size:1rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits}</span>
-        </div>
-        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden">
-          <div style="width:${Math.min(recruits*5,100)}%;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue-lt));border-radius:2px"></div>
-        </div>
-      </div>
-      <div style="padding:.38rem 1rem;border-top:1px solid var(--b1);background:rgba(0,0,0,.18);display:flex;justify-content:space-between;align-items:center">
-        <span style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Click pour voir les membres</span>
-        <span style="font-family:var(--M);font-size:.52rem;color:${recruits>0?'var(--grn)':'var(--t4)'}">${recruits>0?'▲ '+recruits+' recrues':'—'}</span>
-      </div>
-    </div>`;
-  }).join('')}</div>`;
-}
-
-async function openRefMembers(server,country){
-  refCurSrv=server;refCurCtry=country;
-  const ref=refAllReferents.find(w=>w.server===server&&w.country.toLowerCase()===country.toLowerCase());
-  $('ref-mp-title').textContent=(ref?.name||country).toUpperCase();
-  $('ref-mp-sub').textContent=server.toUpperCase()+' · '+(ref?.member_count||'?')+' membres';
-  $('ref-members-panel').style.display='block';
-  $('ref-members-panel').scrollIntoView({behavior:'smooth',block:'start'});
-  renderRefGrid();
-  await refRefreshMembers();
-}
-
-async function refRefreshMembers(){
-  if(!refCurSrv||!refCurCtry)return;
-  const body=$('ref-members-body');
-  body.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-  try{
-    
-    const[checkData,onlineData]=await Promise.all([
-      fetch(`${API}/api/check/${refCurSrv}/${encodeURIComponent(refCurCtry)}`,{headers:{..._authHeader()}}).then(r=>r.json()),
-      fetch(`${API}/api/online/${refCurSrv}`,{headers:{..._authHeader()}}).then(r=>r.json()),
-    ]);
-    if(checkData.error){body.innerHTML=`<div class="empty" style="color:var(--red)">❌ ${checkData.error}</div>`;return;}
-    const allMembers=checkData.members_total||0;
-    const onlineList=(onlineData.players||[]).map(p=>p.toLowerCase());
-    
-    const onlineOnSrv=(checkData.servers?.[refCurSrv]||[]);
-    
-    const onlineElsewhere=Object.entries(checkData.servers||{})
-      .filter(([s])=>s!==refCurSrv)
-      .flatMap(([s,pl])=>pl.map(p=>({player:p,server:s})));
-
-    const knownOnline=new Set([...onlineOnSrv,...onlineElsewhere.map(x=>x.player)].map(p=>p.toLowerCase()));
-    const snapshot=refAllReferents.find(w=>w.server===refCurSrv&&w.country.toLowerCase()===refCurCtry.toLowerCase())?.members_snapshot||[];
-
-    const onlineCount=checkData.online_total||0;
-    body.innerHTML=`
-      <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap">
-        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">
-          <span style="font-family:var(--D);font-size:1.8rem;color:var(--grn);margin-right:.3rem">${onlineCount}</span>en ligne
-        </div>
-        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">
-          <span style="font-family:var(--D);font-size:1.8rem;color:var(--t2);margin-right:.3rem">${allMembers}</span>membres total
-        </div>
-        <div style="font-family:var(--M);font-size:.65rem;color:var(--t3)">
-          <span style="font-family:var(--D);font-size:1.8rem;color:var(--blue-pale);margin-right:.3rem">${snapshot.length||allMembers}</span>dans snapshot
-        </div>
-      </div>
-      ${onlineOnSrv.length?`
-        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--grn);margin-bottom:.5rem">🟢 EN LIGNE — ${refCurSrv.toUpperCase()} (${onlineOnSrv.length})</div>
-        <div class="tags" style="margin-bottom:1rem">
-          ${onlineOnSrv.map(p=>`<span class="tag on" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}') " style="cursor:pointer">🟢 ${p}</span>`).join('')}
-        </div>`:''}
-      ${onlineElsewhere.length?`
-        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--org);margin-bottom:.5rem">🟡 EN LIGNE AILLEURS (${onlineElsewhere.length})</div>
-        <div class="tags" style="margin-bottom:1rem">
-          ${onlineElsewhere.map(({player:p,server:s})=>`<span class="tag" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}') " style="cursor:pointer;border-color:rgba(255,153,0,.35);color:var(--org)">🟡 ${p} <span style="font-size:.42rem;opacity:.7">${s.toUpperCase()}</span></span>`).join('')}
-        </div>`:''}
-      ${snapshot.length?`
-        <div style="font-family:var(--M);font-size:.6rem;letter-spacing:.18em;color:var(--t3);margin-bottom:.5rem">⚫ HORS LIGNE (${snapshot.filter(p=>!knownOnline.has(p.toLowerCase())).length})</div>
-        <div class="tags">
-          ${snapshot.filter(p=>!knownOnline.has(p.toLowerCase())).map(p=>`<span class="tag" onclick="openPlayerPanel('${p.replace(/'/g,"\\'")}') " style="cursor:pointer">⚫ ${p}</span>`).join('')}
-        </div>`
-      :(!onlineOnSrv.length&&!onlineElsewhere.length?'<div class="empty">Aucun membre connu hors ligne — le snapshot se remplira au prochain scan (5 min)</div>':'')}
-    `;
-  }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
-}
-
-async function loadRefHistory(){
-  if(!refCurSrv||!refCurCtry)return;
-  const body=$('ref-hist-body');
-  if(!body)return;
-  body.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-  try{
-    const d=await fetch(`${API}/api/referents/history?server=${refCurSrv}&country=${encodeURIComponent(refCurCtry)}&limit=200&departures=1`,{headers:{..._authHeader()}}).then(r=>r.json());
-    const events=d.events||[];
-    if(!events.length){body.innerHTML='<div class="empty">Aucun événement enregistré — le tracking démarre au prochain scan (30 min)</div>';return;}
-    const recruits=events.filter(e=>!e.departure);
-    const departs=events.filter(e=>e.departure);
-    body.innerHTML=`
-      <div style="display:flex;gap:2rem;margin-bottom:1rem;flex-wrap:wrap">
-        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--grn)">${recruits.length}</span> recrutements</div>
-        <div style="font-family:var(--M);font-size:.6rem;color:var(--t3)"><span style="font-family:var(--D);font-size:1.6rem;color:var(--red)">${departs.length}</span> départs</div>
-      </div>
-      <div style="display:flex;gap:.5rem;margin-bottom:.8rem">
-        <button class="btn" id="ref-hist-tab-all" onclick="refHistFilter('all')" style="font-size:.5rem;padding:.2rem .6rem">Tous (${events.length})</button>
-        <button class="btn" id="ref-hist-tab-recruit" onclick="refHistFilter('recruit')" style="font-size:.5rem;padding:.2rem .6rem">Recrutements</button>
-        <button class="btn" id="ref-hist-tab-depart" onclick="refHistFilter('depart')" style="font-size:.5rem;padding:.2rem .6rem">Départs</button>
-      </div>
-      <div id="ref-hist-list">
-        ${renderHistEvents(events)}
-      </div>
-    `;
-    body._allEvents=events;
-  }catch(e){body.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
-}
-
-function renderHistEvents(events){
-  if(!events.length)return'<div class="empty">Aucun événement</div>';
-  return events.map(e=>{
-    const isDepart=!!e.departure;
-    const color=isDepart?'var(--red)':'var(--grn)';
-    const icon=isDepart?'🚪':'🆕';
-    const label=isDepart?'DÉPART':'RECRUTEMENT';
-    return`<div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .2rem;border-bottom:1px solid var(--b1)">
-      <img src="https://mc-heads.net/avatar/${encodeURIComponent(e.player)}/24" style="width:24px;height:24px;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'" alt="">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-          <span style="font-family:var(--M);font-size:.62rem;color:var(--t1);cursor:pointer" onclick="openPlayerPanel('${e.player.replace(/'/g,"\'")}')">${e.player}</span>
-          <span style="font-family:var(--M);font-size:.46rem;padding:.08rem .35rem;border-radius:3px;background:${isDepart?'rgba(255,51,85,.12)':'rgba(0,232,122,.1)'};color:${color}">${icon} ${label}</span>
-        </div>
-        <div style="font-family:var(--M);font-size:.5rem;color:var(--t4);margin-top:.15rem">${e.ts} · ${e.members_before}→${e.members_after} membres</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function refHistFilter(type){
-  const body=$('ref-hist-body');
-  if(!body||!body._allEvents)return;
-  let evts=body._allEvents;
-  if(type==='recruit')evts=evts.filter(e=>!e.departure);
-  else if(type==='depart')evts=evts.filter(e=>e.departure);
-  const list=$('ref-hist-list');
-  if(list)list.innerHTML=renderHistEvents(evts);
-  document.querySelectorAll('[id^="ref-hist-tab-"]').forEach(b=>b.style.borderColor='');
-  const active=$('ref-hist-tab-'+type);
-  if(active)active.style.borderColor='var(--blue)';
-}
-
-
-function closeRefMembers(){
-  $('ref-members-panel').style.display='none';
-  refCurSrv=null;refCurCtry=null;
-  renderRefGrid();
-}
-
-async function loadRefCmp(){
-  const el=$('ref-cmp');
-  el.innerHTML=`<div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>`;
-  try{
-    const d=await fetch(API+'/api/referents/stats?days='+refCmpPeriod,{headers:{..._authHeader()}}).then(r=>r.json());
-    const stats=d.stats||[];
-    if(!stats.length){el.innerHTML='<div class="empty">Pas encore de données — le tracking démarre au prochain scan (30 min)</div>';return;}
-    const max=stats[0]?.total_recruits||1;
-    const colors=['#1a6fff','#0050d8','#0038b8','#5ba3ff','#344d72'];
-    el.innerHTML=stats.map((x,i)=>`<div onclick="openRefMembers('${x.server}','${x.country.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .1s" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
-      <span style="font-family:var(--D);font-size:1.1rem;letter-spacing:.15em;min-width:130px;color:var(--t1)">${x.country_name}</span>
-      <span style="font-family:var(--M);font-size:.52rem;color:var(--t3);min-width:55px">${x.server.toUpperCase()}</span>
-      <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">
-        <div style="width:${Math.round(x.total_recruits/max*100)}%;height:100%;background:${colors[i%colors.length]};border-radius:4px;transition:width .6s"></div>
-      </div>
-      <span style="font-family:var(--D);font-size:1.1rem;min-width:35px;text-align:right;color:var(--t1)">${x.total_recruits}</span>
-      <span style="font-family:var(--M);font-size:.5rem;color:var(--t4);min-width:65px;text-align:right">${x.unique_players} joueurs</span>
-    </div>`).join('');
-  }catch(e){el.innerHTML='<div class="empty" style="color:var(--red)">Erreur chargement</div>';}
-}
-
-function setCmpRefPeriod(days,btn){
-  refCmpPeriod=days;
-  btn.closest('.ph').querySelectorAll('.btn').forEach(b=>{b.style.background='';b.style.borderColor='';b.style.color='';});
-  btn.style.background='rgba(0,56,184,.2)';btn.style.borderColor='rgba(26,111,255,.4)';btn.style.color='var(--blue-pale)';
-  loadRefCmp();
-}
-
-async function addReferentEntry(){
-  const server=$('ref-add-srv').value,country=$('ref-add-country').value.trim();
-  if(!server||!country)return showToast('⚠ Sélectionne un serveur et un pays');
-  try{
-    const d=await fetch(API+'/api/referents/add',{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify({server,country})}).then(r=>r.json());
-    if(d.error)return showToast('❌ '+d.error);
-    $('ref-add-country').value='';
-    showToast('✅ '+country+' ('+server.toUpperCase()+') ajouté');
-    await loadReferents();
-  }catch(e){showToast('❌ Erreur réseau');}
-}
-
-async function removeReferentEntry(server,country){
-  if(!confirm('Retirer '+country+' ('+server.toUpperCase()+') de la surveillance ?'))return;
-  try{
-    const d=await fetch(API+'/api/referents/remove',{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify({server,country})}).then(r=>r.json());
-    if(d.error)return showToast('❌ '+d.error);
-    showToast('🗑 '+country+' retiré');
-    closeRefMembers();
-    await loadReferents();
-  }catch(e){showToast('❌ Erreur réseau');}
-}
-
-setInterval(()=>{
-  const active=document.querySelector('.sec.active');
-  if(active&&active.id==='s-referents'){
-    loadReferents();
-    if(refCurSrv)refRefreshMembers();
-  }
-},300000);
-
-// ── SOUS-POWER ──────────────────────────────────────────────────────
-
-// Calcule l'aire d'un polygone (Shoelace) pour déduire les claims réels dans une dimension
-function _polyArea(xs,zs){
-  let area=0;const n=xs.length;
-  for(let i=0;i<n;i++){const j=(i+1)%n;area+=xs[i]*zs[j]-xs[j]*zs[i];}
-  return Math.abs(area)/2;
-}
-
-// Fetches dimension marker JSON and returns a map: countryName (lowercase) → {claims, x, z}
-// Claims dans une dim = aire du polygone / 256 (chaque chunk = 16x16 blocs)
-// Passe par le backend pour éviter le CORS
-async function _fetchDimClaims(server,dim){
-  try{
-    const dimUrl=`${API}/api/dim_markers/${server}/${encodeURIComponent(dim)}`;
-    const r=await fetch(dimUrl,{headers:{..._authHeader()}});
-    if(!r.ok){console.warn('[dimClaims] HTTP',r.status,dimUrl);return{};}
-    const areas=await r.json();
-    // Si le backend retourne une erreur JSON, areas sera {error:...}
-    if(!areas||typeof areas!=='object'||areas.error)return{};
-    const map={};
-    for(const[k,v]of Object.entries(areas)){
-      const label=v.label||'';
-      if(!label)continue;
-      const name=label.toLowerCase();
-      const xs=v.x||[];const zs=v.z||[];
-      if(xs.length<3)continue;
-      const claims=Math.round(_polyArea(xs,zs)/256);
-      if(claims===0)continue;
-      const cx=xs.reduce((a,b)=>a+b,0)/xs.length;
-      const cz=zs.reduce((a,b)=>a+b,0)/zs.length;
-      if(map[name]){
-        map[name].claims+=claims;
-      } else {
-        map[name]={claims,x:Math.round(cx),z:Math.round(cz)};
-      }
-    }
-    return map;
-  }catch(e){console.error('[dimClaims] erreur fetch',dimUrl,e);return{};}
-}
-
-async function loadSouspower(){
-  const s=$('sp-srv').value;
-  if(!s){alert('Choisis un serveur');return;}
-  const res=$('sp-result'),ts=$('sp-ts');
-  res.innerHTML=ld();ts.textContent='';
-  try{
-    // Fetch main souspower data + all 3 dimension markers in parallel
-    const [d, dimLune, dimMars, dimEdora] = await Promise.all([
-      api(`/api/souspower/${s}`),
-      _fetchDimClaims(s,'DIM-28'),
-      _fetchDimClaims(s,'DIM-29'),
-      _fetchDimClaims(s,'DIM-31'),
-    ]);
-    const pays=d.countries||[];
-    if(!pays.length){res.innerHTML='<div class="empty">Aucun pays trouvé</div>';return;}
-    const sp=pays.filter(p=>p.marge<0);
-    const proche=pays.filter(p=>p.marge>=0&&p.marge<200);
-    const safe=pays.filter(p=>p.marge>=200);
-
-    // Helper to build a dim claims chip
-    const dimChip=(dimData, dimWorldname, dimLabel, dimColor)=>{
-      const key=dimData; // already the entry {claims,x,z} or null
-      if(!key){
-        return`<span style="font-family:var(--M);font-size:.5rem;color:var(--t4);border:1px solid var(--b1);border-radius:3px;padding:.1rem .4rem;white-space:nowrap">${dimLabel} <span style="opacity:.5">aucun claim</span></span>`;
-      }
-      const url=`https://${s}.nationsglory.fr/?worldname=${dimWorldname}&mapname=flat&zoom=4&x=${key.x}&y=64&z=${key.z}`;
-      return`<a href="${url}" target="_blank" rel="noopener"
-          title="Voir ${dimLabel} sur la Dynmap"
-          style="display:inline-flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.5rem;
-            color:${dimColor};text-decoration:none;border:1px solid ${dimColor}33;
-            border-radius:3px;padding:.1rem .45rem;background:${dimColor}11;
-            transition:all .15s;white-space:nowrap"
-          onmouseover="this.style.background='${dimColor}22';this.style.borderColor='${dimColor}66'"
-          onmouseout="this.style.background='${dimColor}11';this.style.borderColor='${dimColor}33'">
-          ${dimLabel} <b>${key.claims}</b> <span style="opacity:.6">↗</span>
-        </a>`;
-    };
-
-    const row=(p,cat)=>{
-      const pct=p.maxpower?Math.min(100,Math.round(p.power/p.maxpower*100)):0;
-      const col=cat==='sp'?'var(--red)':cat==='proche'?'var(--org)':'var(--grn)';
-      const badge=cat==='sp'?`<span style="background:rgba(255,60,60,.15);color:var(--red);border:1px solid rgba(255,60,60,.3);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem;font-weight:700">⛔ −${Math.abs(p.marge)}</span>`:
-        cat==='proche'?`<span style="background:rgba(255,160,0,.12);color:var(--org);border:1px solid rgba(255,160,0,.25);border-radius:4px;padding:.2rem .5rem;font-size:.55rem;margin-left:.6rem">⚠ +${p.marge}</span>`:
-        `<span style="color:var(--t3);font-size:.55rem;margin-left:.6rem">+${p.marge}</span>`;
-      const hasCoord=(p.x||p.z);
-      const dynmapUrl=`https://${s}.nationsglory.fr/?worldname=world&mapname=flat&zoom=4&x=${Math.round(p.x)}&y=64&z=${Math.round(p.z)}`;
-      const coordBlock=hasCoord?`<a href="${dynmapUrl}" target="_blank" rel="noopener"
-          title="Ouvrir sur la Dynmap"
-          style="display:inline-flex;align-items:center;gap:.35rem;font-family:var(--M);font-size:.58rem;
-            color:var(--blue-pale);text-decoration:none;border:1px solid rgba(91,163,255,.25);
-            border-radius:4px;padding:.15rem .55rem;background:rgba(91,163,255,.07);
-            transition:all .15s;white-space:nowrap"
-          onmouseover="this.style.background='rgba(91,163,255,.18)';this.style.borderColor='rgba(91,163,255,.5)'"
-          onmouseout="this.style.background='rgba(91,163,255,.07)';this.style.borderColor='rgba(91,163,255,.25)'">
-          📍 ${Math.round(p.x)}, ${Math.round(p.z)} <span style="font-size:.5rem;opacity:.7">↗</span>
-        </a>`:'';
-      const leaderSkin=p.leader?`<img src="https://skins.nationsglory.fr/face/${p.leader}/32"
-          alt="${p.leader}" title="${p.leader}"
-          style="width:22px;height:22px;border-radius:3px;border:1px solid var(--b2);
-            image-rendering:pixelated;flex-shrink:0;vertical-align:middle"
-          onerror="this.style.display='none'">`:'';
-
-      // Dimension claims lookup
-      const nk=p.name.toLowerCase();
-      const luneData=dimLune[nk]||null;
-      const marsData=dimMars[nk]||null;
-      const edoraData=dimEdora[nk]||null;
-      const dimRow=`<div style="display:flex;align-items:center;gap:.5rem;margin-top:.45rem;flex-wrap:wrap">
-          <span style="font-family:var(--M);font-size:.48rem;color:var(--t4);letter-spacing:.08em;white-space:nowrap">DIMS :</span>
-          ${dimChip(luneData,'DIM-28','🌙 Lune','#c8aaff')}
-          ${dimChip(marsData,'DIM-29','🔴 Mars','#ff7755')}
-          ${dimChip(edoraData,'DIM-31','🟢 Edora','#44dd88')}
-        </div>`;
-
-      return`<div style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--b1);flex-wrap:wrap">
-        <div style="min-width:160px;font-family:var(--D);font-size:1.05rem;color:var(--t1);display:flex;align-items:center">${p.name}${badge}</div>
-        <div style="flex:1;min-width:200px">
-          <div style="display:flex;gap:1.2rem;font-family:var(--M);font-size:.6rem;color:var(--t3);margin-bottom:.3rem;flex-wrap:wrap;align-items:center">
-            <span>⚡ <b style="color:${col};font-size:.65rem">${p.power}</b><span style="color:var(--t3)">/${p.maxpower}</span></span>
-            <span>🏴 <b style="color:var(--t1)">${p.claims}</b> claims</span>
-            ${p.mmr?`<span>🏆 <b style="color:var(--t1)">${p.mmr}</b> MMR</span>`:''}
-            <span>👥 <b style="color:var(--t1)">${p.members}</b> membres</span>
-            ${p.leader?`<span style="display:inline-flex;align-items:center;gap:.3rem">${leaderSkin}👑 <b style="color:var(--t2)">${p.leader}</b></span>`:''}
-          </div>
-          <div style="background:var(--bg2);border-radius:4px;height:6px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${col};transition:width .4s"></div>
-          </div>
-          ${hasCoord?`<div style="margin-top:.4rem">${coordBlock}</div>`:''}
-          ${dimRow}
-        </div>
-      </div>`;
-    };
-    const section=(title,list,cat,color)=>list.length?`
-      <div style="font-family:var(--M);font-size:.6rem;color:${color};letter-spacing:.1em;padding:.7rem 1rem;border-bottom:1px solid var(--b1);background:rgba(0,0,0,.2);font-weight:700">${title} — ${list.length} pays</div>
-      ${list.map(p=>row(p,cat)).join('')}
-    `:'';
-    res.innerHTML=`<div style="border:1px solid var(--b1);border-radius:var(--r);overflow:hidden">
-      ${section('⛔ EN SOUS-POWER',sp,'sp','var(--red)')}
-      ${section('⚠ PROCHES DU SOUS-POWER (marge < 200)',proche,'proche','var(--org)')}
-      ${section('✅ SAFE',safe,'safe','var(--grn)')}
-    </div>`;
-    ts.textContent=`${pays.length} pays analysés — ${new Date().toLocaleTimeString('fr-FR')}`;
-  }catch(e){res.innerHTML=`<div class="empty" style="color:var(--red)">Erreur : ${e.message}</div>`;}
-}
-
-// ══════════════════════ ACTIVITÉ GRAPHIQUE ══════════════════════
-const ACT_COLORS={
-  lime:'#00e87a',mocha:'#c68642',blue:'#5ba3ff',coral:'#ff4466',
-  orange:'#ff9900',red:'#ff3355',yellow:'#ffd700',white:'#e0e0e0',
-  jade:'#00c896',black:'#9e9e9e',cyan:'#00d4ff'
-};
-let actPeriod=24;
-let actHiddenSrv=new Set();
-let actData=null;
-let actCanvas=null,actCtx=null;
-
-function initActivity(){
-  if(!actCanvas){
-    actCanvas=$('act-canvas');
-    actCtx=actCanvas.getContext('2d');
-  }
-  buildSrvFilters();
-  loadActivity();
-}
-
-function buildSrvFilters(){
-  const wrap=$('act-srv-filters');
-  if(wrap.children.length)return;
-  SRV.forEach(s=>{
-    const btn=document.createElement('button');
-    btn.className='btn act-srv-btn';
-    btn.dataset.srv=s;
-    btn.style.cssText=`border-color:${ACT_COLORS[s]||'var(--b2)'};color:${ACT_COLORS[s]||'var(--t2)'};font-size:.52rem;padding:.2rem .55rem`;
-    btn.innerHTML=`${EMO[s]||''} ${s.toUpperCase()}`;
-    btn.onclick=()=>toggleActSrv(s,btn);
-    wrap.appendChild(btn);
-  });
-}
-
-function toggleActSrv(s,btn){
-  if(actHiddenSrv.has(s)){actHiddenSrv.delete(s);btn.style.opacity='1';}
-  else{actHiddenSrv.add(s);btn.style.opacity='.35';}
-  if(actData)renderActivityChart(actData);
-}
-
-function setPeriod(btn){
-  document.querySelectorAll('.act-period').forEach(b=>b.classList.remove('act-period-active'));
-  btn.classList.add('act-period-active');
-  actPeriod=parseInt(btn.dataset.h);
-  loadActivity();
-}
-
-async function loadActivity(){
-  $('act-loading').style.display='flex';
-  $('act-empty').style.display='none';
-  try{
-    const d=await api(`/api/activity?hours=${actPeriod}`);
-    actData=d;
-    if(!d.points||d.points.length===0){
-      $('act-loading').style.display='none';
-      $('act-empty').style.display='flex';
-      return;
-    }
-    $('act-loading').style.display='none';
-    renderActivityChart(d);
-    renderActivityStats(d);
-    if($('act-last-update'))$('act-last-update').textContent='Mis à jour '+new Date().toLocaleTimeString('fr-FR');
-  }catch(e){
-    $('act-loading').style.display='none';
-    $('act-empty').style.display='flex';
-    $('act-empty').textContent='Erreur : '+e.message;
-  }
-}
-
-function renderActivityChart(d){
-  const canvas=actCanvas,ctx=actCtx;
-  const wrap=$('act-chart-wrap');
-  const dpr=window.devicePixelRatio||1;
-  canvas.width=wrap.clientWidth*dpr;
-  canvas.height=340*dpr;
-  ctx.scale(dpr,dpr);
-  const W=wrap.clientWidth,H=340;
-  ctx.clearRect(0,0,W,H);
-
-  const pts=d.points;
-  const srvs=SRV.filter(s=>!actHiddenSrv.has(s));
-  const pad={t:20,r:20,b:40,l:45};
-  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
-
-  // Max Y
-  let maxY=0;
-  pts.forEach(p=>srvs.forEach(s=>{if((p.data[s]||0)>maxY)maxY=p.data[s]||0;}));
-  maxY=Math.max(maxY+2,10);
-
-  // Grille horizontale
-  const steps=5;
-  ctx.strokeStyle='rgba(255,255,255,.05)';
-  ctx.lineWidth=1;
-  ctx.fillStyle='rgba(255,255,255,.25)';
-  ctx.font=`${10}px monospace`;
-  ctx.textAlign='right';
-  for(let i=0;i<=steps;i++){
-    const y=pad.t+cH-(cH*i/steps);
-    const val=Math.round(maxY*i/steps);
-    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();
-    ctx.fillText(val,pad.l-6,y+4);
-  }
-
-  // Axe X labels
-  ctx.fillStyle='rgba(255,255,255,.25)';
-  ctx.textAlign='center';
-  ctx.font='9px monospace';
-  const labelCount=Math.min(8,pts.length);
-  const step=Math.floor(pts.length/labelCount)||1;
-  for(let i=0;i<pts.length;i+=step){
-    const x=pad.l+cW*(i/(pts.length-1||1));
-    const dt=new Date(pts[i].ts);
-    const lbl=actPeriod<=48
-      ?dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
-      :dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
-    ctx.fillText(lbl,x,H-pad.b+14);
-  }
-
-  // Courbes
-  srvs.forEach(s=>{
-    const color=ACT_COLORS[s]||'#ffffff';
-    ctx.save();
-    // Zone remplie (transparente)
-    ctx.beginPath();
-    pts.forEach((p,i)=>{
-      const x=pad.l+cW*(i/(pts.length-1||1));
-      const y=pad.t+cH-(cH*(p.data[s]||0)/maxY);
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
-    ctx.lineTo(pad.l+cW,pad.t+cH);ctx.lineTo(pad.l,pad.t+cH);ctx.closePath();
-    ctx.fillStyle=color.replace(')',',0.07)').replace('rgb','rgba').replace('#','')==color
-      ?color+'18'
-      :color+'18';
-    // fallback propre
-    ctx.globalAlpha=0.12;ctx.fillStyle=color;ctx.fill();ctx.globalAlpha=1;
-
-    // Ligne
-    ctx.beginPath();
-    ctx.strokeStyle=color;
-    ctx.lineWidth=1.8;
-    ctx.lineJoin='round';
-    pts.forEach((p,i)=>{
-      const x=pad.l+cW*(i/(pts.length-1||1));
-      const y=pad.t+cH-(cH*(p.data[s]||0)/maxY);
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-    ctx.restore();
-  });
-
-  // Légende
-  const legend=$('act-legend');
-  legend.innerHTML=srvs.map(s=>`<div style="display:flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.52rem;color:${ACT_COLORS[s]||'var(--t2)'}"><div style="width:18px;height:2px;background:${ACT_COLORS[s]||'#fff'};border-radius:2px"></div>${s.toUpperCase()}</div>`).join('');
-}
-
-
-function renderTreemap(d){
-  const wrap=document.getElementById('treemap-wrap');
-  const legend=document.getElementById('treemap-legend');
-  if(!wrap||!d||!d.points||!d.points.length)return;
-  const pts=d.points;
-
-  // Calcule la moyenne de chaque serveur sur la période
-  const avgs=SRV.map(s=>{
-    const vals=pts.map(p=>p.data[s]||0);
-    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
-    return{s,avg};
-  }).filter(x=>x.avg>0).sort((a,b)=>b.avg-a.avg);
-
-  const total=avgs.reduce((a,x)=>a+x.avg,0)||1;
-
-  wrap.innerHTML=avgs.map(({s,avg})=>{
-    const pct=avg/total*100;
-    const color=ACT_COLORS[s]||'#ffffff';
-    const show=pct>4;
-    return `<div style="
-      flex:0 0 ${pct.toFixed(2)}%;
-      background:${color}22;
-      border:1px solid ${color}66;
-      border-radius:4px;
-      display:flex;flex-direction:column;
-      align-items:center;justify-content:center;
-      overflow:hidden;cursor:default;
-      transition:flex .6s cubic-bezier(.4,0,.2,1), background .3s;
-      position:relative;
-    "
-    onmouseenter="this.style.background='${color}44'"
-    onmouseleave="this.style.background='${color}22'"
-    title="${s.toUpperCase()} — ${pct.toFixed(1)}% (moy ${avg.toFixed(1)} joueurs)">
-      ${show?`<span style="font-family:var(--M);font-size:.46rem;color:${color};letter-spacing:.1em;text-align:center;line-height:1.3;padding:.2rem">${s.toUpperCase()}<br><span style="font-size:.55rem;color:var(--t1);font-weight:bold">${pct.toFixed(0)}%</span></span>`:''}
-    </div>`;
-  }).join('');
-
-  legend.innerHTML=avgs.map(({s,avg})=>{
-    const pct=(avg/total*100).toFixed(1);
-    const color=ACT_COLORS[s]||'#fff';
-    return `<div style="display:flex;align-items:center;gap:.3rem;font-family:var(--M);font-size:.48rem;color:var(--t2)">
-      <div style="width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></div>
-      <span style="color:${color}">${s.toUpperCase()}</span>
-      <span style="color:var(--t3)">${pct}%</span>
-    </div>`;
-  }).join('');
-
-  const upd=document.getElementById('treemap-last-update');
-  if(upd)upd.textContent='Mis à jour '+new Date().toLocaleTimeString('fr-FR');
-}
-
-function renderActivityStats(d){
-  const grid=$('act-stats-grid');
-  if(!grid)return;
-  const pts=d.points;
-  const stats=SRV.map(s=>{
-    const vals=pts.map(p=>p.data[s]||0);
-    const max=Math.max(...vals,0);
-    const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
-    const last=vals[vals.length-1]||0;
-    return{s,max,avg,last};
-  }).sort((a,b)=>b.avg-a.avg).slice(0,4);
-  renderTreemap(d);
-  grid.innerHTML=stats.map(({s,max,avg,last})=>`
-    <div class="panel" style="border-color:${ACT_COLORS[s]||'var(--b2)'}33">
-      <div class="ptop" style="background:${ACT_COLORS[s]||'var(--blue)'}"></div>
-      <div style="padding:.9rem 1rem">
-        <div style="font-family:var(--M);font-size:.55rem;color:${ACT_COLORS[s]||'var(--t2)'};letter-spacing:.18em;margin-bottom:.5rem">${EMO[s]||''} ${s.toUpperCase()}</div>
-        <div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:.5rem;color:var(--t3)">
-          <span>MOY <b style="color:var(--t1)">${avg}</b></span>
-          <span>MAX <b style="color:var(--t1)">${max}</b></span>
-          <span>NOW <b style="color:${ACT_COLORS[s]||'var(--t1)'}">${last}</b></span>
-        </div>
-      </div>
-    </div>`).join('');
-}
+import discord,aiohttp,asyncio,time,json,os,sys,hmac,hashlib,base64,secrets
+from discord import app_commands
+from aiohttp import web
+from datetime import timedelta,datetime
+TOKEN=os.getenv('DISCORD_TOKEN')
+NG_KEY=os.getenv('NG_API_KEY')
+RENDER_URL=os.getenv('RENDER_EXTERNAL_URL','')
+MONGO_URL=os.getenv('MONGO_URL')
+CH_RAPPORT=0x14400e533c420056
+CH_ALERTE=0x1455d36c2644109a
+CH_STORAGE=0x1485ddced2021066
+CH_M_RAPPORT=0x14943ec2eb8000e6
+CH_M_ALERTE=0x14943ed07902001e
+CH_PAYS=0x1455eb96fb40000b
+DEFAULT_WL=[]
+COUNTRY_WATCHES=[]
+cw_msg_id=None
+WL=list(DEFAULT_WL)
+WL_MOCHA=list(DEFAULT_WL)
+wl_msg_id=wl_mocha_msg_id=None
+
+                      
+REFERENT_WATCHES=[]                                                                                  
+
+intents=discord.Intents.default()
+client=discord.Client(intents=intents)
+tree=app_commands.CommandTree(client)
+SERVERS={'blue':{'url':'https://blue.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔵'},'coral':{'url':'https://coral.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔴'},'orange':{'url':'https://orange.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟠'},'red':{'url':'https://red.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔴'},'yellow':{'url':'https://yellow.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟡'},'mocha':{'url':'https://mocha.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟤'},'white':{'url':'https://white.nationsglory.fr/standalone/dynmap_world.json','emoji':'⚪'},'jade':{'url':'https://jade.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟢'},'black':{'url':'https://black.nationsglory.fr/standalone/dynmap_world.json','emoji':'⚫'},'cyan':{'url':'https://cyan.nationsglory.fr/standalone/dynmap_world.json','emoji':'🔵'},'lime':{'url':'https://lime.nationsglory.fr/standalone/dynmap_world.json','emoji':'🟢'}}
+CACHE_TTL=900
+ctry_cache={}
+_dynmap_markers_cache={}
+_dim_markers_cache={}
+DYNMAP_MARKERS_TTL=120
+CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization'}
+
+                
+
+                                      
+_fail_attempts={}                      
+_blocked_ips={}                                 
+MAX_ATTEMPTS=5
+BLOCK_DURATION=900          
+ATTEMPT_WINDOW=300         
+
+def _get_ip(request):
+	return request.headers.get('X-Forwarded-For','').split(',')[0].strip() or request.remote or 'unknown'
+
+def _is_blocked(ip):
+	if ip in _blocked_ips:
+		if time.time()<_blocked_ips[ip]:return True
+		del _blocked_ips[ip]
+	return False
+
+def _record_fail(ip):
+	now=time.time()
+	if ip not in _fail_attempts:_fail_attempts[ip]=[]
+	_fail_attempts[ip]=[t for t in _fail_attempts[ip] if now-t<ATTEMPT_WINDOW]
+	_fail_attempts[ip].append(now)
+	if len(_fail_attempts[ip])>=MAX_ATTEMPTS:
+		_blocked_ips[ip]=now+BLOCK_DURATION
+		print(f"🚫 IP bloquée {ip} pour {BLOCK_DURATION}s",flush=True)
+		return True
+	return False
+
+def _clear_attempts(ip):
+	_fail_attempts.pop(ip,None)
+	_blocked_ips.pop(ip,None)
+
+JWT_SECRET=os.environ.get('JWT_SECRET',secrets.token_hex(32))
+def _jwt_sign(payload):
+	header=base64.urlsafe_b64encode(json.dumps({'alg':'HS256','typ':'JWT'}).encode()).rstrip(b'=').decode()
+	body=base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b'=').decode()
+	sig=hmac.new(JWT_SECRET.encode(),f"{header}.{body}".encode(),hashlib.sha256).digest()
+	return f"{header}.{body}.{base64.urlsafe_b64encode(sig).rstrip(b'=').decode()}"
+def _jwt_verify(token):
+	try:
+		h,b,s=token.split('.')
+		expected=hmac.new(JWT_SECRET.encode(),f"{h}.{b}".encode(),hashlib.sha256).digest()
+		if not hmac.compare_digest(base64.urlsafe_b64encode(expected).rstrip(b'=').decode(),s):return None
+		payload=json.loads(base64.urlsafe_b64decode(b+'=='))
+		if payload.get('exp',0)<time.time():return None
+		return payload
+	except:return None
+def _get_token(request):
+	auth=request.headers.get('Authorization','')
+	if auth.startswith('Bearer '):return auth[7:]
+	return None
+def require_auth(handler):
+	async def wrapper(r,*a,**kw):
+		t=_get_token(r)
+		if not t or not _jwt_verify(t):return cors({'error':'Non autorisé'},401)
+		return await handler(r,*a,**kw)
+	return wrapper
+def cors(data,status=200):return web.Response(text=json.dumps(data,ensure_ascii=False),status=status,content_type='application/json',headers=CORS)
+async def handle_options(r):return web.Response(status=204,headers=CORS)
+mongo_ok=False
+db=sessions_col=config_col=None
+def init_mongo():
+	global mongo_ok,db,sessions_col,config_col
+	if not MONGO_URL:return
+	try:
+		from pymongo import MongoClient,ASCENDING
+		c=MongoClient(MONGO_URL,serverSelectionTimeoutMS=8000,tls=True,tlsAllowInvalidCertificates=True)
+		c.admin.command('ping')
+		db=c['mossadglory']
+		sessions_col=db['sessions']
+		config_col=db['config']
+		sessions_col.create_index([('player',ASCENDING),('ts',ASCENDING)])
+		db['presence'].create_index([('total',-1)])
+                               
+		db['recruitments'].create_index([('server',ASCENDING),('country',ASCENDING),('ts',ASCENDING)])
+		db['notes'].create_index([('player',ASCENDING)],unique=True)
+		mongo_ok=True
+		print('✅ MongoDB OK',flush=True)
+	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
+
+def record_connection(player,server):
+	if not mongo_ok:return
+	try:
+		now=datetime.utcnow()+timedelta(hours=1)
+		sessions_col.insert_one({'player':player,'server':server,'ts':now,'day':now.weekday(),'hour':now.hour,'minute':now.minute})
+		db['presence'].update_one(
+		 {'player':player},
+		 {
+		  '$inc':{'total':1,f'servers.{server}':1},
+		  '$set':{'last_seen':now,'last_server':server}
+		 },
+		 upsert=True
+		)
+	except:pass
+
+def get_sessions(player,limit=500):
+	if not mongo_ok:return[]
+	try:from pymongo import ASCENDING;return list(sessions_col.find({'player':player},{'_id':0}).sort('ts',ASCENDING).limit(limit))
+	except:return[]
+def get_pronostic(player):
+	ss=get_sessions(player,200)
+	if len(ss)<3:return None
+	DAYS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];dc,hbd=[0]*7,[[]for _ in range(7)]
+	for s in ss:dc[s['day']]+=1;hbd[s['day']].append(s['hour']+s.get('minute',0)/60)
+	total=len(ss);res=[]
+	for d in range(7):
+		if not dc[d]:continue
+		avg=sum(hbd[d])/len(hbd[d]);res.append((d,int(avg),int(avg%1*60),round(dc[d]/total*100)))
+	return sorted(res,key=lambda x:-x[3])[:5],DAYS,total
+def get_plages(player):
+	ss=get_sessions(player,500)
+	if not ss:return None
+	DAYS=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];hm=[[0]*24 for _ in range(7)]
+	for s in ss:hm[s['day']][s['hour']]+=1
+	return hm,DAYS
+def cfg_set(key,val):
+	if not mongo_ok:return
+	try:config_col.update_one({'key':key},{'$set':{'value':val}},upsert=True)
+	except:pass
+def cfg_get(key):
+	if not mongo_ok:return None
+	try:doc=config_col.find_one({'key':key});return doc['value']if doc else None
+	except:return None
+async def _load_wl(global_name,prefix,channel_id):
+	global WL,WL_MOCHA,wl_msg_id,wl_mocha_msg_id;ch=client.get_channel(channel_id)
+	if not ch:return
+	async for msg in ch.history(limit=50):
+		if msg.author==client.user and msg.content.startswith(prefix+':'):
+			try:
+				data=json.loads(msg.content[len(prefix)+1:])
+				if global_name=='WL':WL=data['players'];wl_msg_id=msg.id
+				else:WL_MOCHA=data['players'];wl_mocha_msg_id=msg.id
+				print(f"✅ Watchlist {global_name} chargée",flush=True);return
+			except:pass
+	await _save_wl(global_name,prefix,channel_id)
+async def _save_wl(global_name,prefix,channel_id):
+	global wl_msg_id,wl_mocha_msg_id;ch=client.get_channel(channel_id)
+	if not ch:return
+	players=WL if global_name=='WL'else WL_MOCHA;msg_id=wl_msg_id if global_name=='WL'else wl_mocha_msg_id;content=f"{prefix}:"+json.dumps({'players':players})
+	if msg_id:
+		try:msg=await ch.fetch_message(msg_id);await msg.edit(content=content);return
+		except discord.NotFound:pass
+	msg=await ch.send(content)
+	if global_name=='WL':wl_msg_id=msg.id
+	else:wl_mocha_msg_id=msg.id
+async def load_cw():
+	global COUNTRY_WATCHES;v=cfg_get('country_watches')
+	if v:COUNTRY_WATCHES=v
+async def save_cw():cfg_set('country_watches',COUNTRY_WATCHES)
+
+                           
+async def load_referents():
+	global REFERENT_WATCHES
+	v=cfg_get('referent_watches')
+	if v:REFERENT_WATCHES=v;print(f"✅ Référents chargés: {len(REFERENT_WATCHES)}",flush=True)
+async def save_referents():cfg_set('referent_watches',REFERENT_WATCHES)
+
+async def load_watchlist():await _load_wl('WL','WATCHLIST',CH_STORAGE)
+async def save_watchlist():await _save_wl('WL','WATCHLIST',CH_STORAGE)
+async def load_watchlist_mocha():await _load_wl('MOCHA','WATCHLIST_MOCHA',CH_M_RAPPORT)
+async def save_watchlist_mocha():await _save_wl('MOCHA','WATCHLIST_MOCHA',CH_M_RAPPORT)
+async def get_online(server):
+	try:
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))as s:
+			async with s.get(SERVERS[server]['url'])as r:
+				if r.status==200:return[p['name']for p in(await r.json()).get('players',[])]
+	except:pass
+	return[]
+async def get_all_online():results=await asyncio.gather(*[get_online(s)for s in SERVERS],return_exceptions=True);return{s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
+
+NG_PLAYERCOUNT_URL='https://publicapi.nationsglory.fr/playercount'
+NG_PLAYERCOUNT_TOKEN='Bearer NGAPI_q05@rd^9Gg!@A9(4YYQEHVj9)6fNTGF2c02f64647e5f99a75001c7cb30c1e8e5'
+async def get_playercount():
+	try:
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))as s:
+			async with s.get(NG_PLAYERCOUNT_URL,headers={'Authorization':NG_PLAYERCOUNT_TOKEN,'accept':'application/json'})as r:
+				if r.status==200:
+					data=await r.json()
+					return{k:{'players':v.get('players',0),'online':v.get('online',True)}for k,v in data.items()if isinstance(v,dict)and 'players'in v}
+	except:pass
+	return{}
+
+async def api_playercount(r):return cors(await get_playercount())
+
+ACTIVITY_INTERVAL=60  # toutes les 1 minute
+async def activity_recorder_loop():
+	await asyncio.sleep(15)
+	while True:
+		try:
+			if mongo_ok:
+				pc=await get_playercount()
+				if pc:
+					now=datetime.utcnow()+timedelta(hours=1)
+					doc={'ts':now,'data':{s:pc[s]['players']for s in SERVERS if s in pc}}
+					db['activity'].insert_one(doc)
+					# Nettoyage automatique : garder seulement 30 jours
+					cutoff=now-timedelta(days=30)
+					db['activity'].delete_many({'ts':{'$lt':cutoff}})
+		except Exception as e:print(f'❌ activity_recorder: {e}',flush=True)
+		await asyncio.sleep(ACTIVITY_INTERVAL)
+
+async def api_activity(r):
+	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
+	try:
+		hours=int(r.rel_url.query.get('hours',24))
+		now=datetime.utcnow()+timedelta(hours=1)
+		since=now-timedelta(hours=hours)
+		docs=list(db['activity'].find({'ts':{'$gte':since}},{'_id':0}).sort('ts',1))
+		for d in docs:
+			d['ts']=d['ts'].strftime('%Y-%m-%dT%H:%M:%S')
+		return cors({'points':docs,'hours':hours,'servers':list(SERVERS.keys())})
+	except Exception as e:return cors({'error':str(e)},500)
+                                                                                
+_STATIC_COUNTRIES_FALLBACK=sorted(["ArchipelCrozet","Algerie","Angola","IlesAndaman","Autriche","Azerbaidjan","Bahrein","Bangladesh","Belgique","Benin","Bielorussie","Bolivie","Bosnie","BurkinaFaso","Cambodge","CentreAfrique","Chili","Colombie","Congo","RDCongo","CoreeDuSud","CoteDivoire","Egypte","EmiratsArabesUnis","Equateur","Erythree","Ethiopie","Iakoutie","Iamalie","IleBolchevique","IlesBaleares","IleCoats","IleDeLaReunion","IlesFeroe","IlesFidji","IlesGalapagos","IleMaurice","IleVictoria","Gabon","Georgie","Ghana","Groenland","Guatemala","Guyane","Guyana","Hainan","Inde","Indonesie","Irak","Iran","Italie","IlesVancouver","Japon","Java","Kazakhstan","Khabarovsk","Kenya","Kosovo","Krasnoy","Laos","Lettonie","Libye","Lituanie","Macedoine","Malaisie","Malte","Kamtchatka","Mali","Maroc","Mauritanie","Magadan","Mozambique","Namibie","Niger","Nigeria","Norvege","NouvelleGuinee","NouvelleZemble","Ouganda","Ouzbekistan","Palaos","Pakistan","Portugal","Qatar","SaharaOccidental","Serbie","Somalie","Srilanka","StHelena","IlesSandwich","IleBouvet","Suriname","Svalbard","Swaziland","Syrie","Tadjikistan","Tanzanie","Tchoukota","TerreSiple","TerreSpaatz","TerreMill","TerreGrant","TerreVega","TerreThor","TerreLow","TerrePowell","TerreBurke","TerreSigny","TerreBooth","TerreSmith","TerreRoss","TerreLiard","TerreMasson","Thailande","Tibet","Timor","Touva","Tunisie","Turkmenistan","Turquie","TriniteEtTobago","Uruguay","WallisEtFutuna","Yemen","Zambie","Zimbabwe","Montana","Michigan","Nunavut","Sonora","Queensland","Minnesota","Washington","Oregon","Idaho","Utah","NouveauMexique","Colorado","Wyoming","Quinghai","Xinjiang","Yunnam","Sichuan","Guizhou","Guangxi","Guangdong","Chypre","Roumanie","EmpireJordanien","Madagan","Tasmanie","EmpireBissaoguineen","Liberia","EmpireIrkoutsk","IleWrangel","Canada","TerreAdelie","Suede","Djibouti","Paraguay","Nepal","Bhoutan","Sakhaline","RoyaumeUni","IlesSalomon","EtatsUnis","Liban","Bahamas","EmpireOmanais","RepubliqueTcheque","Espagne","Danemark","Jamaique","NouvelleZelande","Bouriatie","Taiwan","Tomsk","Cameroun","Amour","Kirghizistan","Venezuela","IlesKerguelen","Soudan","Sardaigne","Luxembourg","Bresil","Nevada","Moldavie","Malawi","NouvelleCaledonie","AfriqueDuSud","CoreeDuNord","Estonie","Wisconsin","Birmanie","TerreDeFeu","Salvador","Koweit","Baja","Socotra","Botswana","TerreSnow","Allemagne","Pologne","Slovenie","PaysBas","Philippines","Texas","Suisse","Altai","Floride","Quebec","Slovaquie","Madagascar","Montenegro","Mongolie","Nicaragua","Sumatra","France","Bulgarie","Alaska","Argentine","Grece","Australie","Belize","Armenie","Afghanistan","Californie","Russie","Islande","Perou","Arizona","Tchad","Albanie","IlesCanaries","Togo","Chine","Mexique","Ontario","IleGraham","Dakota","Vietnam","Papouasie","Croatie"])
+
+                                                                                 
+_ctry_last_fetch={}                                                         
+CTRY_FETCH_COOLDOWN=21600                                                                      
+
+async def get_country_list(server):
+	now=time.time()
+                                                   
+	if server in ctry_cache and now-ctry_cache[server][1]<CTRY_FETCH_COOLDOWN:
+		return ctry_cache[server][0]
+                                                                                                                     
+	last_fetch=_ctry_last_fetch.get(server,0)
+	if now-last_fetch<CTRY_FETCH_COOLDOWN:
+		if server in ctry_cache:
+			print(f"[countries] {server} cooldown actif, cache périmé réutilisé ({len(ctry_cache[server][0])} pays)",flush=True)
+			return ctry_cache[server][0]
+		print(f"[countries] {server} cooldown actif, fallback statique",flush=True)
+		return _STATIC_COUNTRIES_FALLBACK
+                                              
+	_ctry_last_fetch[server]=now
+	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+	delay=30
+	for attempt in range(4):
+		try:
+			async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))as s:
+				async with s.get(f"https://publicapi.nationsglory.fr/country/list/{server}",headers=headers)as r:
+					if r.status==429:
+						retry_after=int(r.headers.get('Retry-After',delay))
+						print(f"[countries] {server} 429 rate-limit, attente {retry_after}s (tentative {attempt+1}/4)",flush=True)
+						await asyncio.sleep(retry_after)
+						delay=min(delay*2,300)
+						continue
+					if r.status in(200,500):
+						data=await r.json()
+						raw=data.get('claimed',[])+data.get('availables',[])if isinstance(data,dict)else data
+						claimed=sorted([c['name']for c in raw if isinstance(c,dict)and c.get('name','').strip()])
+						if claimed:
+							print(f"[countries] {server} OK => {len(claimed)} pays",flush=True)
+							ctry_cache[server]=claimed,now
+							return claimed
+					else:
+						print(f"[countries] {server} HTTP {r.status}",flush=True)
+						break
+		except Exception as e:
+			print(f"[countries] {server} erreur tentative {attempt+1}: {e}",flush=True)
+			await asyncio.sleep(delay)
+			delay=min(delay*2,300)
+                                                     
+	if server in ctry_cache:
+		print(f"[countries] {server} fallback sur cache périmé ({len(ctry_cache[server][0])} pays)",flush=True)
+		return ctry_cache[server][0]
+	print(f"[countries] {server} fallback statique ({len(_STATIC_COUNTRIES_FALLBACK)} pays)",flush=True)
+	return _STATIC_COUNTRIES_FALLBACK
+async def _fetch_dynmap_markers(server):
+	now=time.time()
+	if server in _dynmap_markers_cache and now-_dynmap_markers_cache[server][1]<DYNMAP_MARKERS_TTL:
+		return _dynmap_markers_cache[server][0]
+	try:
+		url=f"https://{server}.nationsglory.fr/tiles/_markers_/marker_world.json"
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
+			async with s.get(url)as r:
+				if r.status==200:
+					data=await r.json(content_type=None)
+					markers=data.get('sets',{}).get('factions.markerset',{}).get('markers',{})
+					_dynmap_markers_cache[server]=(markers,now)
+					print(f"[dynmap] {server} markers OK ({len(markers)} pays)",flush=True)
+					return markers
+	except Exception as e:
+		print(f"[dynmap] {server} erreur: {e}",flush=True)
+	return{}
+
+def _parse_marker_desc(desc):
+	import html as _html,re as _re
+	desc=_html.unescape(desc)
+	m=_re.search(r'Membres<\/span><br\/>\s*(.*?)<br',desc,_re.S)
+	members=[x.strip()for x in m.group(1).split(',')if x.strip()]if m else[]
+	c=_re.search(r'Claims<\/b>\s*(\d+)',desc)
+	p=_re.search(r'Power<\/b>\s*(\d+)\s*\/\s*(\d+)',desc)
+	mmr=_re.search(r'MMR<\/b>\s*(\d+)',desc)
+	l=_re.search(r"src='https:\/\/skins\.nationsglory\.fr\/face\/([^/]+)\/",desc)
+	return{
+		'members':members,
+		'claims':int(c.group(1))if c else 0,
+		'power':int(p.group(1))if p else 0,
+		'maxpower':int(p.group(2))if p else 0,
+		'mmr':int(mmr.group(1))if mmr else 0,
+		'leader':l.group(1)if l else '',
+	}
+
+async def get_country_from_dynmap(server,country):
+	markers=await _fetch_dynmap_markers(server)
+	key=f"default_{country}__home"
+	if key in markers:
+		desc=markers[key].get('desc','')
+		parsed=_parse_marker_desc(desc)
+		name=markers[key].get('label',country).replace(' [home]','').strip()
+		return parsed['members'],name,parsed
+	cl=country.lower()
+	for k,v in markers.items():
+		if cl in k.lower():
+			desc=v.get('desc','')
+			parsed=_parse_marker_desc(desc)
+			name=v.get('label',country).replace(' [home]','').strip()
+			return parsed['members'],name,parsed
+	return None,None,{}
+
+async def get_country_members(server,country):
+	members,name,_=await get_country_from_dynmap(server,country)
+	return members,name
+
+                                                
+                                      
+                                                
+
+def record_recruitment(server,country,country_name,player,old_count,new_count):
+
+	if not mongo_ok:return
+	try:
+		now=datetime.utcnow()+timedelta(hours=1)
+		db['recruitments'].insert_one({
+		 'server':server,
+		 'country':country.lower(),
+		 'country_name':country_name,
+		 'player':player,
+		 'ts':now,
+		 'members_before':old_count,
+		 'members_after':new_count,
+		})
+	except Exception as e:print(f"❌ record_recruitment: {e}",flush=True)
+
+def record_departure(server,country,country_name,player,old_count,new_count):
+
+	if not mongo_ok:return
+	try:
+		now=datetime.utcnow()+timedelta(hours=1)
+		db['recruitments'].insert_one({
+		 'server':server,
+		 'country':country.lower(),
+		 'country_name':country_name,
+		 'player':player,
+		 'ts':now,
+		 'members_before':old_count,
+		 'members_after':new_count,
+		 'departure':True,
+		})
+	except Exception as e:print(f"❌ record_departure: {e}",flush=True)
+
+async def verify_members_by_api(server, members):
+
+	if not members:return[]
+	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+	verified=[]
+	async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
+		tasks=[s.get(f"https://publicapi.nationsglory.fr/user/{p}",headers=headers)for p in members]
+		for(p,task)in zip(members,tasks):
+			try:
+				async with task as resp:
+					if resp.status==200:
+						data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank','')
+						if rank:verified.append(p)
+					else:verified.append(p)                                                     
+			except:verified.append(p)
+	return verified
+
+async def verify_members_with_ranks(server, members):
+
+	if not members:return[],{}
+	headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+	verified=[];ranks={}
+	async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as s:
+		tasks=[s.get(f"https://publicapi.nationsglory.fr/user/{p}",headers=headers)for p in members]
+		for(p,task)in zip(members,tasks):
+			try:
+				async with task as resp:
+					if resp.status==200:
+						data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank','')
+						if rank:verified.append(p);ranks[p]=rank
+					else:verified.append(p)                                          
+			except:verified.append(p)
+	return verified,ranks
+
+async def check_referent(watch):
+
+	try:
+		server=watch['server'];country=watch['country']
+		members,name=await get_country_members(server,country)
+		if not members:return
+                                                                                 
+		members=await verify_members_by_api(server,members)
+		if not members:return
+                                     
+		watch['name']=name
+		prev_set=set(watch.get('members_snapshot',[]))
+		curr_set=set(members)
+		old_count=len(prev_set);new_count=len(curr_set)
+                                             
+		new_recruits=curr_set-prev_set
+		for p in new_recruits:
+			print(f"🆕 Recrutement détecté : {p} → {name} ({server.upper()})",flush=True)
+			record_recruitment(server,country,name,p,old_count,new_count)
+                     
+		departures=prev_set-curr_set
+		for p in departures:
+			if prev_set:                                       
+				print(f"🚪 Départ détecté : {p} ← {name} ({server.upper()})",flush=True)
+				record_departure(server,country,name,p,old_count,new_count)
+                        
+		watch['members_snapshot']=members
+		watch['last_check']=(datetime.utcnow()+timedelta(hours=1)).strftime('%d/%m/%Y %H:%M:%S')
+		watch['member_count']=new_count
+	except Exception as e:print(f"❌ check_referent {watch}: {e}",flush=True)
+
+async def referent_tracker_loop():
+
+	await client.wait_until_ready()
+	await asyncio.sleep(10)                                             
+	print("🕵️ Referent tracker démarré",flush=True)
+	while True:
+		try:
+			if REFERENT_WATCHES:
+				await asyncio.gather(*[check_referent(w) for w in REFERENT_WATCHES],return_exceptions=True)
+				await save_referents()
+		except Exception as e:print(f"❌ referent_tracker_loop: {e}",flush=True)
+		await asyncio.sleep(1800)              
+
+                               
+
+@require_auth
+async def api_referent_get(r):
+
+	result=[]
+	for w in REFERENT_WATCHES:
+		result.append({
+		 'server':w['server'],
+		 'country':w['country'],
+		 'name':w.get('name',w['country']),
+		 'member_count':w.get('member_count',0),
+		 'last_check':w.get('last_check',None),
+		 'added_at':w.get('added_at',None),
+		 'members_snapshot':w.get('members_snapshot',[]),
+		})
+	return cors({'watches':result})
+
+@require_auth
+async def api_referent_add(r):
+
+	try:
+		body=await r.json()
+		server=body.get('server','').lower()
+		country=body.get('country','').strip()
+		if not server or not country:return cors({'error':'Données manquantes'},400)
+		if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
+		exists=any(w['server']==server and w['country'].lower()==country.lower() for w in REFERENT_WATCHES)
+		if exists:return cors({'error':'Déjà surveillé'},409)
+                                            
+		members,name=await get_country_members(server,country)
+		now=(datetime.utcnow()+timedelta(hours=1)).strftime('%d/%m/%Y %H:%M')
+		REFERENT_WATCHES.append({
+		 'server':server,
+		 'country':country,
+		 'name':name or country,
+		 'members_snapshot':members or [],
+		 'member_count':len(members) if members else 0,
+		 'last_check':now,
+		 'added_at':now,
+		})
+		await save_referents()
+		return cors({'watches':[{'server':w['server'],'country':w['country'],'name':w.get('name',w['country']),'member_count':w.get('member_count',0)} for w in REFERENT_WATCHES]})
+	except Exception as e:return cors({'error':str(e)},400)
+
+@require_auth
+async def api_referent_remove(r):
+
+	try:
+		global REFERENT_WATCHES
+		body=await r.json()
+		server=body.get('server','').lower()
+		country=body.get('country','').strip()
+		REFERENT_WATCHES=[w for w in REFERENT_WATCHES if not(w['server']==server and w['country'].lower()==country.lower())]
+		await save_referents()
+		return cors({'watches':[{'server':w['server'],'country':w['country'],'name':w.get('name',w['country'])} for w in REFERENT_WATCHES]})
+	except Exception as e:return cors({'error':str(e)},400)
+
+@require_auth
+async def api_referent_stats(r):
+
+	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
+	try:
+		from pymongo import ASCENDING
+		server=r.rel_url.query.get('server',None)
+		country=r.rel_url.query.get('country',None)
+		days=int(r.rel_url.query.get('days',90))
+		since=datetime.utcnow()+timedelta(hours=1)-timedelta(days=days)
+		query={'ts':{'$gte':since},'departure':{'$exists':False}}
+		if server:query['server']=server.lower()
+		if country:query['country']=country.lower()
+                       
+		pipeline=[
+		 {'$match':query},
+		 {'$group':{
+		  '_id':{'server':'$server','country':'$country','country_name':'$country_name'},
+		  'total':{'$sum':1},
+		  'players':{'$push':'$player'},
+		  'last_recruit':{'$max':'$ts'},
+		  'first_recruit':{'$min':'$ts'},
+		 }},
+		 {'$sort':{'total':-1}}
+		]
+		docs=list(db['recruitments'].aggregate(pipeline))
+		result=[]
+		for d in docs:
+			last=d['last_recruit']
+			first=d['first_recruit']
+			result.append({
+			 'server':d['_id']['server'],
+			 'country':d['_id']['country'],
+			 'country_name':d['_id']['country_name'],
+			 'total_recruits':d['total'],
+			 'unique_players':len(set(d['players'])),
+			 'last_recruit':last.strftime('%d/%m/%Y %H:%M') if hasattr(last,'strftime') else str(last),
+			 'first_recruit':first.strftime('%d/%m/%Y %H:%M') if hasattr(first,'strftime') else str(first),
+			})
+		return cors({'stats':result,'days':days})
+	except Exception as e:return cors({'error':str(e)},500)
+
+@require_auth
+async def api_referent_history(r):
+
+	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
+	try:
+		from pymongo import DESCENDING
+		server=r.rel_url.query.get('server','')
+		country=r.rel_url.query.get('country','')
+		limit=int(r.rel_url.query.get('limit',200))
+		include_departures=r.rel_url.query.get('departures','0')=='1'
+		if not server or not country:return cors({'error':'server et country requis'},400)
+		query={'server':server.lower(),'country':country.lower()}
+		if not include_departures:query['departure']={'$exists':False}
+		docs=list(db['recruitments'].find(query,{'_id':0}).sort('ts',DESCENDING).limit(limit))
+		for d in docs:
+			if 'ts' in d and hasattr(d['ts'],'strftime'):
+				d['ts']=d['ts'].strftime('%d/%m/%Y %H:%M:%S')
+                                       
+		since=datetime.utcnow()+timedelta(hours=1)-timedelta(days=30)
+		pipeline=[
+		 {'$match':{'server':server.lower(),'country':country.lower(),'ts':{'$gte':since},'departure':{'$exists':False}}},
+		 {'$group':{
+		  '_id':{'$dateToString':{'format':'%Y-%m-%d','date':{'$subtract':['$ts',timedelta(hours=1)]}}},
+		  'count':{'$sum':1},
+		  'players':{'$push':'$player'}
+		 }},
+		 {'$sort':{'_id':1}}
+		]
+		curve=list(db['recruitments'].aggregate(pipeline))
+		for c in curve:c['players']=list(set(c['players']))
+		return cors({'events':docs,'curve':curve,'total':len(docs)})
+	except Exception as e:return cors({'error':str(e)},500)
+
+
+
+
+
+async def api_events(r):
+	"""SSE endpoint — pousse les events co/déco en temps réel"""
+	# EventSource ne supporte pas les headers, token en query param
+	t=r.rel_url.query.get('token') or _get_token(r)
+	if not t or not _jwt_verify(t):return web.Response(status=401,headers=CORS)
+	q=asyncio.Queue()
+	_sse_clients.append(q)
+	resp=web.StreamResponse(headers={**CORS,'Content-Type':'text/event-stream','Cache-Control':'no-cache','X-Accel-Buffering':'no'})
+	await resp.prepare(r)
+	try:
+		await resp.write(b'data: {"type":"ping"}\n\n')
+		while True:
+			try:
+				evt=await asyncio.wait_for(q.get(),timeout=25)
+				payload=json.dumps(evt,ensure_ascii=False)
+				await resp.write(f'data: {payload}\n\n'.encode())
+			except asyncio.TimeoutError:
+				await resp.write(b'data: {"type":"ping"}\n\n')  # keepalive
+	except Exception:pass
+	finally:
+		_sse_clients.remove(q) if q in _sse_clients else None
+	return resp
+
+async def api_health(r):
+    return cors({'status':'ok','mongo':mongo_ok,'ng_key_len':len(NG_KEY or ''),'ng_key_start':(NG_KEY or '')[:10]})
+@require_auth
+async def api_online(r):
+	s=r.match_info['server'].lower()
+	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	pl=await get_online(s);return cors({'server':s,'players':pl,'count':len(pl)})
+@require_auth
+async def api_online_all(r):return cors(await get_all_online())
+@require_auth
+async def api_checkall(r):
+	p=r.match_info['player'];all_=await get_all_online()
+	found=[s for(s,pl)in all_.items()if p in pl]
+	countries_by_server={}
+	for srv in list(SERVERS.keys()):
+		markers=await _fetch_dynmap_markers(srv)
+		for k,v in markers.items():
+			if not k.startswith('default_')or not k.endswith('__home'):continue
+			desc=v.get('desc','')
+			if not desc:continue
+			parsed=_parse_marker_desc(desc)
+			if any(m.lower()==p.lower()for m in parsed['members']):
+				countries_by_server[srv]=v.get('label',k).replace(' [home]','').strip()
+				break
+	country_name='';country_server=''
+	if countries_by_server:
+		country_server=next(iter(countries_by_server))
+		country_name=countries_by_server[country_server]
+	return cors({'player':p,'servers':found,'country':country_name,'country_server':country_server,'countries_by_server':countries_by_server})
+@require_auth
+async def api_countries(r):
+	s=r.match_info['server'].lower()
+	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	raw=await get_country_list(s)
+                                                        
+	names=[x['name']if isinstance(x,dict)else x for x in raw if(isinstance(x,dict)and x.get('name','').strip())or(isinstance(x,str)and x.strip())]
+	return cors({'server':s,'countries':names,'claimed':names})
+@require_auth
+async def api_dim_markers(r):
+	s=r.match_info['server'].lower()
+	dim=r.match_info['dim'].upper()
+	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	if dim not in ('DIM-28','DIM-29','DIM-31'):return cors({'error':'Dimension invalide'},400)
+	cache_key=f"{s}_{dim}"
+	now=time.time()
+	if cache_key in _dim_markers_cache and now-_dim_markers_cache[cache_key][1]<300:
+		return cors(_dim_markers_cache[cache_key][0])
+	try:
+		url=f"https://{s}.nationsglory.fr/tiles/_markers_/marker_{dim}.json"
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))as sess:
+			async with sess.get(url)as resp:
+				if resp.status==200:
+					data=await resp.json(content_type=None)
+					areas=data.get('sets',{}).get('factions.markerset',{}).get('areas',{})
+					_dim_markers_cache[cache_key]=(areas,now)
+					return cors(areas)
+				return cors({'error':f'HTTP {resp.status}'},502)
+	except Exception as e:return cors({'error':str(e)},502)
+
+@require_auth
+
+async def api_souspower(r):
+	s=r.match_info['server'].lower()
+	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	markers=await _fetch_dynmap_markers(s)
+	if not markers:return cors({'error':'Dynmap inaccessible'},503)
+	result=[]
+	for k,v in markers.items():
+		if not k.startswith('default_')or not k.endswith('__home'):continue
+		desc=v.get('desc','')
+		if not desc:continue
+		parsed=_parse_marker_desc(desc)
+		pow,maxpow,claims=parsed['power'],parsed['maxpower'],parsed['claims']
+		if claims==0 and pow==0:continue  # ignorer pays vides/systeme
+		if claims>900000:continue  # ignorer WarZone/SafeZone
+		name=v.get('label',k).replace(' [home]','').strip()
+		marge=pow-claims
+		result.append({'name':name,'power':pow,'maxpower':maxpow,'claims':claims,'marge':marge,
+			'mmr':parsed['mmr'],'leader':parsed['leader'],'members':len(parsed['members']),
+			'x':v.get('x',0),'z':v.get('z',0)})
+	result.sort(key=lambda x:x['marge'])
+	return cors({'server':s,'countries':result,'total':len(result)})
+
+async def api_check(r):
+	s,c=r.match_info['server'].lower(),r.match_info['country']
+	if s not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	country_list=await get_country_list(s)
+	match=next((x for x in country_list if x.lower()==c.lower()),c)
+	members,name,extra=await get_country_from_dynmap(s,match)
+	if not members:return cors({'error':'Pays introuvable'},404)
+	all_=await get_all_online();found,total={},0
+	for(sv,pl)in all_.items():
+		f=[m for m in members if m in pl]
+		if f:found[sv]=f;total+=len(f)
+	return cors({'country':name,'members_total':len(members),'online_total':total,'servers':found,
+		'claims':extra.get('claims',0),'power':extra.get('power',0),'maxpower':extra.get('maxpower',0),
+		'mmr':extra.get('mmr',0),'leader':extra.get('leader','')})
+@require_auth
+async def api_wl_get(r):return cors({'players':WL})
+@require_auth
+async def api_wl_mocha_get(r):return cors({'players':WL_MOCHA})
+async def _wl_mutate(r,lst,save_fn):
+	try:
+		body=await r.json();p=body.get('player','').strip()
+		if not p:return cors({'error':'Nom vide'},400)
+		action=r.path.split('/')[-1]
+		if action=='add'and p not in lst:lst.append(p);await save_fn()
+		elif action=='remove'and p in lst:lst.remove(p);await save_fn()
+		return cors({'players':lst})
+	except Exception as e:return cors({'error':str(e)},400)
+@require_auth
+async def api_wl_add(r):return await _wl_mutate(r,WL,save_watchlist)
+@require_auth
+async def api_wl_remove(r):return await _wl_mutate(r,WL,save_watchlist)
+@require_auth
+async def api_wl_mocha_add(r):return await _wl_mutate(r,WL_MOCHA,save_watchlist_mocha)
+@require_auth
+async def api_wl_mocha_remove(r):return await _wl_mutate(r,WL_MOCHA,save_watchlist_mocha)
+@require_auth
+async def api_pronostic(r):
+	res=get_pronostic(r.match_info['player'])
+	if not res:return cors({'error':'Pas assez de données (min 3)'},404)
+	top,DAYS,total=res;return cors({'player':r.match_info['player'],'total':total,'pronostic':[{'day':DAYS[d],'avg_h':h,'avg_m':m,'pct':pct}for(d,h,m,pct)in top]})
+@require_auth
+async def api_plages(r):
+	res=get_plages(r.match_info['player'])
+	if not res:return cors({'error':'Aucune donnée'},404)
+	hm,DAYS=res;return cors({'player':r.match_info['player'],'days':DAYS,'heatmap':hm})
+@require_auth
+async def api_cw_get(r):return cors({'watches':COUNTRY_WATCHES})
+@require_auth
+async def api_cw_add(r):
+	try:
+		body=await r.json();s=body.get('server','').lower();country=body.get('country','').strip()
+		if not s or not country:return cors({'error':'Données manquantes'},400)
+		exists=any(w['server']==s and w['country'].lower()==country.lower()for w in COUNTRY_WATCHES)
+		if exists:return cors({'error':'Déjà surveillé'},409)
+		COUNTRY_WATCHES.append({'server':s,'country':country,'members':[],'last_alert':False});await save_cw();return cors({'watches':COUNTRY_WATCHES})
+	except Exception as e:return cors({'error':str(e)},400)
+@require_auth
+async def api_cw_remove(r):
+	try:body=await r.json();s=body.get('server','').lower();country=body.get('country','').strip();global COUNTRY_WATCHES;COUNTRY_WATCHES=[w for w in COUNTRY_WATCHES if not(w['server']==s and w['country'].lower()==country.lower())];await save_cw();return cors({'watches':COUNTRY_WATCHES})
+	except Exception as e:return cors({'error':str(e)},400)
+@require_auth
+async def api_grade(r):
+	player=r.match_info['player'];server=r.match_info['server'].lower()
+	try:
+		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8))as s:
+			async with s.get(f"https://publicapi.nationsglory.fr/user/{player}",headers=headers)as resp:
+				if resp.status!=200:return cors({'player':player,'server':server,'rank':None})
+				data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank',None);return cors({'player':player,'server':server,'rank':rank})
+	except Exception as e:return cors({'player':player,'server':server,'rank':None,'error':str(e)})
+
+@require_auth
+async def api_grades_all(r):
+	"""Retourne tous les grades du joueur.
+	   Leader détecté via dynmap (fiable), autres grades via API NG."""
+	player=r.match_info['player']
+	try:
+		# 1) Grades API NG (un seul appel)
+		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+		ng_grades={}
+		try:
+			async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8))as sess:
+				async with sess.get(f"https://publicapi.nationsglory.fr/user/{player}",headers=headers)as resp:
+					if resp.status==200:
+						data=await resp.json()
+						ng_grades={srv:info.get('country_rank',None) for srv,info in data.get('servers',{}).items() if isinstance(info,dict)}
+						print(f"[grades] {player} API NG: {ng_grades}",flush=True)
+		except Exception as e:print(f"[grades] {player} API NG error: {e}",flush=True)
+		# 2) Vérifie le leader dans la dynmap (override API NG si leader)
+		async def check_server(server):
+			try:
+				markers=await _fetch_dynmap_markers(server)
+				pl=player.lower()
+				for k,v in markers.items():
+					if not k.startswith('default_') or not k.endswith('__home'):continue
+					parsed=_parse_marker_desc(v.get('desc',''))
+					if not any(m.lower()==pl for m in parsed['members']):continue
+					if parsed['leader'] and parsed['leader'].lower()==pl:return server,'leader'
+					return server,ng_grades.get(server,None)
+			except Exception as e:print(f"[grades] check {server}: {e}",flush=True)
+			return server,ng_grades.get(server,None)
+		results=await asyncio.gather(*[check_server(srv) for srv in SERVERS])
+		grades={srv:grade for srv,grade in results if grade}
+		print(f"[grades] {player} final: {grades}",flush=True)
+		return cors({'player':player,'grades':grades})
+	except Exception as e:
+		print(f"[grades] {player} error: {e}",flush=True)
+		return cors({'player':player,'grades':{},'error':str(e)})
+
+@require_auth
+async def api_debug_country_desc(r):
+	"""Debug: retourne la desc brute d'un marker dynmap pour voir les grades"""
+	server=r.match_info['server'].lower()
+	country=r.match_info['country']
+	if server not in SERVERS:return cors({'error':'Serveur invalide'},400)
+	markers=await _fetch_dynmap_markers(server)
+	key=f"default_{country}__home"
+	if key not in markers:
+		cl=country.lower()
+		for k,v in markers.items():
+			if cl in k.lower():key=k;break
+	if key not in markers:return cors({'error':'Pays non trouvé','available_keys':list(markers.keys())[:20]},404)
+	v=markers[key]
+	return cors({'key':key,'label':v.get('label',''),'desc_raw':v.get('desc','')[:3000]})
+
+
+@require_auth
+async def api_history(r):
+	"""Retourne l'historique complet sur N jours — tous les jours inclus même sans session."""
+	player=r.match_info['player']
+	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
+	try:
+		days=int(r.rel_url.query.get('days',7))
+		days=min(days,30)
+		now=datetime.utcnow()+timedelta(hours=1)
+		since=now-timedelta(days=days)
+		from pymongo import ASCENDING
+		DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
+		docs=list(sessions_col.find(
+			{'player':player,'ts':{'$gte':since}},
+			{'_id':0,'server':1,'ts':1,'hour':1,'minute':1}
+		).sort('ts',ASCENDING).limit(10000))
+		# Groupe par jour
+		by_day={}
+		for d in docs:
+			ts=d['ts']
+			day_key=ts.strftime('%Y-%m-%d')
+			if day_key not in by_day:
+				label=DAYS_FR[ts.weekday()]+' '+ts.strftime('%d/%m')
+				by_day[day_key]={'label':label,'slots':[]}
+			# On stocke les secondes depuis minuit pour une précision maximale
+			secs=ts.hour*3600+ts.minute*60+ts.second
+			by_day[day_key]['slots'].append({'t':secs,'s':d['server']})
+		# Génère tous les jours de la période (même sans session)
+		result=[]
+		for i in range(days):
+			day_dt=since+timedelta(days=i+1)
+			day_key=day_dt.strftime('%Y-%m-%d')
+			if day_key>now.strftime('%Y-%m-%d'):break
+			label=DAYS_FR[day_dt.weekday()]+' '+day_dt.strftime('%d/%m')
+			slots=by_day.get(day_key,{}).get('slots',[])
+			result.append({'date':day_key,'label':label,'slots':slots})
+		# Calcule la moyenne de connexion par jour (en minutes)
+		# On estime qu'un ping = ~2 min de connexion
+		total_pings=sum(len(d['slots']) for d in result)
+		days_with_data=sum(1 for d in result if d['slots'])
+		# 1 ping = 2 secondes de scan → converti en minutes
+		avg_min_per_day=round(total_pings*2/60/days) if days>0 else 0
+		return cors({'player':player,'days':days,'history':result,'avg_min_per_day':avg_min_per_day,'days_with_data':days_with_data})
+	except Exception as e:return cors({'error':str(e)},500)
+
+@require_auth
+async def api_known_players(r):
+	if not mongo_ok:return cors({'players':[]})
+	try:pl=sessions_col.distinct('player');pl.sort(key=str.lower);return cors({'players':pl})
+	except:return cors({'players':[]})
+async def api_auth_check(r):
+	try:
+		ip=_get_ip(r)
+		if _is_blocked(ip):return cors({'ok':False,'error':'Trop de tentatives, réessaie dans 15 minutes'},429)
+		data=await r.json();password=os.environ.get('SITE_PASSWORD','')
+		if data.get('password')==password:
+			_clear_attempts(ip)
+			token=_jwt_sign({'sub':'user','exp':int(time.time())+86400*7})
+			return cors({'ok':True,'token':token})
+		blocked=_record_fail(ip)
+		remaining=MAX_ATTEMPTS-len(_fail_attempts.get(ip,[]))
+		if blocked:return cors({'ok':False,'error':'Trop de tentatives, réessaie dans 15 minutes'},429)
+		return cors({'ok':False,'error':f'Mot de passe incorrect ({remaining} essais restants)'},401)
+	except:return cors({'ok':False},400)
+
+async def srv_ac(i,cur):return[app_commands.Choice(name=s.upper(),value=s)for s in SERVERS if cur.lower()in s][:25]
+async def ctry_ac(i,cur):
+	s=i.namespace.server
+	if not s or s not in SERVERS:return[]
+	return[app_commands.Choice(name=c,value=c)for c in await get_country_list(s)if cur.lower()in c.lower()][:25]
+@tree.command(name='check',description="Espionner les membres d'un pays")
+@app_commands.autocomplete(server=srv_ac,country=ctry_ac)
+async def cmd_check(i:discord.Interaction,server:str,country:str):
+	await i.response.defer()
+	if server not in SERVERS:return await i.followup.send('❌ Serveur invalide')
+	members,name=await get_country_members(server,country)
+	if not members:return await i.followup.send('❌ Pays introuvable')
+	all_=await get_all_online();found,total={},0
+	for(s,pl)in all_.items():
+		f=[m for m in members if m in pl]
+		if f:found[s]=f;total+=len(f)
+	e=discord.Embed(title=f"📊 Espionnage {name}",color=discord.Color.red())
+	if found:
+		for(s,pl)in sorted(found.items(),key=lambda x:(x[0]!=server,x[0])):lbl=f"{SERVERS[s]['emoji']} {s.upper()} ({len(pl)})"+(' ← cible'if s==server else'');e.add_field(name=lbl,value=', '.join(pl),inline=False)
+		e.set_footer(text=f"Total : {total} | {len(members)} membres")
+	else:e.description=f"✅ Aucun membre de {name} connecté";e.color=discord.Color.green()
+	await i.followup.send(embed=e)
+@tree.command(name='checkall',description='Localiser un joueur')
+async def cmd_checkall(i:discord.Interaction,joueur:str):await i.response.defer();all_=await get_all_online();found=[s for(s,pl)in all_.items()if joueur in pl];e=discord.Embed(title=f"🔍 {joueur}",color=discord.Color.green()if found else discord.Color.red());e.description='\n'.join(f"{SERVERS[s]['emoji']} **{s.upper()}**"for s in found)if found else f"**{joueur}** hors ligne";await i.followup.send(embed=e)
+@tree.command(name='online',description='Joueurs en ligne sur un serveur')
+@app_commands.autocomplete(server=srv_ac)
+async def cmd_online(i:discord.Interaction,server:str):
+	await i.response.defer()
+	if server not in SERVERS:return await i.followup.send('❌ Serveur invalide')
+	pl=await get_online(server);e=discord.Embed(title=f"{SERVERS[server]['emoji']} {server.upper()}",color=discord.Color.blurple())
+	if pl:
+		for(idx,chunk)in enumerate([pl[j:j+20]for j in range(0,len(pl),20)]):e.add_field(name=f"Joueurs {idx+1}",value='\n'.join(f"• {p}"for p in chunk),inline=True)
+		e.set_footer(text=f"{len(pl)} connectés")
+	else:e.description='Aucun joueur'
+	await i.followup.send(embed=e)
+@tree.command(name='pronostic',description='Pronostic de connexion')
+async def cmd_pronostic(i:discord.Interaction,joueur:str):
+	await i.response.defer()
+	if not mongo_ok:return await i.followup.send('❌ MongoDB non connecté',ephemeral=True)
+	res=get_pronostic(joueur)
+	if not res:return await i.followup.send(f"⚠️ Pas assez de données pour **{joueur}**",ephemeral=True)
+	top,DAYS,total=res;e=discord.Embed(title=f"🔮 Pronostic — {joueur}",description=f"Basé sur **{total}** connexions",color=discord.Color.purple())
+	for(d,avg_h,avg_m,pct)in top:e.add_field(name=f"{DAYS[d]} — {pct}%",value=f"`{'█'*(pct//10)}{'░'*(10-pct//10)}` **{avg_h}h{str(avg_m).zfill(2)}**",inline=False)
+	e.set_footer(text='% = fréquence par jour');await i.followup.send(embed=e)
+@tree.command(name='plages',description="Plages horaires d'un joueur")
+async def cmd_plages(i:discord.Interaction,joueur:str):
+	await i.response.defer()
+	if not mongo_ok:return await i.followup.send('❌ MongoDB non connecté',ephemeral=True)
+	res=get_plages(joueur)
+	if not res:return await i.followup.send(f"⚠️ Aucune donnée pour **{joueur}**",ephemeral=True)
+	hm,DAYS=res;e=discord.Embed(title=f"🕐 Plages — {joueur}",color=discord.Color.orange())
+	for d in range(7):
+		row=hm[d]
+		if not sum(row):continue
+		hw=[h for h in range(24)if row[h]];plages,start,prev=[],hw[0],hw[0]
+		for h in hw[1:]:
+			if h-prev>2:plages.append(f"{start}h-{prev+1}h");start=h
+			prev=h
+		plages.append(f"{start}h-{prev+1}h");e.add_field(name=DAYS[d],value=' • '.join(plages),inline=True)
+	e.set_footer(text='Historique complet');await i.followup.send(embed=e)
+def _wl_cmd(name,lst,save_fn,label=''):
+	suffix=f"_{name}"if name else'';tag=f" {label}"if label else''
+	@tree.command(name=f"addwatch{suffix}",description=f"Ajouter à la watchlist{tag}")
+	async def _add(i:discord.Interaction,joueur:str):
+		if joueur in lst:return await i.response.send_message(f"⚠️ **{joueur}** déjà dans la watchlist{tag}",ephemeral=True)
+		lst.append(joueur);await save_fn();await i.response.send_message(f"✅ **{joueur}** ajouté{tag}",ephemeral=True)
+	@tree.command(name=f"removewatch{suffix}",description=f"Retirer de la watchlist{tag}")
+	async def _remove(i:discord.Interaction,joueur:str):
+		if joueur not in lst:return await i.response.send_message(f"❌ **{joueur}** pas dans la watchlist{tag}",ephemeral=True)
+		lst.remove(joueur);await save_fn();await i.response.send_message(f"🗑️ **{joueur}** retiré{tag}",ephemeral=True)
+	@tree.command(name=f"watchlist{suffix}",description=f"Afficher la watchlist{tag}")
+	async def _show(i:discord.Interaction):
+		if not lst:return await i.response.send_message(f"📋 Watchlist{tag} vide",ephemeral=True)
+		e=discord.Embed(title=f"👁️ Watchlist{tag}",color=discord.Color.blurple());e.description='\n'.join(f"• {p}"for p in lst);e.set_footer(text=f"{len(lst)} joueurs");await i.response.send_message(embed=e,ephemeral=True)
+_wl_cmd('',WL,save_watchlist)
+_wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
+last_states={s:{}for s in SERVERS}
+_sse_clients=[]  # liste des queues SSE connectées
+rapport_msg_id=None
+_rate_limited=False
+
+def _sse_broadcast(event):
+	for q in list(_sse_clients):
+		try:q.put_nowait(event)
+		except:pass
+
+async def safe_send(channel,**kwargs):
+	global _rate_limited
+	while True:
+		try:return await channel.send(**kwargs)
+		except discord.errors.HTTPException as e:
+			if e.status==429:
+				retry=e.retry_after if hasattr(e,'retry_after')else 30
+				_rate_limited=True;print(f"⚠️ Rate limit, attente {retry}s",flush=True);await asyncio.sleep(retry);_rate_limited=False
+			else:raise
+
+async def safe_edit(msg,**kwargs):
+	global _rate_limited
+	while True:
+		try:return await msg.edit(**kwargs)
+		except discord.errors.HTTPException as e:
+			if e.status==429:
+				retry=e.retry_after if hasattr(e,'retry_after')else 30
+				_rate_limited=True;print(f"⚠️ Rate limit (edit), attente {retry}s",flush=True);await asyncio.sleep(retry);_rate_limited=False
+			else:raise
+def _status_text(wl,players):
+	on=[p for p in wl if p in players];off=[p for p in wl if p not in players];txt=''
+	if on:txt+=f"🟢 **En ligne ({len(on)}) :**\n"+''.join(f"• {p}\n"for p in on)
+	if off:txt+=('\n'if txt else'')+f"⚪ **Hors ligne ({len(off)}) :**\n"+''.join(f"• {p}\n"for p in off)
+	return txt or'Aucun joueur surveillé en ligne'
+def _rapport_embed(title,count,time_str,status_text,color):e=discord.Embed(title=title,color=color,timestamp=discord.utils.utcnow());e.add_field(name='👥 Connectés',value=f"**{count}**",inline=True);e.add_field(name='⏱️ Relevé', value=f"**{time_str}**", inline=True);e.add_field(name='👁️ Surveillance',value=status_text,inline=False);e.set_footer(text=f"Scanner • MongoDB {'✅'if mongo_ok else'❌'}");return e
+async def _update_rapport(channel,msg_id_ref,embed,save_fn):
+	if not channel:return msg_id_ref
+	if msg_id_ref:
+		try:msg=await channel.fetch_message(msg_id_ref);await safe_edit(msg,embed=embed);return msg_id_ref
+		except discord.NotFound:pass
+	msg=await safe_send(channel,embed=embed);await asyncio.get_running_loop().run_in_executor(None,save_fn,msg.id);return msg.id
+async def scan_server(server,alerte_ch):
+	players=await get_online(server);pset=set(players);prev=last_states[server];mocha_ch=client.get_channel(CH_M_ALERTE);ts=discord.utils.utcnow()
+	for p in pset:
+		if not prev.get(p):
+			record_connection(p,server)
+			if p in WL and alerte_ch:e=discord.Embed(title='🟢 CONNEXION',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts);await safe_send(alerte_ch,embed=e)
+			if p in WL:_sse_broadcast({'type':'connect','player':p,'server':server})
+			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🟢 CONNEXION — MOCHA',description=f"**{p}** → **MOCHA**",color=discord.Color.orange(),timestamp=ts);await safe_send(mocha_ch,embed=e)
+	for(p,was)in prev.items():
+		if was and p not in pset:
+			if p in WL and alerte_ch:e=discord.Embed(title='🔴 DÉCONNEXION',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts);await safe_send(alerte_ch,embed=e)
+			if p in WL:_sse_broadcast({'type':'disconnect','player':p,'server':server})
+			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🔴 DÉCONNEXION — MOCHA',description=f"**{p}** ← **MOCHA**",color=discord.Color.red(),timestamp=ts);await safe_send(mocha_ch,embed=e)
+	last_states[server]={p:True for p in pset};return players
+async def check_country_watch(watch):
+	try:
+		server=watch['server'];country=watch['country'];members,name=await get_country_members(server,country)
+		if not members:return
+                                                                                 
+                                                                    
+		members,rank_map=await verify_members_with_ranks(server,members)
+		if not members:return
+		online_players=await get_online(server);online_members=[m for m in members if m in online_players]
+		if len(online_members)<2:watch['last_alert']=False;watch['members']=online_members;return
+		non_recruits=[(p,rank_map[p])for p in online_members if rank_map.get(p,'')!='recruit']
+		watch['members']=online_members;can_assault=len(online_members)>=2 and len(non_recruits)>=1
+		if can_assault and not watch.get('last_alert'):
+			watch['last_alert']=True;ch=client.get_channel(CH_PAYS)
+			if ch:await safe_send(ch,content=f"⚔ **ASSAUT POSSIBLE** — **{name}** sur **{server.upper()}**")
+		elif not can_assault and watch.get('last_alert'):
+			watch['last_alert']=False;ch=client.get_channel(CH_PAYS)
+			if ch:await safe_send(ch,content=f"✅ **PLUS POSSIBLE** — **{name}** sur **{server.upper()}** (moins de 2 membres ou que des recrues)")
+	except Exception as e:print(f"❌ CW scan {watch}: {e}",flush=True)
+async def scanner_loop():
+	global rapport_msg_id;await client.wait_until_ready();await load_watchlist();await load_watchlist_mocha();rapport_msg_id=await asyncio.get_running_loop().run_in_executor(None,cfg_get,'rapport_msg_id');await load_cw();await load_referents();print(f"📋 Country watches: {len(COUNTRY_WATCHES)}",flush=True);print(f"📋 Référents: {len(REFERENT_WATCHES)}",flush=True);print(f"📋 Rapport ID: {rapport_msg_id}",flush=True);ch_rapport=client.get_channel(CH_RAPPORT);ch_alerte=client.get_channel(CH_ALERTE);tick=0
+	while True:
+		try:
+			results=await asyncio.gather(*[scan_server(s,ch_alerte)for s in SERVERS],return_exceptions=True);sp={s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
+			if tick%3==0 and COUNTRY_WATCHES:await asyncio.gather(*[check_country_watch(w)for w in COUNTRY_WATCHES],return_exceptions=True);await save_cw()
+			if tick%15==0:
+				now=discord.utils.utcnow();ts=(now+timedelta(hours=1)).strftime('%H:%M:%S');lp=sp.get('lime',[]);e=_rapport_embed('🟢 RAPPORT TACTIQUE — LIME',len(lp),ts,_status_text(WL,lp),discord.Color.green()if any(p in lp for p in WL)else discord.Color.greyple());rapport_msg_id=await _update_rapport(ch_rapport,rapport_msg_id,e,lambda mid:cfg_set('rapport_msg_id',mid));mp=sp.get('mocha',[]);mocha_e=_rapport_embed('🟤 RAPPORT TACTIQUE — MOCHA',len(mp),ts,_status_text(WL_MOCHA,mp),discord.Color.orange()if any(p in mp for p in WL_MOCHA)else discord.Color.greyple());ch_mr=client.get_channel(CH_M_RAPPORT)
+				if ch_mr:
+					found=False
+					async for old in ch_mr.history(limit=10):
+						if old.author==client.user and old.embeds and'RAPPORT TACTIQUE — MOCHA'in(old.embeds[0].title or''):await safe_edit(old,embed=mocha_e);found=True;break
+					if not found:await safe_send(ch_mr,embed=mocha_e)
+			tick+=1
+		except discord.errors.HTTPException as e:
+			if e.status==429:retry=e.retry_after if hasattr(e,'retry_after')else 30;print(f"⚠️ Rate limit (loop), attente {retry}s",flush=True);await asyncio.sleep(retry)
+			else:print(f"❌ Scanner HTTP: {e}",flush=True)
+		except Exception as e:print(f"❌ Scanner: {e}",flush=True)
+		await asyncio.sleep(2)
+async def start_web():
+	app=web.Application()
+	routes=[
+	 ('GET','/',api_health),
+ ('GET','/api/events',api_events),
+	 ('GET','/health',api_health),
+	 ('POST','/api/auth-check',api_auth_check),
+	 ('GET','/api/online/{server}',api_online),
+	 ('GET','/api/online_all',api_online_all),
+	 ('GET','/api/playercount',api_playercount),
+	 ('GET','/api/activity',api_activity),
+	 ('GET','/api/checkall/{player}',api_checkall),
+	 ('GET','/api/countries/{server}',api_countries),
+	 ('GET','/api/souspower/{server}',api_souspower),
+ ('GET','/api/dim_markers/{server}/{dim}',api_dim_markers),
+	 ('GET','/api/check/{server}/{country}',api_check),
+	 ('GET','/api/watchlist',api_wl_get),
+	 ('POST','/api/watchlist/add',api_wl_add),
+	 ('POST','/api/watchlist/remove',api_wl_remove),
+	 ('GET','/api/watchlist_mocha',api_wl_mocha_get),
+	 ('POST','/api/watchlist_mocha/add',api_wl_mocha_add),
+	 ('POST','/api/watchlist_mocha/remove',api_wl_mocha_remove),
+	 ('GET','/api/pronostic/{player}',api_pronostic),
+	 ('GET','/api/plages/{player}',api_plages),
+	 ('GET','/api/known_players',api_known_players),
+	 ('GET','/api/grade/{player}/{server}',api_grade),
+	 ('GET','/api/grades/{player}',api_grades_all),
+	 ('GET','/api/history/{player}',api_history),
+	 ('GET','/api/debug/country/{server}/{country}',api_debug_country_desc),
+	 ('GET','/api/country_watches',api_cw_get),
+	 ('POST','/api/country_watches/add',api_cw_add),
+	 ('POST','/api/country_watches/remove',api_cw_remove),
+                                   
+	 ('GET','/api/referents',api_referent_get),
+	 ('POST','/api/referents/add',api_referent_add),
+	 ('POST','/api/referents/remove',api_referent_remove),
+	 ('GET','/api/referents/stats',api_referent_stats),
+	 ('GET','/api/referents/history',api_referent_history),
+	]
+	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
+	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
+async def self_ping():
+	await asyncio.sleep(60);url=(RENDER_URL if RENDER_URL.startswith('http')else f"https://{RENDER_URL}")if RENDER_URL else None
+	while True:
+		if url:
+			try:
+				async with aiohttp.ClientSession()as s:await s.get(url,timeout=aiohttp.ClientTimeout(total=10))
+			except:pass
+		await asyncio.sleep(600)
+async def _start_discord():
+	"""Démarre le bot Discord avec retry — annule les tasks avant chaque retry."""
+	_tasks=[]
+	while True:
+		# Annule les tasks précédentes si elles existent
+		for t in _tasks:
+			if not t.done():t.cancel()
+		if _tasks:await asyncio.gather(*_tasks,return_exceptions=True)
+		_tasks.clear()
+		try:
+			async with client:
+				_tasks.append(asyncio.create_task(scanner_loop()))
+				_tasks.append(asyncio.create_task(referent_tracker_loop()))
+				_tasks.append(asyncio.create_task(activity_recorder_loop()))
+				await client.start(TOKEN)
+		except discord.errors.HTTPException as e:
+			wait=getattr(e,'retry_after',60)
+			print(f"⚠️ Rate limit Discord ({e.status}), retry dans {wait}s",flush=True)
+			await asyncio.sleep(max(float(wait),60))
+		except Exception as e:
+			print(f"❌ Discord erreur: {e}, retry dans 30s",flush=True)
+			await asyncio.sleep(30)
+
+async def main():
+	print('🚀 Démarrage...',flush=True);init_mongo();await asyncio.sleep(2)
+	asyncio.create_task(start_web())
+	if RENDER_URL:asyncio.create_task(self_ping())
+	await _start_discord()
+@client.event
+async def on_ready():await tree.sync();print(f"✅ {client.user} | {len(SERVERS)} serveurs | MongoDB {'✅'if mongo_ok else'❌'}",flush=True)
+if __name__=='__main__':asyncio.run(main())
