@@ -418,52 +418,87 @@ function renderHistoryTimeline(history,containerId,append=false){
     wrap.innerHTML='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);padding:.5rem 0">Aucune connexion sur cette période</div>';
     return;
   }
-  // Grille horaire : 24 colonnes = 0h à 23h, chaque colonne = 1h
-  // Chaque slot (ping toutes ~2s) => on marque la case h de ce serveur
-  const HOURS=Array.from({length:24},(_,i)=>i);
-  let html='<div style="overflow-x:auto">';
-  html+='<table style="border-collapse:collapse;font-family:var(--M);font-size:.48rem;min-width:100%">';
-  // Header heures
-  html+='<tr><td style="color:var(--t3);padding-right:.4rem;white-space:nowrap;font-size:.42rem;min-width:70px">Jour</td>';
-  HOURS.forEach(h=>{
-    html+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem;width:22px">${h}</td>`;
-  });
-  html+='</tr>';
-  // Une ligne par jour
-  history.forEach(day=>{
-    // Construit map h -> [servers]
-    const hmap={};
-    day.slots.forEach(({h,s})=>{
-      if(!hmap[h])hmap[h]=new Set();
-      hmap[h].add(s);
-    });
-    const isEmpty=!day.slots||day.slots.length===0;
-    const dayColor=isEmpty?'var(--t4)':'var(--g)';
-    html+=`<tr><td style="color:${dayColor};padding-right:.4rem;white-space:nowrap;padding-top:3px;font-size:.46rem;opacity:${isEmpty?'.4':'1'}">${day.label}</td>`;
-    HOURS.forEach(h=>{
-      const servers=hmap[h]?[...hmap[h]]:[];
-      if(!servers.length){
-        html+=`<td style="width:22px;height:14px;background:${isEmpty?'rgba(255,255,255,.02)':'rgba(2,5,12,.8)'};border-radius:2px;padding:0"></td>`;
-      } else if(servers.length===1){
-        const col=SRV_COLORS[servers[0]]||'#ffffff';
-        html+=`<td title="${servers[0].toUpperCase()} ${h}h" style="width:22px;height:14px;background:${col}33;border:1px solid ${col}88;border-radius:2px;padding:0;cursor:default"></td>`;
-      } else {
-        const cols=servers.map(s=>SRV_COLORS[s]||'#fff');
-        const grad=`linear-gradient(135deg,${cols.map((c,i)=>`${c}55 ${Math.round(i/cols.length*100)}%,${c}55 ${Math.round((i+1)/cols.length*100)}%`).join(',')})`;
-        html+=`<td title="${servers.map(s=>s.toUpperCase()).join('+')} ${h}h" style="width:22px;height:14px;background:${grad};border-radius:2px;padding:0;cursor:default"></td>`;
-      }
-    });
-    html+='</tr>';
-  });
-  html+='</table></div>';
-  // Légende serveurs présents
+  const TOTAL_MINS=24*60;
+
+  function buildSessions(slots){
+    if(!slots||!slots.length)return[];
+    const sorted=[...slots].sort((a,b)=>(a.h*60+a.m)-(b.h*60+b.m));
+    const sessions=[];let cur=null;
+    for(const {h,m,s} of sorted){
+      const t=h*60+m;
+      if(!cur||s!==cur.server||t-cur.end>3){
+        if(cur)sessions.push(cur);
+        cur={server:s,start:t,end:t+1};
+      } else { cur.end=t+1; }
+    }
+    if(cur)sessions.push(cur);
+    return sessions;
+  }
+  function fmt(t){return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;}
+
+  let html='';
+  // Marqueurs heures en haut
+  html+='<div style="position:relative;height:12px;margin-left:60px;margin-bottom:1px;margin-right:0">';
+  for(let h=0;h<24;h+=3){
+    const pct=(h*60/TOTAL_MINS*100).toFixed(2);
+    html+=`<span style="position:absolute;left:${pct}%;font-family:var(--M);font-size:.36rem;color:var(--t4);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
+  }
+  html+='</div>';
+
   const usedSrvs=new Set();
-  history.forEach(d=>d.slots.forEach(({s})=>usedSrvs.add(s)));
+  history.forEach(day=>{
+    const isEmpty=!day.slots||day.slots.length===0;
+    const sessions=buildSessions(day.slots||[]);
+    sessions.forEach(s=>usedSrvs.add(s.server));
+    const durMin=sessions.reduce((a,s)=>a+(s.end-s.start),0);
+    const durStr=durMin>=60?`${Math.floor(durMin/60)}h${durMin%60?String(durMin%60).padStart(2,'0'):''}`:durMin?`${durMin}min`:'';
+
+    // Ligne = label + barre + durée totale
+    html+=`<div style="margin-bottom:6px">`;
+    html+=`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:2px">`;
+    html+=`<span style="font-family:var(--M);font-size:.46rem;color:${isEmpty?'var(--t4)':'var(--g)'};opacity:${isEmpty?'.35':'1'};min-width:56px;flex-shrink:0;text-align:right">${day.label}</span>`;
+    html+=`<div style="position:relative;flex:1;height:16px;background:rgba(255,255,255,.03);border-radius:3px;overflow:visible;border:1px solid rgba(255,255,255,.05)">`;
+
+    if(isEmpty){
+      html+=`<div style="position:absolute;inset:0;border-radius:3px;display:flex;align-items:center;padding-left:.4rem"><span style="font-family:var(--M);font-size:.36rem;color:var(--t4)">— absent</span></div>`;
+    } else {
+      sessions.forEach(({server,start,end})=>{
+        const col=SRV_COLORS[server]||'#fff';
+        const left=(start/TOTAL_MINS*100).toFixed(3);
+        const width=Math.max(((end-start)/TOTAL_MINS*100),0.4).toFixed(3);
+        html+=`<div style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${col}bb;border-left:2px solid ${col};border-radius:1px;box-sizing:border-box"></div>`;
+      });
+    }
+    html+=`</div>`;
+    if(durStr)html+=`<span style="font-family:var(--M);font-size:.44rem;color:var(--t2);flex-shrink:0;min-width:32px">${durStr}</span>`;
+    html+=`</div>`;
+
+    // Labels de sessions sous la barre
+    if(!isEmpty&&sessions.length){
+      html+=`<div style="position:relative;height:10px;margin-left:60px">`;
+      sessions.forEach(({server,start,end})=>{
+        const col=SRV_COLORS[server]||'#fff';
+        const left=(start/TOTAL_MINS*100).toFixed(3);
+        const width=((end-start)/TOTAL_MINS*100).toFixed(3);
+        const midPct=((start+(end-start)/2)/TOTAL_MINS*100).toFixed(3);
+        const dur=end-start;
+        // Affiche le label si la session dure plus de 8 minutes (sinon trop étroit)
+        if(dur>=8){
+          const label=`${fmt(start)}–${fmt(end)}`;
+          html+=`<span style="position:absolute;left:${left}%;width:${width}%;font-family:var(--M);font-size:.32rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:clip;display:block;text-align:center;line-height:10px">${label}</span>`;
+        }
+      });
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+  });
+
+  // Légende
   if(usedSrvs.size){
-    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;margin-left:60px">';
     [...usedSrvs].sort().forEach(s=>{
       const col=SRV_COLORS[s]||'#fff';
-      html+=`<span style="font-family:var(--M);font-size:.46rem;display:inline-flex;align-items:center;gap:.25rem;color:${col}"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${col}44;border:1px solid ${col}88"></span>${s.toUpperCase()}</span>`;
+      html+=`<span style="font-family:var(--M);font-size:.44rem;display:inline-flex;align-items:center;gap:.25rem;color:${col}"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${col}77;border:1px solid ${col}"></span>${s.toUpperCase()}</span>`;
     });
     html+='</div>';
   }
