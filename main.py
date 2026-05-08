@@ -789,18 +789,41 @@ async def api_grade(r):
 
 @require_auth
 async def api_grades_all(r):
-	"""Retourne tous les grades du joueur sur tous les serveurs en un seul appel API NG"""
+	"""Retourne tous les grades du joueur.
+	   Leader détecté via dynmap (fiable), autres grades via API NG."""
 	player=r.match_info['player']
 	try:
+		# 1) Grades API NG (un seul appel)
 		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
-		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8))as s:
-			async with s.get(f"https://publicapi.nationsglory.fr/user/{player}",headers=headers)as resp:
-				if resp.status!=200:return cors({'player':player,'grades':{}})
-				data=await resp.json()
-				srv_data=data.get('servers',{})
-				grades={srv:info.get('country_rank',None) for srv,info in srv_data.items() if isinstance(info,dict)}
-				return cors({'player':player,'grades':grades})
-	except Exception as e:return cors({'player':player,'grades':{},'error':str(e)})
+		ng_grades={}
+		try:
+			async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8))as sess:
+				async with sess.get(f"https://publicapi.nationsglory.fr/user/{player}",headers=headers)as resp:
+					if resp.status==200:
+						data=await resp.json()
+						ng_grades={srv:info.get('country_rank',None) for srv,info in data.get('servers',{}).items() if isinstance(info,dict)}
+						print(f"[grades] {player} API NG: {ng_grades}",flush=True)
+		except Exception as e:print(f"[grades] {player} API NG error: {e}",flush=True)
+		# 2) Vérifie le leader dans la dynmap (override API NG si leader)
+		async def check_server(server):
+			try:
+				markers=await _fetch_dynmap_markers(server)
+				pl=player.lower()
+				for k,v in markers.items():
+					if not k.startswith('default_') or not k.endswith('__home'):continue
+					parsed=_parse_marker_desc(v.get('desc',''))
+					if not any(m.lower()==pl for m in parsed['members']):continue
+					if parsed['leader'] and parsed['leader'].lower()==pl:return server,'leader'
+					return server,ng_grades.get(server,None)
+			except Exception as e:print(f"[grades] check {server}: {e}",flush=True)
+			return server,ng_grades.get(server,None)
+		results=await asyncio.gather(*[check_server(srv) for srv in SERVERS])
+		grades={srv:grade for srv,grade in results if grade}
+		print(f"[grades] {player} final: {grades}",flush=True)
+		return cors({'player':player,'grades':grades})
+	except Exception as e:
+		print(f"[grades] {player} error: {e}",flush=True)
+		return cors({'player':player,'grades':{},'error':str(e)})
 @require_auth
 async def api_known_players(r):
 	if not mongo_ok:return cors({'players':[]})
