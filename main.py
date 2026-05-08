@@ -786,6 +786,21 @@ async def api_grade(r):
 				if resp.status!=200:return cors({'player':player,'server':server,'rank':None})
 				data=await resp.json();rank=data.get('servers',{}).get(server,{}).get('country_rank',None);return cors({'player':player,'server':server,'rank':rank})
 	except Exception as e:return cors({'player':player,'server':server,'rank':None,'error':str(e)})
+
+@require_auth
+async def api_grades_all(r):
+	"""Retourne tous les grades du joueur sur tous les serveurs en un seul appel API NG"""
+	player=r.match_info['player']
+	try:
+		headers={'Authorization':f"Bearer {NG_KEY}",'accept':'application/json'}
+		async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8))as s:
+			async with s.get(f"https://publicapi.nationsglory.fr/user/{player}",headers=headers)as resp:
+				if resp.status!=200:return cors({'player':player,'grades':{}})
+				data=await resp.json()
+				srv_data=data.get('servers',{})
+				grades={srv:info.get('country_rank',None) for srv,info in srv_data.items() if isinstance(info,dict)}
+				return cors({'player':player,'grades':grades})
+	except Exception as e:return cors({'player':player,'grades':{},'error':str(e)})
 @require_auth
 async def api_known_players(r):
 	if not mongo_ok:return cors({'players':[]})
@@ -1001,6 +1016,7 @@ async def start_web():
 	 ('GET','/api/plages/{player}',api_plages),
 	 ('GET','/api/known_players',api_known_players),
 	 ('GET','/api/grade/{player}/{server}',api_grade),
+	 ('GET','/api/grades/{player}',api_grades_all),
 	 ('GET','/api/country_watches',api_cw_get),
 	 ('POST','/api/country_watches/add',api_cw_add),
 	 ('POST','/api/country_watches/remove',api_cw_remove),
