@@ -107,6 +107,8 @@ def init_mongo():
 		config_col=db['config']
 		sessions_col.create_index([('player',ASCENDING),('ts',ASCENDING)])
 		db['presence'].create_index([('total',-1)])
+		db['sessions2'].create_index([('player',ASCENDING),('start',ASCENDING)])
+		db['sessions2'].create_index([('start',ASCENDING)])
                                
 		db['recruitments'].create_index([('server',ASCENDING),('country',ASCENDING),('ts',ASCENDING)])
 		db['notes'].create_index([('player',ASCENDING)],unique=True)
@@ -114,14 +116,8 @@ def init_mongo():
 		print('✅ MongoDB OK',flush=True)
 	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
 
-_rec_last={}  # dédup : 1 ping par minute max par (player, server)
 def record_connection(player,server):
 	if not mongo_ok:return
-	key=(player,server)
-	now_ts=time.time()
-	# Ne stocke pas si on a déjà pingué cette minute
-	if now_ts-_rec_last.get(key,0)<60:return
-	_rec_last[key]=now_ts
 	try:
 		now=datetime.utcnow()+timedelta(hours=1)
 		sessions_col.insert_one({'player':player,'server':server,'ts':now,'day':now.weekday(),'hour':now.hour,'minute':now.minute})
@@ -850,52 +846,75 @@ async def api_debug_country_desc(r):
 
 @require_auth
 async def api_history(r):
-	"""Retourne l'historique complet sur N jours — tous les jours inclus même sans session."""
+	"""Retourne l'historique sur N jours depuis sessions2 (start/end réels).
+	   Fallback sur ancienne collection sessions si sessions2 vide pour la période."""
 	player=r.match_info['player']
 	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
 	try:
 		days=int(r.rel_url.query.get('days',7))
-		days=min(days,30)
+		days=min(days,365)
 		now=datetime.utcnow()+timedelta(hours=1)
 		since=now-timedelta(days=days)
 		from pymongo import ASCENDING
 		DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
-		# Dédup MongoDB : 1 slot par (jour, heure, minute, server) — corrige l'ancienne version qui pingait toutes les 2s
-		pipeline=[
-			{'$match':{'player':player,'ts':{'$gte':since}}},
-			{'$group':{
-				'_id':{
-					'day':{'$dateToString':{'format':'%Y-%m-%d','date':'$ts'}},
-					'hour':'$hour',
-					'minute':'$minute',
-					'server':'$server'
-				},
-				'ts':{'$first':'$ts'}
-			}},
-			{'$sort':{'ts':ASCENDING}}
-		]
-		docs=list(sessions_col.aggregate(pipeline,allowDiskUse=True))
-		# Groupe par jour
+
+		# ── Lecture sessions2 (données réelles start/end) ──────────────────
+		s2=list(db['sessions2'].find(
+			{'player':player,'start':{'$gte':since}},
+			{'_id':0,'server':1,'start':1,'end':1,'dur':1}
+		).sort('start',ASCENDING))
+
+		# ── Fallback : ancienne collection sessions (pings) ─────────────────
+		# Utilisé uniquement si sessions2 est vide pour cette période
+		if not s2:
+			from pymongo import ASCENDING as ASC
+			pings=list(sessions_col.find(
+				{'player':player,'ts':{'$gte':since}},
+				{'_id':0,'server':1,'ts':1,'hour':1,'minute':1}
+			).sort('ts',ASC).limit(50000))
+			# Reconstruit des sessions approx. depuis les pings (gap 20 min)
+			GAP=timedelta(minutes=20)
+			cur=None
+			for d in pings:
+				ts=d['ts'];srv=d['server']
+				if not cur or srv!=cur['server'] or ts-cur['last']>GAP:
+					if cur:s2.append({'server':cur['server'],'start':cur['start'],'end':cur['last']+timedelta(minutes=5),'dur':int((cur['last']-cur['start']).total_seconds()+300),'_approx':True})
+					cur={'server':srv,'start':ts,'last':ts}
+				else:cur['last']=ts
+			if cur:s2.append({'server':cur['server'],'start':cur['start'],'end':cur['last']+timedelta(minutes=5),'dur':int((cur['last']-cur['start']).total_seconds()+300),'_approx':True})
+
+		# ── Groupe les sessions par jour ────────────────────────────────────
 		by_day={}
-		for d in docs:
-			ts=d['ts']
-			day_key=d['_id']['day']
+		for s in s2:
+			st=s['start']
+			day_key=st.strftime('%Y-%m-%d')
 			if day_key not in by_day:
-				label=DAYS_FR[ts.weekday()]+' '+ts.strftime('%d/%m')
-				by_day[day_key]={'label':label,'slots':[]}
-			secs=ts.hour*3600+ts.minute*60
-			by_day[day_key]['slots'].append({'t':secs,'s':d['_id']['server']})
-		# Génère tous les jours de la période (même sans session)
+				label=DAYS_FR[st.weekday()]+' '+st.strftime('%d/%m')
+				by_day[day_key]={'label':label,'sessions':[]}
+			by_day[day_key]['sessions'].append({
+				'server':s['server'],
+				'start':int(st.hour*3600+st.minute*60+st.second),
+				'end':int(s['end'].hour*3600+s['end'].minute*60+s['end'].second),
+				'dur':s.get('dur',0),
+				'approx':s.get('_approx',False)
+			})
+
+		# ── Génère tous les jours de la période ────────────────────────────
 		result=[]
+		total_dur=0
 		for i in range(days):
 			day_dt=since+timedelta(days=i+1)
 			day_key=day_dt.strftime('%Y-%m-%d')
 			if day_key>now.strftime('%Y-%m-%d'):break
 			label=DAYS_FR[day_dt.weekday()]+' '+day_dt.strftime('%d/%m')
-			slots=by_day.get(day_key,{}).get('slots',[])
-			result.append({'date':day_key,'label':label,'slots':slots})
-		days_with_data=sum(1 for d in result if d['slots'])
-		return cors({'player':player,'days':days,'history':result,'avg_min_per_day':None,'days_with_data':days_with_data})
+			sessions=by_day.get(day_key,{}).get('sessions',[])
+			day_dur=sum(s['dur'] for s in sessions)
+			total_dur+=day_dur
+			result.append({'date':day_key,'label':label,'sessions':sessions,'total_dur':day_dur})
+
+		days_with_data=sum(1 for d in result if d['sessions'])
+		avg_sec=round(total_dur/days) if days>0 else 0
+		return cors({'player':player,'days':days,'history':result,'avg_sec':avg_sec,'days_with_data':days_with_data})
 	except Exception as e:return cors({'error':str(e)},500)
 
 @require_auth
@@ -995,6 +1014,7 @@ def _wl_cmd(name,lst,save_fn,label=''):
 _wl_cmd('',WL,save_watchlist)
 _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
+_session_starts={}  # {(player,server): datetime} — heure de début de session réelle
 _sse_clients=[]  # liste des queues SSE connectées
 rapport_msg_id=None
 _rate_limited=False
@@ -1035,16 +1055,31 @@ async def _update_rapport(channel,msg_id_ref,embed,save_fn):
 		try:msg=await channel.fetch_message(msg_id_ref);await safe_edit(msg,embed=embed);return msg_id_ref
 		except discord.NotFound:pass
 	msg=await safe_send(channel,embed=embed);await asyncio.get_running_loop().run_in_executor(None,save_fn,msg.id);return msg.id
+def _record_session(player,server,start,end):
+	"""Insère une session réelle (start→end) dans sessions2."""
+	if not mongo_ok:return
+	try:
+		dur=int((end-start).total_seconds())
+		if dur<10:return  # ignore les micro-connexions (faux positifs dynmap)
+		db['sessions2'].insert_one({'player':player,'server':server,'start':start,'end':end,'dur':dur})
+	except:pass
+
 async def scan_server(server,alerte_ch):
 	players=await get_online(server);pset=set(players);prev=last_states[server];mocha_ch=client.get_channel(CH_M_ALERTE);ts=discord.utils.utcnow()
+	now=datetime.utcnow()+timedelta(hours=1)
 	for p in pset:
 		if not prev.get(p):
+			# Connexion détectée
+			_session_starts[(p,server)]=now
 			record_connection(p,server)
 			if p in WL and alerte_ch:e=discord.Embed(title='🟢 CONNEXION',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts);await safe_send(alerte_ch,embed=e)
 			if p in WL:_sse_broadcast({'type':'connect','player':p,'server':server})
 			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🟢 CONNEXION — MOCHA',description=f"**{p}** → **MOCHA**",color=discord.Color.orange(),timestamp=ts);await safe_send(mocha_ch,embed=e)
 	for(p,was)in prev.items():
 		if was and p not in pset:
+			# Déconnexion détectée → ferme la session
+			start_dt=_session_starts.pop((p,server),None)
+			if start_dt:_record_session(p,server,start_dt,now)
 			if p in WL and alerte_ch:e=discord.Embed(title='🔴 DÉCONNEXION',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts);await safe_send(alerte_ch,embed=e)
 			if p in WL:_sse_broadcast({'type':'disconnect','player':p,'server':server})
 			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🔴 DÉCONNEXION — MOCHA',description=f"**{p}** ← **MOCHA**",color=discord.Color.red(),timestamp=ts);await safe_send(mocha_ch,embed=e)
