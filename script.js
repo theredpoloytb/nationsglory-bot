@@ -406,14 +406,21 @@ async function wlRS(){const el=$('wl-status');if(!el)return;el.innerHTML=ld();co
 async function loadStats(){
   const raw=$('st-input').value.trim();if(!raw)return;const p=rP(raw,oP);$('st-input').value=p;
   const res=$('st-result');res.innerHTML=`<div class="panel mb"><div class="pacc"></div><div class="ptop"></div><div class="ph"><span class="pt">◐ Analyse — ${p}</span></div><div class="pb">${ld()}</div></div>`;
-  const[lR,pR,plR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/pronostic/'+encodeURIComponent(p)),api('/api/plages/'+encodeURIComponent(p))]);
-  const loc=lR.status==='fulfilled'?lR.value:null,prn=pR.status==='fulfilled'?pR.value:null,plg=plR.status==='fulfilled'?plR.value:null;
+  const[lR,plR,grR]=await Promise.allSettled([api('/api/checkall/'+encodeURIComponent(p)),api('/api/plages/'+encodeURIComponent(p)),api('/api/grades/'+encodeURIComponent(p))]);
+  const loc=lR.status==='fulfilled'?lR.value:null,plg=plR.status==='fulfilled'?plR.value:null;
+  const gradeByServer=(grR.status==='fulfilled'?grR.value?.grades:null)||{};
   const srvs=loc?loc.servers:[];let h='';
   const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
   const cbs=loc?.countries_by_server||{};
-  // Pré-fetch de tous les grades en un seul appel
-  let gradeByServer={};
-  try{const gd=await api('/api/grades/'+encodeURIComponent(p));gradeByServer=gd.grades||{};}catch(e){}
+  function _stPlages(hm,days){
+    if(!hm)return[];
+    return days.map((day,di)=>{
+      const row=hm[di];const slots=[];let start=null;
+      for(let h=0;h<24;h++){if(row[h]>=1){if(start===null)start=h;}else{if(start!==null){slots.push(`${start}h–${h}h`);start=null;}}}
+      if(start!==null)slots.push(`${start}h–0h`);
+      return slots.length?{day,slots}:null;
+    }).filter(Boolean);
+  }
   h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
   h+=SRV.map(s=>{
     const country=cbs[s]||'Wilderness';
@@ -422,21 +429,20 @@ async function loadStats(){
     const countryIcon=country==='Wilderness'?'🌿':'🌍';
     const grade=gradeByServer[s]||null;
     const gradeColor=grade==='leader'?'#ffd700':grade==='recruit'?'var(--red)':grade?'var(--grn)':'var(--t4)';
-    const gradeChip=grade&&country!=='Wilderness'?`<span style="font-family:var(--M);font-size:.48rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.08rem .35rem;white-space:nowrap">${grade==='leader'?'👑':grade==='recruit'?'🪖':'⚔'} ${grade}</span>`:'';
+    const gradeChip=grade&&country!=='Wilderness'?`<span style="font-family:var(--M);font-size:.48rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.08rem .35rem;white-space:nowrap">${grade==='leader'?'👑':grade==='recruit'?'🪶':'⚔'} ${grade}</span>`:'';
     return`<div class="ir"><span class="ik" style="${isOnline?'color:var(--grn)':''}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?` <span style="font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:''}</span><span class="iv" style="display:inline-flex;align-items:center;gap:.35rem"><span style="display:inline-flex;align-items:center;gap:.35rem;background:${country==='Wilderness'?'rgba(255,255,255,.04)':'rgba(91,163,255,.1)'};border:1px solid ${country==='Wilderness'?'rgba(255,255,255,.08)':'rgba(91,163,255,.25)'};border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:${countryColor}">${countryIcon} ${country}</span>${gradeChip}</span></div>`;
   }).join('');
   h+='</div>';
-  h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
-  if(prn?.pronostic?.length){h+=`<div style="font-family:var(--M);font-size:.48rem;color:var(--t3);margin-bottom:.35rem">Basé sur ${prn.total} connexions</div>`;h+=prn.pronostic.map(r=>`<div class="pr"><span class="pd">${r.day}</span><div class="pb3"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp">${r.pct}%</span><span class="pt3">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');}
-  else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Insuffisantes (min. 3)</span></div>`;
+  h+=`<div class="sb"><div class="sbt">🕐 Habitudes de connexion</div>`;
+  const stPlages=_stPlages(plg?.heatmap,plg?.days||[]);
+  if(stPlages.length){
+    h+=`<div style="display:flex;flex-direction:column;gap:.18rem;margin-top:.3rem">`;
+    stPlages.forEach(({day,slots})=>{
+      h+=`<div style="display:flex;align-items:baseline;gap:.6rem;padding:.28rem 0;border-bottom:1px solid var(--b1)"><span style="font-family:var(--M);font-size:.55rem;color:var(--g);min-width:32px;flex-shrink:0">${day}</span><span style="font-family:var(--M);font-size:.6rem;color:var(--t1)">${slots.join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</span></div>`;
+    });
+    h+='</div>';
+  }else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée de connexion</span></div>`;
   h+='</div>';
-  h+=`<div class="sb"><div class="sbt">🕐 Heatmap horaire</div>`;
-  if(plg?.heatmap){const hm=plg.heatmap,days=plg.days,mx=Math.max(...hm.flat(),1);h+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--M);font-size:.47rem;width:100%"><tr><td style="color:var(--t3);padding-right:.34rem;white-space:nowrap">H→</td>`;for(let i=0;i<24;i++)h+=`<td style="color:var(--t3);text-align:center;padding:0 1px;font-size:.4rem">${i}</td>`;h+='</tr>';days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.34rem;white-space:nowrap">${day}</td>`;hm[di].forEach(v=>{const intensity=v?(.04+v/mx*.82).toFixed(2):0;const bg=v?`rgba(0,56,184,${intensity})`:'rgba(2,5,12,.9)';const glow=v&&v/mx>.6?`box-shadow:0 0 4px rgba(0,56,184,${(v/mx*.3).toFixed(2)})`:'';h+=`<td style="width:14px;height:13px;background:${bg};border-radius:1px;padding:0;${glow}"></td>`;});h+='</tr>';});h+='</table></div>';}
-  else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>`;
-  h+='</div>';
-  h+=`<div class="sb"><div class="sbt">◷ Historique</div>`;
-  if(plg?.heatmap){const hm=plg.heatmap,days=plg.days,rows=[];days.forEach((day,di)=>{const tot=hm[di].reduce((a,v)=>a+v,0);if(tot)rows.push({day,total:tot,peakH:hm[di].indexOf(Math.max(...hm[di]))});});rows.sort((a,b)=>b.total-a.total);if(rows.length){h+=`<table class="tbl"><thead><tr><th>Jour</th><th>Connexions</th><th>Pic</th></tr></thead><tbody>`;h+=rows.map(r=>`<tr><td style="color:var(--g)">${r.day}</td><td style="color:var(--gb)">${r.total}</td><td style="color:var(--t3)">${r.peakH}h–${r.peakH+1}h</td></tr>`).join('');h+='</tbody></table>';}else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune connexion</span></div>`;}
-  else h+=`<div class="ir"><span class="ik">Données</span><span class="iv" style="color:var(--t3)">Aucune donnée</span></div>`;
   h+='</div>';res.innerHTML=h;
 }
 
@@ -635,19 +641,32 @@ async function openPlayerPanel(player){
   panel.classList.add('open');overlay.classList.add('open');
   document.body.style.overflow='hidden';
   ppOpen=true;
-  const[caR,prR,plR]=await Promise.allSettled([
+  const[caR,plR,grR]=await Promise.allSettled([
     api('/api/checkall/'+encodeURIComponent(player)),
-    api('/api/pronostic/'+encodeURIComponent(player)),
-    api('/api/plages/'+encodeURIComponent(player))
+    api('/api/plages/'+encodeURIComponent(player)),
+    api('/api/grades/'+encodeURIComponent(player))
   ]);
   const ca=caR.status==='fulfilled'?caR.value:null;
-  const pr=prR.status==='fulfilled'?prR.value:null;
   const pl=plR.status==='fulfilled'?plR.value:null;
+  const gr=grR.status==='fulfilled'?grR.value:null;
+  const gradeByServer=gr?.grades||{};
   const seen=getLastSeenText(player);
   const online=ca&&ca.servers.length>0;
   const profileUrl=`https://nationsglory.fr/profile/${encodeURIComponent(player)}`;
-
   const cbs=ca?.countries_by_server||{};
+
+  function _buildPlages(hm,days){
+    if(!hm)return[];
+    return days.map((day,di)=>{
+      const row=hm[di];const slots=[];let start=null;
+      for(let h=0;h<24;h++){
+        if(row[h]>=1){if(start===null)start=h;}
+        else{if(start!==null){slots.push(`${start}h–${h}h`);start=null;}}
+      }
+      if(start!==null)slots.push(`${start}h–0h`);
+      return slots.length?{day,slots}:null;
+    }).filter(Boolean);
+  }
 
   let h='';
   h+=`<div class="pp-info-row">
@@ -658,7 +677,6 @@ async function openPlayerPanel(player){
         <div class="led ${online?'on':'off'}" style="width:5px;height:5px;flex-shrink:0"></div>
         ${online?ca.servers.map(s=>{const ctry=cbs[s];const hasCtry=ctry&&ctry!=='Wilderness';return`${EMO[s]} ${s.toUpperCase()}${hasCtry?` <span style="font-size:.5rem;color:var(--blue-pale)">🌍 ${ctry}</span>`:''}`; }).join(' · '):'Hors ligne'}
       </div>
-      ${online?(()=>{const pred=predictDecoTime(player);return pred?`<div class="pred-badge ${pred.cls}" style="margin-top:.3rem">⏳ ${pred.text}</div>`:''})():''}
       ${seen?`<div class="pp-meta-line" style="margin-top:.28rem">${seen.text}</div>`:''}
     </div>
   </div>
@@ -667,27 +685,31 @@ async function openPlayerPanel(player){
       const country=cbs[s]||'Wilderness';
       const isOnline=online&&ca.servers.includes(s);
       const isWild=country==='Wilderness';
+      const grade=gradeByServer[s]||null;
+      const gradeColor=grade==='leader'?'#ffd700':grade==='recruit'?'var(--red)':grade?'var(--grn)':'var(--t4)';
+      const gradeChip=grade&&!isWild?`<span style="font-family:var(--M);font-size:.46rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.06rem .3rem">${grade==='leader'?'👑':grade==='recruit'?'🪖':'⚔'} ${grade}</span>`:'';
       return`<div style="display:flex;align-items:center;justify-content:space-between;padding:.22rem .5rem;border-radius:4px;background:${isOnline?'rgba(0,232,122,.05)':''};border:1px solid ${isOnline?'rgba(0,232,122,.15)':'transparent'}">
         <span style="font-family:var(--M);font-size:.58rem;color:${isOnline?'var(--grn)':'var(--t3)'}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?' <span style="font-size:.44rem">●</span>':''}</span>
-        <span style="font-family:var(--M);font-size:.58rem;color:${isWild?'var(--t4)':'var(--blue-pale)'}${isWild?';opacity:.6':''}">${isWild?'🌿':'🌍'} ${country}</span>
+        <span style="display:inline-flex;align-items:center;gap:.3rem">${isWild?`<span style="font-family:var(--M);font-size:.58rem;color:var(--t4);opacity:.6">🌿 Wilderness</span>`:`<span style="font-family:var(--M);font-size:.58rem;color:var(--blue-pale)">🌍 ${country}</span>${gradeChip}`}</span>
       </div>`;
     }).join('')}
   </div>`;
   h+=`<a class="pp-ng-link" href="${profileUrl}" target="_blank" rel="noopener">↗ Profil NationsGlory</a>`;
-  h+=`<div class="pp-section"><div class="pp-sec-title">◐ Pronostic de connexion</div>`;
-  if(pr?.pronostic?.length){
-    h+=`<div style="font-family:var(--M);font-size:.46rem;color:var(--t3);margin-bottom:.3rem">Basé sur ${pr.total} connexions</div>`;
-    h+=pr.pronostic.map(r=>`<div class="pr" style="padding:.28rem 0"><span class="pd">${r.day}</span><div class="pb3"><div class="pbf" style="width:${r.pct}%"></div></div><span class="pp" style="min-width:32px;color:var(--t3);text-align:right;font-size:.52rem">${r.pct}%</span><span style="min-width:44px;color:var(--t1);text-align:right;font-family:var(--M);font-size:.6rem">${r.avg_h}h${String(r.avg_m).padStart(2,'0')}</span></div>`).join('');
-  }else h+=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Pas assez de données</div>`;
-  h+='</div>';
-  if(pl?.heatmap){
-    const hm=pl.heatmap,days=pl.days,mxH=Math.max(...hm.flat(),1);
-    h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Heatmap horaire</div><div style="overflow-x:auto"><table class="pp-heatmap" style="border-collapse:collapse;font-family:var(--M);font-size:.44rem"><tr><td style="color:var(--t3);padding-right:.3rem;font-size:.38rem">H→</td>`;
-    for(let i=0;i<24;i+=2)h+=`<td colspan="2" style="color:var(--t3);text-align:center;padding:0 1px;font-size:.38rem">${i}</td>`;
-    h+='</tr>';
-    days.forEach((day,di)=>{h+=`<tr><td style="color:var(--g);padding-right:.3rem;white-space:nowrap;padding-top:2px;font-size:.44rem">${day}</td>`;hm[di].forEach(v=>{const bg=v?`rgba(0,56,184,${(.04+v/mxH*.82).toFixed(2)})`:'rgba(2,5,12,.9)';h+=`<td style="width:13px;height:11px;background:${bg};border-radius:1px;padding:0"></td>`;});h+='</tr>';});
-    h+='</table></div></div>';
+  h+=`<div class="pp-section"><div class="pp-sec-title">🕐 Habitudes de connexion</div>`;
+  const plages=_buildPlages(pl?.heatmap,pl?.days||[]);
+  if(plages.length){
+    h+=`<div style="display:flex;flex-direction:column;gap:.18rem;margin-top:.3rem">`;
+    plages.forEach(({day,slots})=>{
+      h+=`<div style="display:flex;align-items:baseline;gap:.6rem;padding:.22rem 0;border-bottom:1px solid var(--b1)">
+        <span style="font-family:var(--M);font-size:.52rem;color:var(--g);min-width:28px;flex-shrink:0">${day}</span>
+        <span style="font-family:var(--M);font-size:.56rem;color:var(--t1)">${slots.join('&nbsp; · &nbsp;')}</span>
+      </div>`;
+    });
+    h+='</div>';
+  }else{
+    h+=`<div style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Pas assez de données</div>`;
   }
+  h+='</div>';
   body.innerHTML=h;
 }
 function closePlayerPanel(){
