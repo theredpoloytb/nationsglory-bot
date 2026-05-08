@@ -426,7 +426,7 @@ function renderHistoryTimeline(history,containerId,append=false){
     const sessions=[];let cur=null;
     for(const {h,m,s} of sorted){
       const t=h*60+m;
-      if(!cur||s!==cur.server||t-cur.end>3){
+      if(!cur||s!==cur.server||t-cur.end>15){
         if(cur)sessions.push(cur);
         cur={server:s,start:t,end:t+1};
       } else { cur.end=t+1; }
