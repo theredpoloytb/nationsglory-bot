@@ -419,8 +419,8 @@ function renderHistoryTimeline(history,containerId,append=false){
     return;
   }
   const TOTAL_SECS=24*3600;
-  const GAP_SECS=10*60; // 10 min de gap = nouvelle session
-  const PAD_SECS=5*60;  // on ajoute 5 min à la fin de chaque session
+  const GAP_SECS=20*60; // 20 min de gap = nouvelle session (était 10, trop court)
+  const PAD_SECS=10*60; // on ajoute 10 min à la fin de chaque session (était 5)
 
   function buildSessions(slots){
     if(!slots||!slots.length)return[];
@@ -519,16 +519,27 @@ async function loadHistorySection(player,containerId,periodBtnId,curDays){
   wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div>';
   try{
     const d=await api('/api/history/'+encodeURIComponent(player)+'?days='+curDays);
-    // Affiche la moyenne avant le tableau
-    let avgHtml='';
-    if(d.avg_min_per_day!=null){
-      const h=Math.floor(d.avg_min_per_day/60),m=d.avg_min_per_day%60;
-      const avgStr=h>0?(m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):(m>0?`${m}min`:'< 1 min');
-      avgHtml=`<div style="font-family:var(--M);font-size:.52rem;color:var(--t2);margin-bottom:.5rem;display:flex;gap:.8rem;flex-wrap:wrap">
-        <span>📊 Moy. <b style="color:var(--t1)">${avgStr}/jour</b> sur ${curDays}j</span>
-        <span style="color:var(--t3)">${d.days_with_data||0} jour(s) actif(s)</span>
-      </div>`;
-    }
+    // Calcule la moyenne depuis les sessions reconstituées (fiable peu importe la densité des pings en base)
+    const GAP=20*60,PAD=10*60;
+    let totalSessionSecs=0,daysActive=0;
+    (d.history||[]).forEach(day=>{
+      if(!day.slots||!day.slots.length)return;
+      daysActive++;
+      const norm=day.slots.map(sl=>({t:sl.t!=null?sl.t:(sl.h*3600+sl.m*60),s:sl.s})).sort((a,b)=>a.t-b.t);
+      let cur=null;
+      norm.forEach(({t,s})=>{
+        if(!cur||s!==cur.s||t-cur.last>GAP){if(cur)totalSessionSecs+=cur.last+PAD-cur.start;cur={s,start:t,last:t};}
+        else cur.last=t;
+      });
+      if(cur)totalSessionSecs+=cur.last+PAD-cur.start;
+    });
+    const avgSecs=curDays>0?Math.round(totalSessionSecs/curDays):0;
+    const avgH=Math.floor(avgSecs/3600),avgM=Math.floor((avgSecs%3600)/60);
+    const avgStr=avgH>0?(avgM>0?`${avgH}h${String(avgM).padStart(2,'0')}`:`${avgH}h`):(avgM>0?`${avgM}min`:'< 1 min');
+    const avgHtml=`<div style="font-family:var(--M);font-size:.52rem;color:var(--t2);margin-bottom:.5rem;display:flex;gap:.8rem;flex-wrap:wrap">
+      <span>📊 Moy. <b style="color:var(--t1)">${avgStr}/jour</b> sur ${curDays}j</span>
+      <span style="color:var(--t3)">${daysActive} jour(s) actif(s)</span>
+    </div>`;
     wrap.innerHTML=avgHtml;
     renderHistoryTimeline(d.history||[],containerId,true);
   }catch(e){
