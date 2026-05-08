@@ -411,7 +411,7 @@ const SRV_COLORS={
   jade:'#00c896',black:'#9e9e9e',cyan:'#00d4ff'
 };
 
-function renderHistoryTimeline(history,containerId){
+function renderHistoryTimeline(history,containerId,append=false){
   const wrap=document.getElementById(containerId);
   if(!wrap)return;
   if(!history||!history.length){
@@ -437,16 +437,17 @@ function renderHistoryTimeline(history,containerId){
       if(!hmap[h])hmap[h]=new Set();
       hmap[h].add(s);
     });
-    html+=`<tr><td style="color:var(--g);padding-right:.4rem;white-space:nowrap;padding-top:3px;font-size:.46rem">${day.label}</td>`;
+    const isEmpty=!day.slots||day.slots.length===0;
+    const dayColor=isEmpty?'var(--t4)':'var(--g)';
+    html+=`<tr><td style="color:${dayColor};padding-right:.4rem;white-space:nowrap;padding-top:3px;font-size:.46rem;opacity:${isEmpty?'.4':'1'}">${day.label}</td>`;
     HOURS.forEach(h=>{
       const servers=hmap[h]?[...hmap[h]]:[];
       if(!servers.length){
-        html+=`<td style="width:22px;height:14px;background:rgba(2,5,12,.8);border-radius:2px;padding:0;margin:0 1px"></td>`;
+        html+=`<td style="width:22px;height:14px;background:${isEmpty?'rgba(255,255,255,.02)':'rgba(2,5,12,.8)'};border-radius:2px;padding:0"></td>`;
       } else if(servers.length===1){
         const col=SRV_COLORS[servers[0]]||'#ffffff';
         html+=`<td title="${servers[0].toUpperCase()} ${h}h" style="width:22px;height:14px;background:${col}33;border:1px solid ${col}88;border-radius:2px;padding:0;cursor:default"></td>`;
       } else {
-        // Plusieurs serveurs sur la même heure — gradient
         const cols=servers.map(s=>SRV_COLORS[s]||'#fff');
         const grad=`linear-gradient(135deg,${cols.map((c,i)=>`${c}55 ${Math.round(i/cols.length*100)}%,${c}55 ${Math.round((i+1)/cols.length*100)}%`).join(',')})`;
         html+=`<td title="${servers.map(s=>s.toUpperCase()).join('+')} ${h}h" style="width:22px;height:14px;background:${grad};border-radius:2px;padding:0;cursor:default"></td>`;
@@ -466,7 +467,7 @@ function renderHistoryTimeline(history,containerId){
     });
     html+='</div>';
   }
-  wrap.innerHTML=html;
+  if(append)wrap.innerHTML+=html;else wrap.innerHTML=html;
 }
 
 async function loadHistorySection(player,containerId,periodBtnId,curDays){
@@ -475,7 +476,18 @@ async function loadHistorySection(player,containerId,periodBtnId,curDays){
   wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div>';
   try{
     const d=await api('/api/history/'+encodeURIComponent(player)+'?days='+curDays);
-    renderHistoryTimeline(d.history||[],containerId);
+    // Affiche la moyenne avant le tableau
+    let avgHtml='';
+    if(d.avg_min_per_day!=null){
+      const h=Math.floor(d.avg_min_per_day/60),m=d.avg_min_per_day%60;
+      const avgStr=h>0?(m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):(m>0?`${m}min`:'< 1 min');
+      avgHtml=`<div style="font-family:var(--M);font-size:.52rem;color:var(--t2);margin-bottom:.5rem;display:flex;gap:.8rem;flex-wrap:wrap">
+        <span>📊 Moy. <b style="color:var(--t1)">${avgStr}/jour</b> sur ${curDays}j</span>
+        <span style="color:var(--t3)">${d.days_with_data||0} jour(s) actif(s)</span>
+      </div>`;
+    }
+    wrap.innerHTML=avgHtml;
+    renderHistoryTimeline(d.history||[],containerId,true);
   }catch(e){
     wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--red)">Erreur chargement</div>';
   }
