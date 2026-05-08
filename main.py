@@ -114,8 +114,14 @@ def init_mongo():
 		print('✅ MongoDB OK',flush=True)
 	except Exception as e:print(f"❌ MongoDB: {e}",flush=True)
 
+_rec_last={}  # dédup : 1 ping par minute max par (player, server)
 def record_connection(player,server):
 	if not mongo_ok:return
+	key=(player,server)
+	now_ts=time.time()
+	# Ne stocke pas si on a déjà pingué cette minute
+	if now_ts-_rec_last.get(key,0)<60:return
+	_rec_last[key]=now_ts
 	try:
 		now=datetime.utcnow()+timedelta(hours=1)
 		sessions_col.insert_one({'player':player,'server':server,'ts':now,'day':now.weekday(),'hour':now.hour,'minute':now.minute})
@@ -854,21 +860,31 @@ async def api_history(r):
 		since=now-timedelta(days=days)
 		from pymongo import ASCENDING
 		DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
-		docs=list(sessions_col.find(
-			{'player':player,'ts':{'$gte':since}},
-			{'_id':0,'server':1,'ts':1,'hour':1,'minute':1}
-		).sort('ts',ASCENDING).limit(10000))
+		# Dédup MongoDB : 1 slot par (jour, heure, minute, server) — corrige l'ancienne version qui pingait toutes les 2s
+		pipeline=[
+			{'$match':{'player':player,'ts':{'$gte':since}}},
+			{'$group':{
+				'_id':{
+					'day':{'$dateToString':{'format':'%Y-%m-%d','date':'$ts'}},
+					'hour':'$hour',
+					'minute':'$minute',
+					'server':'$server'
+				},
+				'ts':{'$first':'$ts'}
+			}},
+			{'$sort':{'ts':ASCENDING}}
+		]
+		docs=list(sessions_col.aggregate(pipeline,allowDiskUse=True))
 		# Groupe par jour
 		by_day={}
 		for d in docs:
 			ts=d['ts']
-			day_key=ts.strftime('%Y-%m-%d')
+			day_key=d['_id']['day']
 			if day_key not in by_day:
 				label=DAYS_FR[ts.weekday()]+' '+ts.strftime('%d/%m')
 				by_day[day_key]={'label':label,'slots':[]}
-			# On stocke les secondes depuis minuit pour une précision maximale
-			secs=ts.hour*3600+ts.minute*60+ts.second
-			by_day[day_key]['slots'].append({'t':secs,'s':d['server']})
+			secs=ts.hour*3600+ts.minute*60
+			by_day[day_key]['slots'].append({'t':secs,'s':d['_id']['server']})
 		# Génère tous les jours de la période (même sans session)
 		result=[]
 		for i in range(days):
@@ -878,13 +894,8 @@ async def api_history(r):
 			label=DAYS_FR[day_dt.weekday()]+' '+day_dt.strftime('%d/%m')
 			slots=by_day.get(day_key,{}).get('slots',[])
 			result.append({'date':day_key,'label':label,'slots':slots})
-		# Calcule la moyenne de connexion par jour (en minutes)
-		# On estime qu'un ping = ~2 min de connexion
-		total_pings=sum(len(d['slots']) for d in result)
 		days_with_data=sum(1 for d in result if d['slots'])
-		# 1 ping = 2 secondes de scan → converti en minutes
-		avg_min_per_day=round(total_pings*2/60/days) if days>0 else 0
-		return cors({'player':player,'days':days,'history':result,'avg_min_per_day':avg_min_per_day,'days_with_data':days_with_data})
+		return cors({'player':player,'days':days,'history':result,'avg_min_per_day':None,'days_with_data':days_with_data})
 	except Exception as e:return cors({'error':str(e)},500)
 
 @require_auth
