@@ -418,29 +418,37 @@ function renderHistoryTimeline(history,containerId,append=false){
     wrap.innerHTML='<div style="font-family:var(--M);font-size:.55rem;color:var(--t3);padding:.5rem 0">Aucune connexion sur cette période</div>';
     return;
   }
-  const TOTAL_MINS=24*60;
+  const TOTAL_SECS=24*3600;
+  const GAP_SECS=10*60; // 10 min de gap = nouvelle session
+  const PAD_SECS=5*60;  // on ajoute 5 min à la fin de chaque session
 
   function buildSessions(slots){
     if(!slots||!slots.length)return[];
-    const sorted=[...slots].sort((a,b)=>(a.h*60+a.m)-(b.h*60+b.m));
+    // slots peuvent avoir {t, s} (secondes) ou legacy {h, m, s}
+    const norm=slots.map(sl=>({t:sl.t!=null?sl.t:(sl.h*3600+sl.m*60),s:sl.s}));
+    const sorted=[...norm].sort((a,b)=>a.t-b.t);
     const sessions=[];let cur=null;
-    for(const {h,m,s} of sorted){
-      const t=h*60+m;
-      if(!cur||s!==cur.server||t-cur.end>15){
-        if(cur)sessions.push(cur);
-        cur={server:s,start:t,end:t+1};
-      } else { cur.end=t+1; }
+    for(const {t,s} of sorted){
+      if(!cur||s!==cur.server||t-cur.lastPing>GAP_SECS){
+        if(cur)sessions.push({...cur,end:cur.lastPing+PAD_SECS});
+        cur={server:s,start:t,lastPing:t};
+      } else {
+        cur.lastPing=t;
+      }
     }
-    if(cur)sessions.push(cur);
+    if(cur)sessions.push({...cur,end:cur.lastPing+PAD_SECS});
     return sessions;
   }
-  function fmt(t){return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;}
+  function fmt(secs){
+    const s=Math.min(secs,TOTAL_SECS-1);
+    return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}`;
+  }
 
   let html='';
   // Marqueurs heures en haut
   html+='<div style="position:relative;height:12px;margin-left:60px;margin-bottom:1px;margin-right:0">';
   for(let h=0;h<24;h+=3){
-    const pct=(h*60/TOTAL_MINS*100).toFixed(2);
+    const pct=(h*3600/TOTAL_SECS*100).toFixed(2);
     html+=`<span style="position:absolute;left:${pct}%;font-family:var(--M);font-size:.36rem;color:var(--t4);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
   }
   html+='</div>';
@@ -450,7 +458,8 @@ function renderHistoryTimeline(history,containerId,append=false){
     const isEmpty=!day.slots||day.slots.length===0;
     const sessions=buildSessions(day.slots||[]);
     sessions.forEach(s=>usedSrvs.add(s.server));
-    const durMin=sessions.reduce((a,s)=>a+(s.end-s.start),0);
+    const durSec=sessions.reduce((a,s)=>a+(s.end-s.start),0);
+    const durMin=Math.round(durSec/60);
     const durStr=durMin>=60?`${Math.floor(durMin/60)}h${durMin%60?String(durMin%60).padStart(2,'0'):''}`:durMin?`${durMin}min`:'';
 
     // Ligne = label + barre + durée totale
@@ -464,8 +473,8 @@ function renderHistoryTimeline(history,containerId,append=false){
     } else {
       sessions.forEach(({server,start,end})=>{
         const col=SRV_COLORS[server]||'#fff';
-        const left=(start/TOTAL_MINS*100).toFixed(3);
-        const width=Math.max(((end-start)/TOTAL_MINS*100),0.4).toFixed(3);
+        const left=(start/TOTAL_SECS*100).toFixed(3);
+        const width=Math.max(((end-start)/TOTAL_SECS*100),0.5).toFixed(3);
         html+=`<div style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${col}bb;border-left:2px solid ${col};border-radius:1px;box-sizing:border-box"></div>`;
       });
     }
@@ -478,12 +487,11 @@ function renderHistoryTimeline(history,containerId,append=false){
       html+=`<div style="position:relative;height:10px;margin-left:60px">`;
       sessions.forEach(({server,start,end})=>{
         const col=SRV_COLORS[server]||'#fff';
-        const left=(start/TOTAL_MINS*100).toFixed(3);
-        const width=((end-start)/TOTAL_MINS*100).toFixed(3);
-        const midPct=((start+(end-start)/2)/TOTAL_MINS*100).toFixed(3);
-        const dur=end-start;
-        // Affiche le label si la session dure plus de 8 minutes (sinon trop étroit)
-        if(dur>=8){
+        const left=(start/TOTAL_SECS*100).toFixed(3);
+        const width=((end-start)/TOTAL_SECS*100).toFixed(3);
+        const durSecs=end-start;
+        // Affiche le label si la session dure plus de 10 minutes
+        if(durSecs>=600){
           const label=`${fmt(start)}–${fmt(end)}`;
           html+=`<span style="position:absolute;left:${left}%;width:${width}%;font-family:var(--M);font-size:.32rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:clip;display:block;text-align:center;line-height:10px">${label}</span>`;
         }
