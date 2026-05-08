@@ -411,13 +411,19 @@ async function loadStats(){
   const srvs=loc?loc.servers:[];let h='';
   const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
   const cbs=loc?.countries_by_server||{};
+  // Pré-fetch des grades sur tous les serveurs où le joueur a un pays
+  const gradeResults=await Promise.allSettled(SRV.map(s=>getPlayerGrade(p,s)));
+  const gradeByServer={};SRV.forEach((s,i)=>{if(gradeResults[i].status==='fulfilled'&&gradeResults[i].value)gradeByServer[s]=gradeResults[i].value;});
   h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
   h+=SRV.map(s=>{
     const country=cbs[s]||'Wilderness';
     const isOnline=srvs.includes(s);
     const countryColor=country==='Wilderness'?'var(--t4)':'var(--blue-pale)';
     const countryIcon=country==='Wilderness'?'🌿':'🌍';
-    return`<div class="ir"><span class="ik" style="${isOnline?'color:var(--grn)':''}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?` <span style="font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:''}</span><span class="iv"><span style="display:inline-flex;align-items:center;gap:.35rem;background:${country==='Wilderness'?'rgba(255,255,255,.04)':'rgba(91,163,255,.1)'};border:1px solid ${country==='Wilderness'?'rgba(255,255,255,.08)':'rgba(91,163,255,.25)'};border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:${countryColor}">${countryIcon} ${country}</span></span></div>`;
+    const grade=gradeByServer[s]||null;
+    const gradeColor=grade==='leader'?'#ffd700':grade==='recruit'?'var(--red)':grade?'var(--grn)':'var(--t4)';
+    const gradeChip=grade&&country!=='Wilderness'?`<span style="font-family:var(--M);font-size:.48rem;color:${gradeColor};background:${grade==='leader'?'rgba(255,215,0,.1)':grade==='recruit'?'rgba(255,51,85,.1)':'rgba(0,232,122,.08)'};border:1px solid ${grade==='leader'?'rgba(255,215,0,.3)':grade==='recruit'?'rgba(255,51,85,.25)':'rgba(0,232,122,.2)'};border-radius:3px;padding:.08rem .35rem;white-space:nowrap">${grade==='leader'?'👑':grade==='recruit'?'🪖':'⚔'} ${grade}</span>`:'';
+    return`<div class="ir"><span class="ik" style="${isOnline?'color:var(--grn)':''}">${EMO[s]||''} ${s.toUpperCase()}${isOnline?` <span style="font-size:.46rem;color:var(--grn)">● EN LIGNE</span>`:''}</span><span class="iv" style="display:inline-flex;align-items:center;gap:.35rem"><span style="display:inline-flex;align-items:center;gap:.35rem;background:${country==='Wilderness'?'rgba(255,255,255,.04)':'rgba(91,163,255,.1)'};border:1px solid ${country==='Wilderness'?'rgba(255,255,255,.08)':'rgba(91,163,255,.25)'};border-radius:4px;padding:.18rem .6rem;font-family:var(--M);font-size:.6rem;color:${countryColor}">${countryIcon} ${country}</span>${gradeChip}</span></div>`;
   }).join('');
   h+='</div>';
   h+=`<div class="sb"><div class="sbt">◐ Pronostic de connexion</div>`;
