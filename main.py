@@ -841,6 +841,36 @@ async def api_debug_country_desc(r):
 	v=markers[key]
 	return cors({'key':key,'label':v.get('label',''),'desc_raw':v.get('desc','')[:3000]})
 
+
+@require_auth
+async def api_history(r):
+	"""Retourne l'historique brut des connexions d'un joueur sur N jours,
+	groupé par jour + heure pour afficher un timeline par serveur."""
+	player=r.match_info['player']
+	if not mongo_ok:return cors({'error':'MongoDB non connecté'},503)
+	try:
+		days=int(r.rel_url.query.get('days',7))
+		days=min(days,30)
+		now=datetime.utcnow()+timedelta(hours=1)
+		since=now-timedelta(days=days)
+		from pymongo import ASCENDING
+		docs=list(sessions_col.find(
+			{'player':player,'ts':{'$gte':since}},
+			{'_id':0,'server':1,'ts':1,'hour':1,'minute':1}
+		).sort('ts',ASCENDING).limit(5000))
+		# Groupe par jour (YYYY-MM-DD) → liste de {hour, server}
+		by_day={}
+		for d in docs:
+			ts=d['ts']
+			day_key=ts.strftime('%Y-%m-%d')
+			day_label=ts.strftime('%A %d/%m').capitalize()
+			if day_key not in by_day:by_day[day_key]={'label':day_label,'slots':[]}
+			by_day[day_key]['slots'].append({'h':d.get('hour',ts.hour),'m':d.get('minute',ts.minute),'s':d['server']})
+		# Retourne dans l'ordre chronologique
+		result=[{'date':k,'label':v['label'],'slots':v['slots']} for k,v in sorted(by_day.items())]
+		return cors({'player':player,'days':days,'history':result})
+	except Exception as e:return cors({'error':str(e)},500)
+
 @require_auth
 async def api_known_players(r):
 	if not mongo_ok:return cors({'players':[]})
@@ -1057,6 +1087,7 @@ async def start_web():
 	 ('GET','/api/known_players',api_known_players),
 	 ('GET','/api/grade/{player}/{server}',api_grade),
 	 ('GET','/api/grades/{player}',api_grades_all),
+	 ('GET','/api/history/{player}',api_history),
 	 ('GET','/api/debug/country/{server}/{country}',api_debug_country_desc),
 	 ('GET','/api/country_watches',api_cw_get),
 	 ('POST','/api/country_watches/add',api_cw_add),
