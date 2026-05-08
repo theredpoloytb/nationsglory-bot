@@ -1124,13 +1124,19 @@ async def self_ping():
 			except:pass
 		await asyncio.sleep(600)
 async def _start_discord():
-	"""Démarre le bot Discord avec retry — ne tue jamais le process."""
+	"""Démarre le bot Discord avec retry — annule les tasks avant chaque retry."""
+	_tasks=[]
 	while True:
+		# Annule les tasks précédentes si elles existent
+		for t in _tasks:
+			if not t.done():t.cancel()
+		if _tasks:await asyncio.gather(*_tasks,return_exceptions=True)
+		_tasks.clear()
 		try:
 			async with client:
-				asyncio.create_task(scanner_loop())
-				asyncio.create_task(referent_tracker_loop())
-				asyncio.create_task(activity_recorder_loop())
+				_tasks.append(asyncio.create_task(scanner_loop()))
+				_tasks.append(asyncio.create_task(referent_tracker_loop()))
+				_tasks.append(asyncio.create_task(activity_recorder_loop()))
 				await client.start(TOKEN)
 		except discord.errors.HTTPException as e:
 			wait=getattr(e,'retry_after',60)
