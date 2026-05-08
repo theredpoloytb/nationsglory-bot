@@ -411,9 +411,9 @@ async function loadStats(){
   const srvs=loc?loc.servers:[];let h='';
   const skinUrl=`https://skins.nationsglory.fr/face/${encodeURIComponent(p)}/64`;
   const cbs=loc?.countries_by_server||{};
-  // Pré-fetch des grades sur tous les serveurs où le joueur a un pays
-  const gradeResults=await Promise.allSettled(SRV.map(s=>getPlayerGrade(p,s)));
-  const gradeByServer={};SRV.forEach((s,i)=>{if(gradeResults[i].status==='fulfilled'&&gradeResults[i].value)gradeByServer[s]=gradeResults[i].value;});
+  // Pré-fetch de tous les grades en un seul appel
+  let gradeByServer={};
+  try{const gd=await api('/api/grades/'+encodeURIComponent(p));gradeByServer=gd.grades||{};}catch(e){}
   h+=`<div class="sb"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><img src="${skinUrl}" style="width:48px;height:48px;border-radius:6px;border:1px solid var(--b2);image-rendering:pixelated;flex-shrink:0" onerror="this.src='https://mc-heads.net/avatar/${encodeURIComponent(p)}/64'" alt=""><div><div class="sbt" style="margin:0 0 .25rem">◉ Localisation</div>${srvs.length?srvs.map(s=>`<span class="stag" style="margin-right:.3rem">${EMO[s]||''} ${s.toUpperCase()}</span>`).join(''):`<span style="font-family:var(--M);font-size:.55rem;color:var(--t3)">Hors ligne</span>`}</div></div>`;
   h+=SRV.map(s=>{
     const country=cbs[s]||'Wilderness';
