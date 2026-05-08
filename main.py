@@ -866,7 +866,9 @@ async def api_history(r):
 			if day_key not in by_day:
 				label=DAYS_FR[ts.weekday()]+' '+ts.strftime('%d/%m')
 				by_day[day_key]={'label':label,'slots':[]}
-			by_day[day_key]['slots'].append({'h':d.get('hour',ts.hour),'m':d.get('minute',ts.minute),'s':d['server']})
+			# On stocke les secondes depuis minuit pour une précision maximale
+			secs=ts.hour*3600+ts.minute*60+ts.second
+			by_day[day_key]['slots'].append({'t':secs,'s':d['server']})
 		# Génère tous les jours de la période (même sans session)
 		result=[]
 		for i in range(days):
