@@ -880,7 +880,8 @@ async def api_history(r):
 		# On estime qu'un ping = ~2 min de connexion
 		total_pings=sum(len(d['slots']) for d in result)
 		days_with_data=sum(1 for d in result if d['slots'])
-		avg_min_per_day=round(total_pings*2/days) if days>0 else 0
+		# 1 ping = 2 secondes de scan → converti en minutes
+		avg_min_per_day=round(total_pings*2/60/days) if days>0 else 0
 		return cors({'player':player,'days':days,'history':result,'avg_min_per_day':avg_min_per_day,'days_with_data':days_with_data})
 	except Exception as e:return cors({'error':str(e)},500)
 
