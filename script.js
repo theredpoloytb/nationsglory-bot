@@ -419,91 +419,78 @@ function renderHistoryTimeline(history,containerId,append=false){
     return;
   }
   const TOTAL_SECS=24*3600;
-  const GAP_SECS=20*60; // 20 min de gap = nouvelle session (était 10, trop court)
-  const PAD_SECS=10*60; // on ajoute 10 min à la fin de chaque session (était 5)
-
-  function buildSessions(slots){
-    if(!slots||!slots.length)return[];
-    // slots peuvent avoir {t, s} (secondes) ou legacy {h, m, s}
-    const norm=slots.map(sl=>({t:sl.t!=null?sl.t:(sl.h*3600+sl.m*60),s:sl.s}));
-    const sorted=[...norm].sort((a,b)=>a.t-b.t);
-    const sessions=[];let cur=null;
-    for(const {t,s} of sorted){
-      if(!cur||s!==cur.server||t-cur.lastPing>GAP_SECS){
-        if(cur)sessions.push({...cur,end:cur.lastPing+PAD_SECS});
-        cur={server:s,start:t,lastPing:t};
-      } else {
-        cur.lastPing=t;
-      }
-    }
-    if(cur)sessions.push({...cur,end:cur.lastPing+PAD_SECS});
-    return sessions;
-  }
   function fmt(secs){
-    const s=Math.min(secs,TOTAL_SECS-1);
-    return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}`;
+    secs=((secs%TOTAL_SECS)+TOTAL_SECS)%TOTAL_SECS;
+    return `${String(Math.floor(secs/3600)).padStart(2,'0')}:${String(Math.floor((secs%3600)/60)).padStart(2,'0')}`;
   }
+  function durStr(secs){
+    const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60);
+    return h>0?(m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):(m>0?`${m}min`:'< 1min');
+  }
+
+  // collecte les serveurs utilisés pour la légende
+  const usedSrvs=new Set();
+  history.forEach(day=>(day.sessions||[]).forEach(s=>usedSrvs.add(s.server)));
 
   let html='';
-  // Marqueurs heures en haut
-  html+='<div style="position:relative;height:12px;margin-left:60px;margin-bottom:1px;margin-right:0">';
+  // Marqueurs heures
+  html+='<div style="position:relative;height:12px;margin-left:70px;margin-right:48px;margin-bottom:2px">';
   for(let h=0;h<24;h+=3){
-    const pct=(h*3600/TOTAL_SECS*100).toFixed(2);
-    html+=`<span style="position:absolute;left:${pct}%;font-family:var(--M);font-size:.36rem;color:var(--t4);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
+    const pct=(h/24*100).toFixed(2);
+    html+=`<span style="position:absolute;left:${pct}%;font-family:var(--M);font-size:.34rem;color:var(--t4);transform:translateX(-50%)">${String(h).padStart(2,'0')}h</span>`;
   }
   html+='</div>';
 
-  const usedSrvs=new Set();
   history.forEach(day=>{
-    const isEmpty=!day.slots||day.slots.length===0;
-    const sessions=buildSessions(day.slots||[]);
-    sessions.forEach(s=>usedSrvs.add(s.server));
-    const durSec=sessions.reduce((a,s)=>a+(s.end-s.start),0);
-    const durMin=Math.round(durSec/60);
-    const durStr=durMin>=60?`${Math.floor(durMin/60)}h${durMin%60?String(durMin%60).padStart(2,'0'):''}`:durMin?`${durMin}min`:'';
+    const sessions=day.sessions||[];
+    const isEmpty=sessions.length===0;
+    const dayDur=day.total_dur||0;
 
-    // Ligne = label + barre + durée totale
-    html+=`<div style="margin-bottom:6px">`;
-    html+=`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:2px">`;
-    html+=`<span style="font-family:var(--M);font-size:.46rem;color:${isEmpty?'var(--t4)':'var(--g)'};opacity:${isEmpty?'.35':'1'};min-width:56px;flex-shrink:0;text-align:right">${day.label}</span>`;
-    html+=`<div style="position:relative;flex:1;height:16px;background:rgba(255,255,255,.03);border-radius:3px;overflow:visible;border:1px solid rgba(255,255,255,.05)">`;
-
+    html+=`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:5px">`;
+    // Label jour
+    html+=`<span style="font-family:var(--M);font-size:.44rem;color:${isEmpty?'var(--t4)':'var(--g)'};opacity:${isEmpty?'.35':'1'};min-width:66px;flex-shrink:0;text-align:right">${day.label}</span>`;
+    // Barre
+    html+=`<div style="position:relative;flex:1;height:18px;background:rgba(255,255,255,.03);border-radius:3px;overflow:visible;border:1px solid rgba(255,255,255,.04)">`;
     if(isEmpty){
-      html+=`<div style="position:absolute;inset:0;border-radius:3px;display:flex;align-items:center;padding-left:.4rem"><span style="font-family:var(--M);font-size:.36rem;color:var(--t4)">— absent</span></div>`;
+      html+=`<div style="position:absolute;inset:0;display:flex;align-items:center;padding-left:.4rem"><span style="font-family:var(--M);font-size:.34rem;color:var(--t4)">—</span></div>`;
     } else {
-      sessions.forEach(({server,start,end})=>{
+      sessions.forEach(({server,start,end,approx})=>{
         const col=SRV_COLORS[server]||'#fff';
-        const left=(start/TOTAL_SECS*100).toFixed(3);
-        const width=Math.max(((end-start)/TOTAL_SECS*100),0.5).toFixed(3);
-        html+=`<div style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${col}bb;border-left:2px solid ${col};border-radius:1px;box-sizing:border-box"></div>`;
+        // gère les sessions qui passent minuit
+        const s=Math.max(0,start),e=end>start?Math.min(TOTAL_SECS,end):TOTAL_SECS;
+        const left=(s/TOTAL_SECS*100).toFixed(3);
+        const width=Math.max(((e-s)/TOTAL_SECS*100),0.4).toFixed(3);
+        const label=`${server.toUpperCase()} ${fmt(s)}→${fmt(e)} (${durStr(e-s)})${approx?' ~':''}`;
+        html+=`<div title="${label}" style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${col}${approx?'77':'cc'};border-left:2px solid ${col};border-radius:2px;box-sizing:border-box;cursor:default"></div>`;
       });
     }
     html+=`</div>`;
-    if(durStr)html+=`<span style="font-family:var(--M);font-size:.44rem;color:var(--t2);flex-shrink:0;min-width:32px">${durStr}</span>`;
+    // Durée totale
+    if(dayDur>0)html+=`<span style="font-family:var(--M);font-size:.42rem;color:var(--t2);flex-shrink:0;min-width:42px;text-align:right">${durStr(dayDur)}</span>`;
+    else html+=`<span style="min-width:42px"></span>`;
     html+=`</div>`;
 
-    // Labels de sessions sous la barre
-    if(!isEmpty&&sessions.length){
-      html+=`<div style="position:relative;height:10px;margin-left:60px">`;
-      sessions.forEach(({server,start,end})=>{
-        const col=SRV_COLORS[server]||'#fff';
-        const left=(start/TOTAL_SECS*100).toFixed(3);
-        const width=((end-start)/TOTAL_SECS*100).toFixed(3);
-        const durSecs=end-start;
-        // Affiche le label si la session dure plus de 10 minutes
-        if(durSecs>=600){
-          const label=`${fmt(start)}–${fmt(end)}`;
-          html+=`<span style="position:absolute;left:${left}%;width:${width}%;font-family:var(--M);font-size:.32rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:clip;display:block;text-align:center;line-height:10px">${label}</span>`;
-        }
-      });
-      html+=`</div>`;
+    // Labels sous la barre pour les sessions longues (>15min)
+    if(!isEmpty){
+      const hasLabel=sessions.some(s=>s.end-s.start>=900);
+      if(hasLabel){
+        html+=`<div style="position:relative;height:9px;margin-left:70px;margin-right:48px;margin-bottom:1px">`;
+        sessions.forEach(({server,start,end})=>{
+          if(end-start<900)return;
+          const col=SRV_COLORS[server]||'#fff';
+          const s=Math.max(0,start),e=end>start?Math.min(TOTAL_SECS,end):TOTAL_SECS;
+          const left=(s/TOTAL_SECS*100).toFixed(3);
+          const width=((e-s)/TOTAL_SECS*100).toFixed(3);
+          html+=`<span style="position:absolute;left:${left}%;width:${width}%;font-family:var(--M);font-size:.3rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:clip;display:block;text-align:center;line-height:9px">${fmt(s)}–${fmt(e)}</span>`;
+        });
+        html+=`</div>`;
+      }
     }
-    html+=`</div>`;
   });
 
   // Légende
   if(usedSrvs.size){
-    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;margin-left:60px">';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem;margin-left:70px">';
     [...usedSrvs].sort().forEach(s=>{
       const col=SRV_COLORS[s]||'#fff';
       html+=`<span style="font-family:var(--M);font-size:.44rem;display:inline-flex;align-items:center;gap:.25rem;color:${col}"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${col}77;border:1px solid ${col}"></span>${s.toUpperCase()}</span>`;
@@ -513,32 +500,20 @@ function renderHistoryTimeline(history,containerId,append=false){
   if(append)wrap.innerHTML+=html;else wrap.innerHTML=html;
 }
 
+
 async function loadHistorySection(player,containerId,periodBtnId,curDays){
   const wrap=document.getElementById(containerId);
   if(!wrap)return;
   wrap.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--t3)">Chargement...</div>';
   try{
     const d=await api('/api/history/'+encodeURIComponent(player)+'?days='+curDays);
-    // Calcule la moyenne depuis les sessions reconstituées (fiable peu importe la densité des pings en base)
-    const GAP=20*60,PAD=10*60;
-    let totalSessionSecs=0,daysActive=0;
-    (d.history||[]).forEach(day=>{
-      if(!day.slots||!day.slots.length)return;
-      daysActive++;
-      const norm=day.slots.map(sl=>({t:sl.t!=null?sl.t:(sl.h*3600+sl.m*60),s:sl.s})).sort((a,b)=>a.t-b.t);
-      let cur=null;
-      norm.forEach(({t,s})=>{
-        if(!cur||s!==cur.s||t-cur.last>GAP){if(cur)totalSessionSecs+=cur.last+PAD-cur.start;cur={s,start:t,last:t};}
-        else cur.last=t;
-      });
-      if(cur)totalSessionSecs+=cur.last+PAD-cur.start;
-    });
-    const avgSecs=curDays>0?Math.round(totalSessionSecs/curDays):0;
-    const avgH=Math.floor(avgSecs/3600),avgM=Math.floor((avgSecs%3600)/60);
+    // avg_sec vient directement du backend (calculé depuis les durées réelles)
+    const avgSec=d.avg_sec||0;
+    const avgH=Math.floor(avgSec/3600),avgM=Math.floor((avgSec%3600)/60);
     const avgStr=avgH>0?(avgM>0?`${avgH}h${String(avgM).padStart(2,'0')}`:`${avgH}h`):(avgM>0?`${avgM}min`:'< 1 min');
     const avgHtml=`<div style="font-family:var(--M);font-size:.52rem;color:var(--t2);margin-bottom:.5rem;display:flex;gap:.8rem;flex-wrap:wrap">
-      <span>📊 Moy. <b style="color:var(--t1)">${avgStr}/jour</b> sur ${curDays}j</span>
-      <span style="color:var(--t3)">${daysActive} jour(s) actif(s)</span>
+      <span>📊 Moy. <b style="color:var(--t1)">${avgSec>0?avgStr:'—'}/jour</b> sur ${curDays}j</span>
+      <span style="color:var(--t3)">${d.days_with_data||0} jour(s) actif(s)</span>
     </div>`;
     wrap.innerHTML=avgHtml;
     renderHistoryTimeline(d.history||[],containerId,true);
