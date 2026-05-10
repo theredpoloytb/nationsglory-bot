@@ -819,9 +819,18 @@ select option{background:var(--bg2);color:var(--t1)}
     </div>
 
     <!-- Ajouter un sword -->
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.2rem">
-      <input id="sword-name-inp" placeholder="Pseudo sword..." style="font-family:var(--M);font-size:.52rem;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.35rem .7rem;color:var(--t1);outline:none;flex:1;min-width:130px">
-      <button onclick="swordAdd()" style="font-family:var(--M);font-size:.5rem;background:linear-gradient(135deg,#2a4a7f,#1a3a6f);color:#7eb8ff;border:1px solid rgba(100,160,255,.25);border-radius:var(--r);padding:.35rem 1rem;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem">
+        <div style="flex:1;min-width:130px;position:relative">
+          <input id="sword-name-inp" placeholder="Pseudo sword..." autocomplete="off"
+            oninput="acF('sword-name-inp','sword-acl',oP);fPT('sword-name-inp','sword-pl')"
+            onkeydown="acK(event,'sword-acl',swordAdd)"
+            style="font-family:var(--M);font-size:.52rem;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.35rem .7rem;color:var(--t1);outline:none;width:100%;box-sizing:border-box">
+          <div class="acl" id="sword-acl"></div>
+        </div>
+        <button onclick="swordAdd()" style="font-family:var(--M);font-size:.5rem;background:linear-gradient(135deg,#2a4a7f,#1a3a6f);color:#7eb8ff;border:1px solid rgba(100,160,255,.25);border-radius:var(--r);padding:.35rem 1rem;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+      </div>
+      <div id="sword-pl" class="tags" style="max-height:120px;overflow-y:auto;gap:.3rem;scrollbar-width:thin;scrollbar-color:rgba(91,163,255,.3) rgba(1,10,26,.7)"></div>
     </div>
 
     <!-- Liste swords enregistrées -->
