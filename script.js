@@ -308,7 +308,7 @@ function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'
 async function api(p){const r=await fetch(API+p,{headers:{..._authHeader()}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='referents'){loadReferents();}if(id==='activite'){initActivity();}}
+async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='referents'){loadReferents();}if(id==='activite'){initActivity();}if(id==='swords'){loadSwords();}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -1781,4 +1781,88 @@ function renderActivityStats(d){
         </div>
       </div>
     </div>`).join('');
+}
+
+// ════════════════════════════════════════════════════════
+// ⚔️  SWORD TRACKER
+// ════════════════════════════════════════════════════════
+let _swords=[], _swordOnline={};
+
+async function loadSwords(){
+  try{
+    const d=await api('/api/swords');
+    _swords=d.swords||[];
+    _swordOnline=d.online||{};
+    renderSwordList();
+    renderSwordOnline();
+  }catch(e){
+    const el=document.getElementById('sword-list');
+    if(el)el.innerHTML='<div style="color:var(--red);font-family:var(--M);font-size:.5rem">Erreur chargement</div>';
+  }
+}
+
+function renderSwordList(){
+  const el=document.getElementById('sword-list');
+  if(!el)return;
+  if(!_swords.length){
+    el.innerHTML='<div style="font-family:var(--M);font-size:.5rem;color:var(--t4);padding:.5rem 0">Aucune sword enregistrée</div>';
+    return;
+  }
+  el.innerHTML=_swords.map(s=>{
+    const isOnline=_swordOnline[s.name];
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;background:var(--bg2);border:1px solid ${isOnline?'rgba(255,200,0,.35)':'var(--b1)'};border-radius:var(--r);margin-bottom:.35rem;flex-wrap:wrap">
+      <span style="font-family:var(--M);font-size:.55rem;color:${isOnline?'#ffd700':'var(--t1)'};font-weight:700;flex:1">${isOnline?'⚔️ ':'🗡️ '}${s.name}</span>
+      ${isOnline?`<span style="font-family:var(--M);font-size:.44rem;color:#ffd700;background:rgba(255,200,0,.1);padding:.15rem .4rem;border-radius:10px">CO — ${(_swordOnline[s.name]||'?').toUpperCase()}</span>`:''}
+      <span style="font-family:var(--M);font-size:.44rem;color:var(--t3)">Timeout:</span>
+      <select onchange="swordUpdateTimeout('${s.name}',this.value)" style="font-family:var(--M);font-size:.44rem;background:var(--bg3,var(--bg2));border:1px solid var(--b1);border-radius:4px;padding:.1rem .3rem;color:var(--t1);cursor:pointer">
+        ${[3,6,12,24].map(h=>`<option value="${h}"${s.timeout_h===h?' selected':''}>${h}h</option>`).join('')}
+      </select>
+      <button onclick="swordRemove('${s.name}')" style="font-family:var(--M);font-size:.44rem;background:rgba(255,60,60,.12);color:#ff4444;border:1px solid rgba(255,60,60,.25);border-radius:4px;padding:.15rem .5rem;cursor:pointer">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderSwordOnline(){
+  const el=document.getElementById('sword-online-list');
+  const badge=document.getElementById('sword-live-badge');
+  if(!el)return;
+  const names=Object.keys(_swordOnline);
+  const swordNames=_swords.map(s=>s.name);
+  const coSwords=names.filter(n=>swordNames.includes(n));
+  if(badge)badge.style.display=coSwords.length>=2?'inline':'none';
+  if(!coSwords.length){
+    el.innerHTML='<span style="color:var(--t4)">Aucune sword connectée</span>';
+    return;
+  }
+  el.innerHTML=coSwords.map(n=>{
+    const srv=_swordOnline[n]||'?';
+    const sw=_swords.find(s=>s.name===n)||{};
+    return `<div style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(255,200,0,.07);border:1px solid rgba(255,200,0,.2);border-radius:20px;padding:.2rem .6rem;margin:.15rem">
+      <span style="color:#ffd700;font-weight:700">${n}</span>
+      <span style="color:var(--t3)">${srv.toUpperCase()}</span>
+      <span style="color:var(--t4);font-size:.38rem">timeout ${sw.timeout_h||6}h</span>
+    </div>`;
+  }).join('');
+  if(coSwords.length>=2){
+    el.innerHTML+=`<div style="margin-top:.6rem;font-family:var(--M);font-size:.52rem;background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.3);border-radius:var(--r);padding:.5rem .8rem;color:#ff5050">🚨 <b>${coSwords.length} swords co simultanément</b> — out potentiel détecté !</div>`;
+  }
+}
+
+async function swordAdd(){
+  const name=document.getElementById('sword-name-inp').value.trim();
+  const timeout_h=parseInt(document.getElementById('sword-timeout-sel').value);
+  if(!name)return;
+  await api('/api/swords/add',{method:'POST',body:JSON.stringify({name,timeout_h})});
+  document.getElementById('sword-name-inp').value='';
+  await loadSwords();
+}
+
+async function swordRemove(name){
+  await api('/api/swords/remove',{method:'POST',body:JSON.stringify({name})});
+  await loadSwords();
+}
+
+async function swordUpdateTimeout(name,timeout_h){
+  await api('/api/swords/update',{method:'POST',body:JSON.stringify({name,timeout_h:parseInt(timeout_h)})});
+  await loadSwords();
 }
