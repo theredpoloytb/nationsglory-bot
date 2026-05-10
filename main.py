@@ -1002,6 +1002,7 @@ _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
 _session_starts={}  # {(player,server): datetime}
 _sword_online={}  # {name: server} — swords actuellement connectés
+_sword_outs={}  # {name: {'until': datetime, 'duration_h': int}} — outs déclarés manuellement
 _sse_clients=[]
 
 def _record_session(player,server,start,end):
@@ -1202,6 +1203,8 @@ async def start_web():
 	 ('POST','/api/swords/remove',api_swords_remove),
 	 ('POST','/api/swords/update',api_swords_update),
 	 ('GET','/api/swords/online',api_swords_online),
+	 ('POST','/api/swords/declare_out',api_swords_declare_out),
+	 ('GET','/api/swords/outs',api_swords_outs),
 	]
 	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
 	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
@@ -1280,6 +1283,37 @@ async def api_swords_update(r):
 @require_auth
 async def api_swords_online(r):
 	return cors({'online':_sword_online,'swords':SWORDS})
+
+@require_auth
+async def api_swords_declare_out(r):
+	"""Déclare manuellement un out pour une sword."""
+	data=await r.json()
+	name=data.get('name','').strip()
+	duration_h=int(data.get('duration_h',6))
+	if not name:return cors({'error':'nom requis'},400)
+	now=datetime.utcnow()+timedelta(hours=1)
+	until=now+timedelta(hours=duration_h)
+	_sword_outs[name]={'until':until,'duration_h':duration_h,'declared_at':now}
+	# Alerte Discord
+	sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
+	if sw_ch:
+		e=discord.Embed(
+			title=f'☠️ OUT DÉCLARÉ — {name.upper()}',
+			description=f"**{name}** est déclaré OUT pendant **{duration_h}h**\nFin du out : <t:{int(until.timestamp())}:R>",
+			color=discord.Color.red(),timestamp=discord.utils.utcnow()
+		)
+		await safe_send(sw_ch,embed=e)
+	return cors({'ok':True,'name':name,'until':until.isoformat(),'duration_h':duration_h})
+
+@require_auth
+async def api_swords_outs(r):
+	"""Retourne tous les outs actifs."""
+	now=datetime.utcnow()+timedelta(hours=1)
+	# Nettoie les outs expirés
+	expired=[n for n,v in _sword_outs.items()if v['until']<=now]
+	for n in expired:del _sword_outs[n]
+	result={n:{'until':v['until'].isoformat(),'duration_h':v['duration_h'],'declared_at':v['declared_at'].isoformat()}for n,v in _sword_outs.items()}
+	return cors({'outs':result})
 
 async def main():
 	print('🚀 Démarrage...',flush=True);init_mongo()
