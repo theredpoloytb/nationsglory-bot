@@ -11,6 +11,8 @@ CH_ALERTE=0x1455d36c2644109a
 CH_STORAGE=0x1485ddced2021066
 CH_M_RAPPORT=0x14943ec2eb8000e6
 CH_M_ALERTE=0x14943ed07902001e
+CH_SWORD=int(os.getenv('CH_SWORD','0'),16) if os.getenv('CH_SWORD','').startswith('0x') else int(os.getenv('CH_SWORD','0'))
+SWORDS=[]  # [{name, timeout_h, online_servers}] — chargé depuis MongoDB
 CH_PAYS=0x1455eb96fb40000b
 DEFAULT_WL=[]
 COUNTRY_WATCHES=[]
@@ -108,6 +110,7 @@ def init_mongo():
 		sessions_col.create_index([('player',ASCENDING),('ts',ASCENDING)])
 		db['presence'].create_index([('total',-1)])
 		db['sessions2'].create_index([('player',ASCENDING),('start',ASCENDING)])
+		db['swords'].create_index([('name',ASCENDING)],unique=True)
                                
 		db['recruitments'].create_index([('server',ASCENDING),('country',ASCENDING),('ts',ASCENDING)])
 		db['notes'].create_index([('player',ASCENDING)],unique=True)
@@ -191,6 +194,20 @@ async def load_referents():
 	v=cfg_get('referent_watches')
 	if v:REFERENT_WATCHES=v;print(f"✅ Référents chargés: {len(REFERENT_WATCHES)}",flush=True)
 async def save_referents():cfg_set('referent_watches',REFERENT_WATCHES)
+
+async def load_swords():
+	global SWORDS
+	if not mongo_ok:return
+	SWORDS=list(db['swords'].find({},{'_id':0}))
+	print(f"⚔️  Swords chargés: {len(SWORDS)}",flush=True)
+
+async def save_sword(sword):
+	if not mongo_ok:return
+	db['swords'].update_one({'name':sword['name']},{'$set':sword},upsert=True)
+
+async def delete_sword(name):
+	if not mongo_ok:return
+	db['swords'].delete_one({'name':name})
 
 async def load_watchlist():await _load_wl('WL','WATCHLIST',CH_STORAGE)
 async def save_watchlist():await _save_wl('WL','WATCHLIST',CH_STORAGE)
@@ -984,6 +1001,7 @@ _wl_cmd('',WL,save_watchlist)
 _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
 _session_starts={}  # {(player,server): datetime}
+_sword_online={}  # {name: server} — swords actuellement connectés
 _sse_clients=[]
 
 def _record_session(player,server,start,end):
@@ -1076,6 +1094,19 @@ async def scan_server(server,alerte_ch):
 			if p in WL and alerte_ch:e=discord.Embed(title='🟢 CONNEXION',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts);await safe_send(alerte_ch,embed=e)
 			if p in WL:_sse_broadcast({'type':'connect','player':p,'server':server})
 			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🟢 CONNEXION — MOCHA',description=f"**{p}** → **MOCHA**",color=discord.Color.orange(),timestamp=ts);await safe_send(mocha_ch,embed=e)
+			# ── Sword tracker ──
+			sword_names=[s['name']for s in SWORDS]
+			if p in sword_names:
+				_sword_online[p]=server
+				sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
+				sw_info=next((s for s in SWORDS if s['name']==p),{})
+				timeout_h=sw_info.get('timeout_h',6)
+				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**\nTimeout out : **{timeout_h}h**",color=discord.Color.gold(),timestamp=ts))
+				# Vérif co simultanée
+				co_now={n:s for n,s in _sword_online.items() if n in sword_names}
+				if len(co_now)>=2 and sw_ch:
+					desc='\n'.join(f"⚔️ **{n}** sur **{s.upper()}**"for n,s in co_now.items())
+					await safe_send(sw_ch,embed=discord.Embed(title=f'🚨 {len(co_now)} SWORDS SIMULTANÉS — OUT POTENTIEL',description=desc,color=discord.Color.red(),timestamp=ts))
 	for(p,was)in prev.items():
 		if was and p not in pset:
 			start_dt=_session_starts.pop((p,server),None)
@@ -1083,6 +1114,12 @@ async def scan_server(server,alerte_ch):
 			if p in WL and alerte_ch:e=discord.Embed(title='🔴 DÉCONNEXION',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts);await safe_send(alerte_ch,embed=e)
 			if p in WL:_sse_broadcast({'type':'disconnect','player':p,'server':server})
 			if p in WL_MOCHA and server=='mocha'and mocha_ch:e=discord.Embed(title='🔴 DÉCONNEXION — MOCHA',description=f"**{p}** ← **MOCHA**",color=discord.Color.red(),timestamp=ts);await safe_send(mocha_ch,embed=e)
+			# ── Sword déco ──
+			sword_names=[s['name']for s in SWORDS]
+			if p in sword_names and p in _sword_online:
+				del _sword_online[p]
+				sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
+				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD DÉCO',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.dark_gold(),timestamp=ts))
 	last_states[server]={p:True for p in pset};return players
 async def check_country_watch(watch):
 	try:
@@ -1104,7 +1141,7 @@ async def check_country_watch(watch):
 			if ch:await safe_send(ch,content=f"✅ **PLUS POSSIBLE** — **{name}** sur **{server.upper()}** (moins de 2 membres ou que des recrues)")
 	except Exception as e:print(f"❌ CW scan {watch}: {e}",flush=True)
 async def scanner_loop():
-	global rapport_msg_id;await client.wait_until_ready();await load_watchlist();await load_watchlist_mocha();rapport_msg_id=await asyncio.get_running_loop().run_in_executor(None,cfg_get,'rapport_msg_id');await load_cw();await load_referents();print(f"📋 Country watches: {len(COUNTRY_WATCHES)}",flush=True);print(f"📋 Référents: {len(REFERENT_WATCHES)}",flush=True);print(f"📋 Rapport ID: {rapport_msg_id}",flush=True);ch_rapport=client.get_channel(CH_RAPPORT);ch_alerte=client.get_channel(CH_ALERTE);tick=0
+	global rapport_msg_id;await client.wait_until_ready();await load_watchlist();await load_watchlist_mocha();rapport_msg_id=await asyncio.get_running_loop().run_in_executor(None,cfg_get,'rapport_msg_id');await load_cw();await load_referents();await load_swords();print(f"📋 Country watches: {len(COUNTRY_WATCHES)}",flush=True);print(f"📋 Référents: {len(REFERENT_WATCHES)}",flush=True);print(f"📋 Rapport ID: {rapport_msg_id}",flush=True);ch_rapport=client.get_channel(CH_RAPPORT);ch_alerte=client.get_channel(CH_ALERTE);tick=0
 	while True:
 		try:
 			results=await asyncio.gather(*[scan_server(s,ch_alerte)for s in SERVERS],return_exceptions=True);sp={s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
@@ -1160,6 +1197,11 @@ async def start_web():
 	 ('POST','/api/referents/remove',api_referent_remove),
 	 ('GET','/api/referents/stats',api_referent_stats),
 	 ('GET','/api/referents/history',api_referent_history),
+	 ('GET','/api/swords',api_swords_get),
+	 ('POST','/api/swords/add',api_swords_add),
+	 ('POST','/api/swords/remove',api_swords_remove),
+	 ('POST','/api/swords/update',api_swords_update),
+	 ('GET','/api/swords/online',api_swords_online),
 	]
 	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
 	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
@@ -1193,6 +1235,51 @@ async def _start_discord():
 		except Exception as e:
 			print(f"❌ Discord erreur: {e}, retry dans 30s",flush=True)
 			await asyncio.sleep(30)
+
+
+# ════════════════════════════════════════════════════════
+# ⚔️  SWORD TRACKER API
+# ════════════════════════════════════════════════════════
+@require_auth
+async def api_swords_get(r):
+	return cors({'swords':SWORDS,'online':_sword_online})
+
+@require_auth
+async def api_swords_add(r):
+	global SWORDS
+	data=await r.json()
+	name=data.get('name','').strip()
+	if not name:return cors({'error':'nom requis'},400)
+	timeout_h=int(data.get('timeout_h',6))
+	sword={'name':name,'timeout_h':timeout_h}
+	if any(s['name']==name for s in SWORDS):return cors({'error':'déjà présent'},409)
+	SWORDS.append(sword)
+	await save_sword(sword)
+	return cors({'ok':True,'swords':SWORDS})
+
+@require_auth
+async def api_swords_remove(r):
+	global SWORDS
+	data=await r.json()
+	name=data.get('name','').strip()
+	SWORDS=[s for s in SWORDS if s['name']!=name]
+	await delete_sword(name)
+	_sword_online.pop(name,None)
+	return cors({'ok':True,'swords':SWORDS})
+
+@require_auth
+async def api_swords_update(r):
+	global SWORDS
+	data=await r.json()
+	name=data.get('name','').strip()
+	timeout_h=int(data.get('timeout_h',6))
+	for s in SWORDS:
+		if s['name']==name:s['timeout_h']=timeout_h;await save_sword(s);break
+	return cors({'ok':True,'swords':SWORDS})
+
+@require_auth
+async def api_swords_online(r):
+	return cors({'online':_sword_online,'swords':SWORDS})
 
 async def main():
 	print('🚀 Démarrage...',flush=True);init_mongo()
