@@ -698,6 +698,7 @@ select option{background:var(--bg2);color:var(--t1)}
   <button class="tab" onclick="nav('referents',this)">🏳 Référents</button>
   <button class="tab" onclick="nav('souspower',this)">⚡ Sous-Power</button>
   <button class="tab" onclick="nav('changelog',this)">◈ V2.0</button>
+  <button class="tab" onclick="nav('swords',this)">⚔️ Swords</button>
   <div class="nav-r"><span class="blink">■</span><span>SYSTÈME ACTIF</span></div>
 </nav>
 
@@ -800,6 +801,34 @@ select option{background:var(--bg2);color:var(--t1)}
     </div>
     <div class="pb" id="wl-quick">
       <div class="ld">Chargement<span class="ldd"><span>.</span><span>.</span><span>.</span></span></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="sec" id="s-swords">
+  <div class="panel mb" style="margin-top:.8rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+      <span style="font-family:var(--M);font-size:.7rem;color:var(--t1);letter-spacing:.05em">⚔️ SWORD TRACKER</span>
+      <span id="sword-live-badge" style="font-family:var(--M);font-size:.45rem;padding:.2rem .6rem;border-radius:20px;background:rgba(255,80,80,.12);color:#ff5050;border:1px solid rgba(255,80,80,.3);display:none">🔴 OUT EN COURS</span>
+    </div>
+    <!-- Ajout sword -->
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem" id="sword-add-row">
+      <input id="sword-name-inp" placeholder="Pseudo sword..." style="font-family:var(--M);font-size:.52rem;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.35rem .6rem;color:var(--t1);outline:none;flex:1;min-width:140px">
+      <select id="sword-timeout-sel" style="font-family:var(--M);font-size:.52rem;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:.35rem .6rem;color:var(--t1);outline:none">
+        <option value="3">Timeout 3h</option>
+        <option value="6" selected>Timeout 6h</option>
+        <option value="12">Timeout 12h</option>
+        <option value="24">Timeout 24h</option>
+      </select>
+      <button onclick="swordAdd()" style="font-family:var(--M);font-size:.52rem;background:var(--blue-lt);color:#fff;border:none;border-radius:var(--r);padding:.35rem .9rem;cursor:pointer">+ Ajouter</button>
+    </div>
+    <!-- Liste swords -->
+    <div id="sword-list"></div>
+    <!-- Status live -->
+    <div style="margin-top:1rem;font-family:var(--M);font-size:.5rem;color:var(--t3)" id="sword-status-wrap">
+      <div style="font-size:.55rem;color:var(--t2);margin-bottom:.4rem">Actuellement en ligne :</div>
+      <div id="sword-online-list" style="color:var(--t3)">Chargement...</div>
     </div>
   </div>
 </section>
