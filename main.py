@@ -1098,11 +1098,11 @@ async def _update_rapport(channel,msg_id_ref,embed,save_fn):
 	msg=await safe_send(channel,embed=embed);await asyncio.get_running_loop().run_in_executor(None,save_fn,msg.id);return msg.id
 async def _check_sword_action(ts):
 	global _sword_action_alerted
-	if _sword_action_alerted:return
 	co_lime=[n for n,srv in _sword_online.items() if srv=='lime' and any(s['name']==n and not s.get('is_out')for s in SWORDS)]
 	if len(co_lime)<2:return
 	ch=client.get_channel(CH_SWORD_ACTION)if CH_SWORD_ACTION else None
-	if not ch:return
+	if not ch:_sword_action_alerted=False;return  # channel pas configuré → reset flag
+	if _sword_action_alerted:return
 	_sword_action_alerted=True
 	desc='\n'.join(f"⚔️ **{n}**"for n in co_lime)
 	e=discord.Embed(title=f'🚨 ACTION POSSIBLE — {len(co_lime)} SWORDS SUR LIME',description=f"{desc}\n\n✅ Co simultanément, aucun out",color=discord.Color.red(),timestamp=ts)
