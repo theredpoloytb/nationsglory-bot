@@ -1183,6 +1183,7 @@ async def scanner_loop():
 					if p in sword_names:_sword_online[p]=srv
 					_session_starts.setdefault((p,srv),now_dt)
 		print(f"⚔️  Swords online au démarrage: {list(_sword_online.keys())}",flush=True)
+		await _check_sword_action(discord.utils.utcnow())
 	except Exception as e:print(f"❌ Init scan: {e}",flush=True)
 	while True:
 		try:
