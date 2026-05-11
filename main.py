@@ -1109,9 +1109,7 @@ async def scan_server(server,alerte_ch):
 			if p in sword_names:
 				_sword_online[p]=server
 				sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
-				sw_info=next((s for s in SWORDS if s['name']==p),{})
-				timeout_h=sw_info.get('timeout_h',6)
-				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**\nTimeout out : **{timeout_h}h**",color=discord.Color.gold(),timestamp=ts))
+				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**",color=discord.Color.gold(),timestamp=ts))
 				# Vérif co simultanée
 				co_now={n:s for n,s in _sword_online.items() if n in sword_names}
 				if len(co_now)>=2 and sw_ch:
@@ -1279,6 +1277,9 @@ async def api_swords_add(r):
 	if any(s['name']==name for s in SWORDS):return cors({'error':'déjà présent'},409)
 	SWORDS.append(sword)
 	await save_sword(sword)
+	# Vérif si déjà co au moment de l'ajout
+	for srv,players in last_states.items():
+		if players.get(name):_sword_online[name]=srv;break
 	return cors({'ok':True,'swords':SWORDS})
 
 @require_auth
