@@ -1012,6 +1012,7 @@ _wl_cmd('mocha',WL_MOCHA,save_watchlist_mocha,'MOCHA')
 last_states={s:{}for s in SERVERS}
 _session_starts={}  # {(player,server): datetime}
 _sword_online={}  # {name: server} — swords actuellement connectés
+_sword_action_alerted=False  # True si @everyone déjà envoyé pour la co actuelle
 _sword_outs={}  # {name: {'until': datetime, 'duration_h': int}} — outs déclarés manuellement
 _sse_clients=[]
 
