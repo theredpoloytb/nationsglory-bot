@@ -1787,25 +1787,20 @@ function renderActivityStats(d){
 // ════════════════════════════════════════════════════════
 // ⚔️  SWORD TRACKER
 // ════════════════════════════════════════════════════════
-let _swords=[], _swordOnline={}, _swordOuts={}, _swordOutTarget=null, _swordOutDur=null;
+let _swords=[], _swordOnline={};
 
 async function loadSwords(){
   try{
-    const [ds, do_] = await Promise.all([
-      api('/api/swords'),
-      api('/api/swords/outs')
-    ]);
-    _swords = ds.swords||[];
-    _swordOnline = ds.online||{};
-    _swordOuts = do_.outs||{};
+    const d=await api('/api/swords');
+    _swords=d.swords||[];
+    _swordOnline=d.online||{};
     renderSwords();
-  }catch(e){console.error('sword load error',e);}
+  }catch(e){console.error('sword load',e);}
 }
 
 function renderSwords(){
   renderSwordList();
   renderSwordOnline();
-  renderSwordOuts();
 }
 
 function renderSwordList(){
@@ -1815,106 +1810,63 @@ function renderSwordList(){
     el.innerHTML='<div style="font-family:var(--M);font-size:.48rem;color:var(--t4);padding:.3rem 0 .8rem">Aucune sword — ajoute un pseudo ci-dessus</div>';
     return;
   }
-  el.innerHTML=_swords.map(s=>`
-    <div style="display:flex;align-items:center;gap:.5rem;padding:.4rem .7rem;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:.3rem">
-      <span style="font-family:var(--M);font-size:.55rem;color:var(--t1);flex:1">🗡️ ${s.name}</span>
+  el.innerHTML=_swords.map(s=>{
+    const isOut=s.is_out||false;
+    const isOnline=_swordOnline[s.name];
+    return `<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem .8rem;background:var(--bg2);border:1px solid ${isOut?'rgba(255,80,80,.2)':isOnline?'rgba(255,200,0,.2)':'var(--b1)'};border-radius:var(--r);margin-bottom:.3rem">
+      <span style="font-family:var(--M);font-size:.55rem;color:${isOut?'rgba(255,100,100,.5)':isOnline?'#ffd700':'var(--t1)'};flex:1;${isOut?'text-decoration:line-through':''}">${isOnline?'⚔️':'🗡️'} ${s.name}${isOnline?' <span style=\'font-size:.4rem;color:var(--t3)\'>— '+(_swordOnline[s.name]||'').toUpperCase()+'</span>':''}</span>
+      <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-family:var(--M);font-size:.46rem;color:${isOut?'#ff6666':'var(--t3)'}">
+        <input type="checkbox" ${isOut?'checked':''} onchange="swordToggleOut('${s.name}',this.checked)"
+          style="width:14px;height:14px;cursor:pointer;accent-color:#ff4444">
+        OUT
+      </label>
       <button onclick="swordRemove('${s.name}')" style="font-family:var(--M);font-size:.42rem;background:rgba(255,60,60,.1);color:#ff5555;border:1px solid rgba(255,60,60,.2);border-radius:4px;padding:.12rem .5rem;cursor:pointer">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderSwordOnline(){
   const el=document.getElementById('sword-online-list');
-  const coBadge=document.getElementById('sword-co-badge');
+  const badge=document.getElementById('sword-co-badge');
   if(!el)return;
   const swordNames=_swords.map(s=>s.name);
   const coSwords=Object.keys(_swordOnline).filter(n=>swordNames.includes(n));
-  if(coBadge)coBadge.style.display=coSwords.length>=2?'inline':'none';
+  const coActive=coSwords.filter(n=>!(_swords.find(s=>s.name===n)||{}).is_out);
+  if(badge)badge.style.display=coActive.length>=2?'inline':'none';
   if(!coSwords.length){
     el.innerHTML='<div style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Aucune sword connectée actuellement</div>';
     return;
   }
   el.innerHTML=coSwords.map(name=>{
     const srv=_swordOnline[name]||'?';
-    const isOut=!!_swordOuts[name];
-    return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;margin-bottom:.35rem;background:${isOut?'rgba(255,50,50,.07)':'rgba(255,200,0,.06)'};border:1px solid ${isOut?'rgba(255,50,50,.25)':'rgba(255,200,0,.25)'};border-radius:var(--r)">
-      <span style="font-family:var(--M);font-size:.58rem;font-weight:700;color:${isOut?'#ff5555':'#ffd700'};flex:1">⚔️ ${name} <span style="font-size:.42rem;color:var(--t3);font-weight:400">— ${srv.toUpperCase()}</span></span>
-      ${isOut
-        ? `<span style="font-family:var(--M);font-size:.42rem;color:#ff5555;background:rgba(255,50,50,.12);padding:.15rem .5rem;border-radius:10px">OUT</span>`
-        : `<button onclick="swordOpenModal('${name}')" style="font-family:var(--M);font-size:.44rem;background:rgba(255,50,50,.15);color:#ff4444;border:1px solid rgba(255,50,50,.35);border-radius:6px;padding:.2rem .7rem;cursor:pointer">☠️ Déclarer OUT</button>`
-      }
+    const sw=_swords.find(s=>s.name===name)||{};
+    const isOut=sw.is_out||false;
+    return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;margin-bottom:.35rem;background:${isOut?'rgba(255,255,255,.03)':'rgba(255,200,0,.06)'};border:1px solid ${isOut?'rgba(255,255,255,.07)':'rgba(255,200,0,.25)'};border-radius:var(--r);opacity:${isOut?.5:1}">
+      <span style="font-family:var(--M);font-size:.58rem;font-weight:700;color:${isOut?'var(--t3)':'#ffd700'};flex:1">⚔️ ${name} <span style="font-size:.42rem;color:var(--t4);font-weight:400">— ${srv.toUpperCase()}</span></span>
+      ${isOut?'<span style="font-family:var(--M);font-size:.42rem;color:#ff6666;background:rgba(255,60,60,.1);padding:.15rem .5rem;border-radius:10px">☠️ OUT</span>':'<span style="font-family:var(--M);font-size:.42rem;color:#00e87a;background:rgba(0,232,122,.08);padding:.15rem .5rem;border-radius:10px">✅ ACTIF</span>'}
     </div>`;
   }).join('');
-  if(coSwords.length>=2){
-    el.innerHTML+=`<div style="margin-top:.6rem;font-family:var(--M);font-size:.5rem;background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.3);border-radius:var(--r);padding:.5rem .8rem;color:#ff4444">🚨 <b>${coSwords.length} swords co simultanément</b></div>`;
+  if(coActive.length>=2){
+    el.innerHTML+=`<div style="margin-top:.6rem;font-family:var(--M);font-size:.52rem;background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.3);border-radius:var(--r);padding:.5rem .8rem;color:#ff4444">🚨 <b>${coActive.length} swords actifs co simultanément sur LIME</b> — alerte Discord envoyée</div>`;
   }
 }
 
-function renderSwordOuts(){
-  const el=document.getElementById('sword-outs-list');
-  const outBadge=document.getElementById('sword-out-badge');
-  if(!el)return;
-  const outs=Object.entries(_swordOuts);
-  if(outBadge)outBadge.style.display=outs.length?'inline':'none';
-  if(!outs.length){
-    el.innerHTML='<div style="font-family:var(--M);font-size:.48rem;color:var(--t4)">Aucun out actif</div>';
-    return;
-  }
-  const now=Date.now();
-  el.innerHTML=outs.map(([name,v])=>{
-    const until=new Date(v.until).getTime();
-    const remaining=Math.max(0,Math.round((until-now)/60000));
-    const rh=Math.floor(remaining/60),rm=remaining%60;
-    const rStr=rh>0?(rm>0?`${rh}h${String(rm).padStart(2,'0')}`:`${rh}h`):`${rm}min`;
-    return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;margin-bottom:.35rem;background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:var(--r)">
-      <span style="font-family:var(--M);font-size:.55rem;color:#ff5555;flex:1">☠️ <b>${name}</b></span>
-      <span style="font-family:var(--M);font-size:.44rem;color:var(--t3)">encore <b style="color:#ff7777">${rStr}</b></span>
-    </div>`;
-  }).join('');
-}
-
-// ── Modal OUT ────────────────────────────────────────────
-function swordOpenModal(name){
-  _swordOutTarget=name;
-  _swordOutDur=null;
-  document.getElementById('sword-out-modal-name').textContent=name;
-  document.querySelectorAll('.sw-dur-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('sword-out-confirm').disabled=true;
-  document.getElementById('sword-out-confirm').style.opacity='.4';
-  document.getElementById('sword-out-modal').style.display='flex';
-}
-
-function swordCloseModal(){
-  document.getElementById('sword-out-modal').style.display='none';
-  _swordOutTarget=null;_swordOutDur=null;
-}
-
-function swordPickDur(h){
-  _swordOutDur=h;
-  document.querySelectorAll('.sw-dur-btn').forEach(b=>{
-    b.classList.toggle('selected',parseInt(b.dataset.h)===h);
-  });
-  const btn=document.getElementById('sword-out-confirm');
-  btn.disabled=false;btn.style.opacity='1';
-}
-
-async function swordConfirmOut(){
-  if(!_swordOutTarget||!_swordOutDur)return;
-  await api('/api/swords/declare_out',{method:'POST',body:JSON.stringify({name:_swordOutTarget,duration_h:_swordOutDur})});
-  swordCloseModal();
+async function swordToggleOut(name,isOut){
+  await api('/api/swords/toggle_out',{method:'POST',body:JSON.stringify({name,is_out:isOut})});
   await loadSwords();
 }
 
-// ── CRUD ─────────────────────────────────────────────────
 async function swordAdd(){
   const name=document.getElementById('sword-name-inp').value.trim();
   if(!name)return;
   await api('/api/swords/add',{method:'POST',body:JSON.stringify({name,timeout_h:6})});
   document.getElementById('sword-name-inp').value='';
+  document.getElementById('sword-acl').style.display='none';
   await loadSwords();
 }
 
 async function swordRemove(name){
-  if(!confirm(`Supprimer ${name} des swords ?`))return;
+  if(!confirm('Supprimer '+name+' des swords ?'))return;
   await api('/api/swords/remove',{method:'POST',body:JSON.stringify({name})});
   await loadSwords();
 }
