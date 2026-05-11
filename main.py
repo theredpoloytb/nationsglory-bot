@@ -209,6 +209,15 @@ async def delete_sword(name):
 	if not mongo_ok:return
 	db['swords'].delete_one({'name':name})
 
+async def set_sword_out(name,is_out):
+	global SWORDS,_sword_action_alerted
+	for s in SWORDS:
+		if s['name']==name:
+			s['is_out']=is_out
+			await save_sword(s)
+			break
+	if not is_out:_sword_action_alerted=False
+
 async def load_watchlist():await _load_wl('WL','WATCHLIST',CH_STORAGE)
 async def save_watchlist():await _save_wl('WL','WATCHLIST',CH_STORAGE)
 async def load_watchlist_mocha():await _load_wl('MOCHA','WATCHLIST_MOCHA',CH_M_RAPPORT)
