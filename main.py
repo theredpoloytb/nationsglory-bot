@@ -217,6 +217,7 @@ async def set_sword_out(name,is_out):
 			await save_sword(s)
 			break
 	if not is_out:_sword_action_alerted=False
+_sword_notif_sent={}  # dédup notifs CO {(name,server): timestamp}
 
 async def load_watchlist():await _load_wl('WL','WATCHLIST',CH_STORAGE)
 async def save_watchlist():await _save_wl('WL','WATCHLIST',CH_STORAGE)
@@ -1120,11 +1121,13 @@ async def scan_server(server,alerte_ch):
 			sword_names=[s['name']for s in SWORDS]
 			if p in sword_names:
 				_sword_online[p]=server
-				# Notif co/déco → CH_SWORD (logs)
-				sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
-				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts))
-				# Action possible → CH_SWORD_ACTION avec @everyone
-				await _check_sword_action(ts)
+				# Dédup : ne notifie que si co pas déjà notifiée dans les 60s
+				import time as _t;_now_t=_t.time()
+				if _now_t-_sword_notif_sent.get((p,server),0)>60:
+					_sword_notif_sent[(p,server)]=_now_t
+					sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
+					if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts))
+					await _check_sword_action(ts)
 	for(p,was)in prev.items():
 		if was and p not in pset:
 			start_dt=_session_starts.pop((p,server),None)
@@ -1291,9 +1294,10 @@ async def api_swords_add(r):
 	if any(s['name']==name for s in SWORDS):return cors({'error':'déjà présent'},409)
 	SWORDS.append(sword)
 	await save_sword(sword)
-	# Vérif si déjà co au moment de l'ajout
+	# Vérif si déjà co au moment de l'ajout → check action possible
 	for srv,players in last_states.items():
 		if players.get(name):_sword_online[name]=srv;break
+	await _check_sword_action(discord.utils.utcnow())
 	return cors({'ok':True,'swords':SWORDS})
 
 @require_auth
@@ -1327,6 +1331,8 @@ async def api_swords_toggle_out(r):
 	name=data.get('name','').strip()
 	is_out=bool(data.get('is_out',False))
 	await set_sword_out(name,is_out)
+	# Si décoché OUT et sword déjà co → re-check action possible
+	if not is_out:await _check_sword_action(discord.utils.utcnow())
 	return cors({'ok':True,'swords':SWORDS})
 
 
