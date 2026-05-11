@@ -308,7 +308,7 @@ function _authHeader(){const t=sessionStorage.getItem('mg_token_v3');return t?{'
 async function api(p,opts={}){const r=await fetch(API+p,{...opts,headers:{..._authHeader(),'Content-Type':'application/json',...(opts.headers||{})}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiP(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',..._authHeader()},body:JSON.stringify(b)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 
-async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='referents'){loadReferents();}if(id==='activite'){initActivity();}if(id==='swords'){loadSwords();}}
+async function nav(id,btn){sndNav();pageFlash();document.querySelector('.main').scrollTo({top:0,behavior:'instant'});document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));$('s-'+id).classList.add('active');btn.classList.add('active');if(id==='watchlist')await switchWl('lime');if(id==='countrywatch'){cwRender();cwRefreshAll();}if(id==='online'){$('ol-body').innerHTML=ld();loadOnline();}if(id==='checkall')rAT('ca-pl','ppCA');if(id==='stats')rAT('st-pl','ppST');if(id==='referents'){loadReferents();}if(id==='activite'){initActivity();}if(id==='swords'){loadSwords();}else{if(_swordPollId){clearInterval(_swordPollId);_swordPollId=null;}}}
 
 function rAT(id,fn){const e=$(id);if(!e||!oP.length)return;e.innerHTML=oP.map(p=>`<span class="tag" onclick="${fn}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');const cnt=$('ca-pl-count');if(cnt&&id==='ca-pl')cnt.textContent=oP.length+' joueurs';}
 function fPT(ii,di){const e=$(di);if(!e)return;const v=$(ii).value.trim().toLowerCase(),f=v?oP.filter(p=>p.toLowerCase().includes(v)):oP;if(!f.length){e.innerHTML='';return;}const m={'ca-pl':'ppCA','st-pl':'ppST','wl-pl':'ppWL','sword-pl':'ppSword'};e.innerHTML=f.slice(0,100).map(p=>`<span class="tag" onclick="${m[di]||'qCA'}('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');}
@@ -1787,7 +1787,7 @@ function renderActivityStats(d){
 // ════════════════════════════════════════════════════════
 // ⚔️  SWORD TRACKER
 // ════════════════════════════════════════════════════════
-let _swords=[], _swordOnline={};
+let _swords=[], _swordOnline={}, _swordPollId=null;
 
 async function loadSwords(){
   try{
@@ -1796,6 +1796,15 @@ async function loadSwords(){
     _swordOnline=d.online||{};
     renderSwords();
   }catch(e){console.error('sword load',e);}
+  // Poll live toutes les 8s
+  if(!_swordPollId)_swordPollId=setInterval(async()=>{
+    try{
+      const d=await api('/api/swords');
+      _swords=d.swords||[];
+      _swordOnline=d.online||{};
+      renderSwords();
+    }catch(e){}
+  },8000);
 }
 
 function renderSwords(){
