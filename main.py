@@ -1094,6 +1094,18 @@ async def _update_rapport(channel,msg_id_ref,embed,save_fn):
 		try:msg=await channel.fetch_message(msg_id_ref);await safe_edit(msg,embed=embed);return msg_id_ref
 		except discord.NotFound:pass
 	msg=await safe_send(channel,embed=embed);await asyncio.get_running_loop().run_in_executor(None,save_fn,msg.id);return msg.id
+async def _check_sword_action(ts):
+	global _sword_action_alerted
+	if _sword_action_alerted:return
+	co_lime=[n for n,srv in _sword_online.items() if srv=='lime' and any(s['name']==n and not s.get('is_out')for s in SWORDS)]
+	if len(co_lime)<2:return
+	ch=client.get_channel(CH_SWORD_ACTION)if CH_SWORD_ACTION else None
+	if not ch:return
+	_sword_action_alerted=True
+	desc='\n'.join(f"⚔️ **{n}**"for n in co_lime)
+	e=discord.Embed(title=f'🚨 ACTION POSSIBLE — {len(co_lime)} SWORDS SUR LIME',description=f"{desc}\n\n✅ Co simultanément, aucun out",color=discord.Color.red(),timestamp=ts)
+	await safe_send(ch,content='@everyone',embed=e)
+
 async def scan_server(server,alerte_ch):
 	players=await get_online(server);pset=set(players);prev=last_states[server];mocha_ch=client.get_channel(CH_M_ALERTE);ts=discord.utils.utcnow()
 	now=datetime.utcnow()+timedelta(hours=1)
@@ -1108,13 +1120,11 @@ async def scan_server(server,alerte_ch):
 			sword_names=[s['name']for s in SWORDS]
 			if p in sword_names:
 				_sword_online[p]=server
+				# Notif co/déco → CH_SWORD (logs)
 				sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
-				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**",color=discord.Color.gold(),timestamp=ts))
-				# Vérif co simultanée
-				co_now={n:s for n,s in _sword_online.items() if n in sword_names}
-				if len(co_now)>=2 and sw_ch:
-					desc='\n'.join(f"⚔️ **{n}** sur **{s.upper()}**"for n,s in co_now.items())
-					await safe_send(sw_ch,embed=discord.Embed(title=f'🚨 {len(co_now)} SWORDS SIMULTANÉS — OUT POTENTIEL',description=desc,color=discord.Color.red(),timestamp=ts))
+				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD CO',description=f"**{p}** → **{server.upper()}**",color=discord.Color.green(),timestamp=ts))
+				# Action possible → CH_SWORD_ACTION avec @everyone
+				await _check_sword_action(ts)
 	for(p,was)in prev.items():
 		if was and p not in pset:
 			start_dt=_session_starts.pop((p,server),None)
@@ -1126,8 +1136,12 @@ async def scan_server(server,alerte_ch):
 			sword_names=[s['name']for s in SWORDS]
 			if p in sword_names and p in _sword_online:
 				del _sword_online[p]
+				# Notif déco → CH_SWORD (logs)
 				sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
-				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='⚔️ SWORD DÉCO',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.dark_gold(),timestamp=ts))
+				if sw_ch:await safe_send(sw_ch,embed=discord.Embed(title='🔴 SWORD DÉCO',description=f"**{p}** ← **{server.upper()}**",color=discord.Color.red(),timestamp=ts))
+				global _sword_action_alerted
+				co_active=[n for n in _sword_online if any(s['name']==n and not s.get('is_out')for s in SWORDS)]
+				if len(co_active)<2:_sword_action_alerted=False
 	last_states[server]={p:True for p in pset};return players
 async def check_country_watch(watch):
 	try:
