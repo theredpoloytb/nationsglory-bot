@@ -12,6 +12,7 @@ CH_STORAGE=0x1485ddced2021066
 CH_M_RAPPORT=0x14943ec2eb8000e6
 CH_M_ALERTE=0x14943ed07902001e
 CH_SWORD=int(os.getenv('CH_SWORD','0'),16) if os.getenv('CH_SWORD','').startswith('0x') else int(os.getenv('CH_SWORD','0'))
+CH_SWORD_ACTION=int(os.getenv('CH_SWORD_ACTION','0'),16) if os.getenv('CH_SWORD_ACTION','').startswith('0x') else int(os.getenv('CH_SWORD_ACTION','0'))
 SWORDS=[]  # [{name, timeout_h, online_servers}] — chargé depuis MongoDB
 CH_PAYS=0x1455eb96fb40000b
 DEFAULT_WL=[]
