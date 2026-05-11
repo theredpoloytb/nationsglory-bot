@@ -1143,6 +1143,19 @@ async def check_country_watch(watch):
 	except Exception as e:print(f"❌ CW scan {watch}: {e}",flush=True)
 async def scanner_loop():
 	global rapport_msg_id;await client.wait_until_ready();await load_watchlist();await load_watchlist_mocha();rapport_msg_id=await asyncio.get_running_loop().run_in_executor(None,cfg_get,'rapport_msg_id');await load_cw();await load_referents();await load_swords();print(f"📋 Country watches: {len(COUNTRY_WATCHES)}",flush=True);print(f"📋 Référents: {len(REFERENT_WATCHES)}",flush=True);print(f"📋 Rapport ID: {rapport_msg_id}",flush=True);ch_rapport=client.get_channel(CH_RAPPORT);ch_alerte=client.get_channel(CH_ALERTE);tick=0
+	# Pré-remplir _sword_online + last_states au démarrage
+	try:
+		init_res=await asyncio.gather(*[get_online(s)for s in SERVERS],return_exceptions=True)
+		sword_names={s['name']for s in SWORDS}
+		now_dt=datetime.utcnow()+timedelta(hours=1)
+		for srv,players in zip(SERVERS,init_res):
+			if isinstance(players,list):
+				for p in players:
+					last_states[srv][p]=True
+					if p in sword_names:_sword_online[p]=srv
+					_session_starts.setdefault((p,srv),now_dt)
+		print(f"⚔️  Swords online au démarrage: {list(_sword_online.keys())}",flush=True)
+	except Exception as e:print(f"❌ Init scan: {e}",flush=True)
 	while True:
 		try:
 			results=await asyncio.gather(*[scan_server(s,ch_alerte)for s in SERVERS],return_exceptions=True);sp={s:r if isinstance(r,list)else[]for(s,r)in zip(SERVERS,results)}
@@ -1203,8 +1216,7 @@ async def start_web():
 	 ('POST','/api/swords/remove',api_swords_remove),
 	 ('POST','/api/swords/update',api_swords_update),
 	 ('GET','/api/swords/online',api_swords_online),
-	 ('POST','/api/swords/declare_out',api_swords_declare_out),
-	 ('GET','/api/swords/outs',api_swords_outs),
+	 ('POST','/api/swords/toggle_out',api_swords_toggle_out),
 	]
 	for(method,path,handler)in routes:app.router.add_route(method,path,handler)
 	app.router.add_route('OPTIONS','/{path_info:.*}',handle_options);runner=web.AppRunner(app);await runner.setup();port=int(os.getenv('PORT',10000));await web.TCPSite(runner,'0.0.0.0',port).start();print(f"🌐 API démarrée sur {port}",flush=True)
@@ -1285,35 +1297,14 @@ async def api_swords_online(r):
 	return cors({'online':_sword_online,'swords':SWORDS})
 
 @require_auth
-async def api_swords_declare_out(r):
-	"""Déclare manuellement un out pour une sword."""
+async def api_swords_toggle_out(r):
+	"""Toggle is_out d'une sword (coché = mort RP)."""
 	data=await r.json()
 	name=data.get('name','').strip()
-	duration_h=int(data.get('duration_h',6))
-	if not name:return cors({'error':'nom requis'},400)
-	now=datetime.utcnow()+timedelta(hours=1)
-	until=now+timedelta(hours=duration_h)
-	_sword_outs[name]={'until':until,'duration_h':duration_h,'declared_at':now}
-	# Alerte Discord
-	sw_ch=client.get_channel(CH_SWORD)if CH_SWORD else None
-	if sw_ch:
-		e=discord.Embed(
-			title=f'☠️ OUT DÉCLARÉ — {name.upper()}',
-			description=f"**{name}** est déclaré OUT pendant **{duration_h}h**\nFin du out : <t:{int(until.timestamp())}:R>",
-			color=discord.Color.red(),timestamp=discord.utils.utcnow()
-		)
-		await safe_send(sw_ch,embed=e)
-	return cors({'ok':True,'name':name,'until':until.isoformat(),'duration_h':duration_h})
+	is_out=bool(data.get('is_out',False))
+	await set_sword_out(name,is_out)
+	return cors({'ok':True,'swords':SWORDS})
 
-@require_auth
-async def api_swords_outs(r):
-	"""Retourne tous les outs actifs."""
-	now=datetime.utcnow()+timedelta(hours=1)
-	# Nettoie les outs expirés
-	expired=[n for n,v in _sword_outs.items()if v['until']<=now]
-	for n in expired:del _sword_outs[n]
-	result={n:{'until':v['until'].isoformat(),'duration_h':v['duration_h'],'declared_at':v['declared_at'].isoformat()}for n,v in _sword_outs.items()}
-	return cors({'outs':result})
 
 async def main():
 	print('🚀 Démarrage...',flush=True);init_mongo()
